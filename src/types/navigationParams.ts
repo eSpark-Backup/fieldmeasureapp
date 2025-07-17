@@ -1,5 +1,3 @@
-export type RootStackParamList = {
+export type RootNavParamList = {
   Projects: undefined;
-
-  // BottomTabs: { device?: Device; geoData?: GeoData };
 };

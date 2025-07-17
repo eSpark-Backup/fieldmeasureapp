@@ -2,9 +2,9 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Projects from '../screens/Projects';
 
-import { RootStackParamList } from '../types/navigationParams';
+import { RootNavParamList } from '../types/navigationParams';
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootNavParamList>();
 
 const RootNavigation = () => {
   return (

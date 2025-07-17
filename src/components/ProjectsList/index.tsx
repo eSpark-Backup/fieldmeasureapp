@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import React from 'react';
 import TheButton from '../TheButton';
 import TheText from '../TheText';
@@ -38,7 +38,7 @@ const ProjectCard = () => {
           <TheText text="asdasd" />
           <GapView mode="horizontal" length={10} />
           <Calendar width={16} height={16} />
-          <TheText text="asdasd" />
+          <TheText text="7/17/2025" />
         </View>
       </View>
       <View style={{ justifyContent: 'space-around' }}>

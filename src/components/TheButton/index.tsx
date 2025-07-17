@@ -14,6 +14,7 @@ const TheButton = ({
   icon,
   style,
   btnColor,
+  titleColor,
   titleStyle,
   onPress,
 }: {
@@ -21,6 +22,7 @@ const TheButton = ({
   icon?: JSX.Element;
   style?: ViewStyle;
   btnColor?: string;
+  titleColor?: string;
   titleStyle?: TextStyle;
   onPress?: () => void;
 }) => {
@@ -36,7 +38,7 @@ const TheButton = ({
       {icon}
       <TheText
         size={16}
-        style={{ color: 'white', fontSize: 16, ...titleStyle }}
+        style={{ color: titleColor ? titleColor : 'white', ...titleStyle }}
         text={btnTitle}
       />
     </TouchableOpacity>
