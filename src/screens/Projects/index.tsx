@@ -8,6 +8,7 @@ import {
 } from '../../components';
 import { RoundPlus, File } from '../../assets';
 import { useProjectStore } from '../../store/ProjectsStore';
+import { background } from '../../constants/colors';
 
 const Projects = () => {
   const projects = useProjectStore().projects;
@@ -18,7 +19,7 @@ const Projects = () => {
     <View
       style={{
         flex: 1,
-        backgroundColor: '#f9fafb',
+        backgroundColor: background,
         padding: 20,
       }}
     >
