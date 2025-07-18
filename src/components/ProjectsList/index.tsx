@@ -8,26 +8,27 @@ import { useProjectStore } from '../../store/ProjectsStore';
 import { useNavigation } from '@react-navigation/native';
 import { RootNavParamList } from '../../types/navigationParams';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { border, WhiteBackground } from '../../constants/colors';
 
-const ProjectsList = ({ projects }: { projects: number }) => {
+const ProjectsList = ({
+  projects,
+  onViewPress,
+}: {
+  projects: number;
+  onViewPress: () => void;
+}) => {
   return (
     <View style={{ flex: 1, gap: 10 }}>
       <TheText
         style={{ fontWeight: 'bold', fontSize: 20 }}
         text={`Existing Projects (${projects})`}
       />
-      <ProjectCard />
-      <ProjectCard />
-      <ProjectCard />
-      <ProjectCard />
-      <ProjectCard />
-      <ProjectCard />
-      <ProjectCard />
+      <ProjectCard onViewPress={onViewPress} />
     </View>
   );
 };
 
-const ProjectCard = () => {
+const ProjectCard = ({ onViewPress }: { onViewPress: () => void }) => {
   const decreaseProjects = useProjectStore().decreaseProjects;
 
   const navigation =
@@ -58,7 +59,7 @@ const ProjectCard = () => {
         <TheButton
           style={{ padding: 5 }}
           btnTitle="View"
-          onPress={() => navigation.navigate('ProjectDetails')}
+          onPress={onViewPress}
         />
         <TheButton
           onPress={() => decreaseProjects()}
@@ -78,9 +79,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderWidth: 1,
     borderRadius: 10,
-    borderColor: 'lightgrey',
+    borderColor: border,
     padding: 10,
-    backgroundColor: 'white',
+    backgroundColor: WhiteBackground,
     gap: 10,
   },
   qouteNoCont: {
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 5,
     borderWidth: 1,
-    borderColor: 'lightgrey',
+    borderColor: border,
   },
   rowContainer: {
     flexDirection: 'row',

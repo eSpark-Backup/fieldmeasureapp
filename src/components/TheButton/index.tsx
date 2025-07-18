@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import React, { JSX } from 'react';
 import TheText from '../TheText';
+import { primaryColor, WhiteBackground } from '../../constants/colors';
 
 const TheButton = ({
   btnTitle,
@@ -31,14 +32,17 @@ const TheButton = ({
       style={[
         styles.button,
         style,
-        { backgroundColor: btnColor ? btnColor : '#2975D2' },
+        { backgroundColor: btnColor ? btnColor : primaryColor },
       ]}
       onPress={onPress}
     >
       {icon}
       <TheText
         size={16}
-        style={{ color: titleColor ? titleColor : 'white', ...titleStyle }}
+        style={{
+          color: titleColor ? titleColor : WhiteBackground,
+          ...titleStyle,
+        }}
         text={btnTitle}
       />
     </TouchableOpacity>
@@ -52,7 +56,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 10,
     paddingHorizontal: 15,
-    backgroundColor: '#2975D2',
+    backgroundColor: primaryColor,
     borderRadius: 5,
     gap: 5,
   },

@@ -10,3 +10,4 @@ export { default as TheDatePicker } from './TheDatePicker';
 export { default as GapView } from './GapView';
 export { default as ProjectsList } from './ProjectsList';
 export { default as MeasuresList } from './MeasuresList';
+export { default as TheDropdown } from './TheDropdown';
