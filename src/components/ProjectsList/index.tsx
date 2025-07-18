@@ -5,6 +5,7 @@ import TheText from '../TheText';
 import { Calendar, Location, Person } from '../../assets';
 import GapView from '../GapView';
 import { useProjectStore } from '../../store/ProjectsStore';
+import { border, WhiteBackground } from '../../constants/colors';
 
 const ProjectsList = ({ projects }: { projects: number }) => {
   return (
@@ -61,9 +62,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderWidth: 1,
     borderRadius: 10,
-    borderColor: 'lightgrey',
+    borderColor: border,
     padding: 10,
-    backgroundColor: 'white',
+    backgroundColor: WhiteBackground,
     gap: 10,
   },
   qouteNoCont: {
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 5,
     borderWidth: 1,
-    borderColor: 'lightgrey',
+    borderColor: border,
   },
   rowContainer: {
     flexDirection: 'row',

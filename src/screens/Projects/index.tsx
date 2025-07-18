@@ -8,7 +8,13 @@ import {
 } from '../../components';
 import { RoundPlus, File } from '../../assets';
 import { useProjectStore } from '../../store/ProjectsStore';
-import { background } from '../../constants/colors';
+import {
+  background,
+  border,
+  lightBackground,
+  primaryColor,
+  WhiteBackground,
+} from '../../constants/colors';
 
 const Projects = () => {
   const projects = useProjectStore().projects;
@@ -39,8 +45,8 @@ const Projects = () => {
             width: '100%',
             borderRadius: 10,
             borderWidth: 1,
-            borderColor: 'lightgrey',
-            backgroundColor: 'white',
+            borderColor: border,
+            backgroundColor: WhiteBackground,
             borderStyle: 'solid',
             gap: 20,
             paddingVertical: 20,
@@ -101,10 +107,10 @@ const Projects = () => {
                 width: '20%',
                 marginVertical: 5,
                 borderWidth: 1,
-                borderColor: '#e0e0e0',
+                borderColor: border,
               }}
               titleColor="#000"
-              btnColor="#f5f5f5"
+              btnColor={lightBackground}
               btnTitle="Cancel"
               onPress={() => setShowInputs(false)}
             />
@@ -115,7 +121,7 @@ const Projects = () => {
           <TheButton
             onPress={() => setShowInputs(true)}
             style={{ width: '70%' }}
-            icon={<RoundPlus width={14} height={14} color={'white'} />}
+            icon={<RoundPlus width={14} height={14} color={WhiteBackground} />}
             btnTitle="Create New Project"
           />
         </View>
@@ -125,7 +131,7 @@ const Projects = () => {
         <ProjectsList projects={projects} />
       ) : showInputs ? null : (
         <View style={styles.initialContainer}>
-          <File width={40} height={40} color={'lightgrey'} />
+          <File width={40} height={40} color={border} />
           <TheText
             size={18}
             style={{ fontWeight: 'bold' }}
@@ -138,7 +144,7 @@ const Projects = () => {
           <TheButton
             onPress={() => increaseProjects()}
             style={{ marginVertical: 5, width: '60%' }}
-            icon={<RoundPlus width={14} height={14} color={'white'} />}
+            icon={<RoundPlus width={14} height={14} color={WhiteBackground} />}
             btnTitle="Create First Project"
           />
         </View>
@@ -154,10 +160,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'lightgrey',
+    borderColor: border,
     paddingVertical: 30,
     marginVertical: 20,
-    backgroundColor: 'white',
+    backgroundColor: WhiteBackground,
     gap: 10,
   },
   newContainer: {
@@ -167,7 +173,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderStyle: 'dashed',
     borderWidth: 1.5,
-    borderColor: '#2975D2',
+    borderColor: primaryColor,
     paddingVertical: 25,
     marginVertical: 20,
   },
