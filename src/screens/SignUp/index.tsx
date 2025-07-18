@@ -1,41 +1,79 @@
-import { View, Text, StyleSheet, TextInput } from 'react-native';
-import React, { useState } from 'react';
+import React from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-const SignUp = () => {
+import { TheButton, TheTextInput } from '../../components';
+import { BuildingLogo } from '../../assets';
+import { RootNavParamList } from '../../types/navigationParams';
+
+type SignUpProps = NativeStackScreenProps<RootNavParamList, 'SignUp'>;
+
+const SignUp: React.FC = () => {
+  const navigation = useNavigation<SignUpProps['navigation']>();
+
+  const handleSignUp = () => {
+    navigation.navigate('Projects');
+  };
+
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: '#f9fafb',
-        padding: 20,
-      }}
-    ></View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.logoContainer}>
+          <BuildingLogo />
+        </View>
+        <View style={styles.formContainer}>
+          <TheTextInput placeholder="John" label="First Name" />
+          <TheTextInput placeholder="Doe" label="Last Name" />
+          <TheTextInput placeholder="abc@gmail.com" label="Email" />
+          <TheTextInput
+            placeholder="********"
+            secureTextEntry
+            label="Password"
+          />
+          <TheTextInput
+            placeholder="********"
+            secureTextEntry
+            label="Confirm Password"
+          />
+          <TheButton
+            btnTitle="Sign Up"
+            onPress={handleSignUp}
+            style={styles.signUpButton}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  initialContainer: {
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'lightgrey',
-    paddingVertical: 30,
-    marginVertical: 20,
-    backgroundColor: 'white',
-    gap: 10,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+    padding: 20,
   },
-  newContainer: {
-    width: '100%',
-    justifyContent: 'center',
+  scrollView: {
+    flex: 1,
+  },
+  logoContainer: {
     alignItems: 'center',
-    borderRadius: 10,
-    borderStyle: 'dashed',
-    borderWidth: 1.5,
-    borderColor: '#2975D2',
-    paddingVertical: 25,
-    marginVertical: 20,
+    paddingBottom: '5%',
+    paddingTop: '25%',
+  },
+  formContainer: {
+    paddingVertical: '10%',
+    paddingHorizontal: '3%',
+    gap: 15,
+  },
+  signUpButton: {
+    width: '70%',
+    alignSelf: 'center',
+    marginTop: 32,
   },
 });
 

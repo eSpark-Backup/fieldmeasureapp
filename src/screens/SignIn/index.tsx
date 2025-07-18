@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TheButton, TheTextInput } from '../../components';
@@ -9,7 +8,7 @@ import { RootNavParamList } from '../../types/navigationParams';
 
 type SignInProps = NativeStackScreenProps<RootNavParamList, 'SignIn'>;
 
-const SignIn: React.FC = () => {
+const SignIn = () => {
   const navigation = useNavigation<SignInProps['navigation']>();
 
   const handleLogin = () => {
