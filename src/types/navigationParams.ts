@@ -3,5 +3,7 @@ export type RootNavParamList = {
   SignUp: undefined;
   ForgotPassword: undefined;
   Projects: undefined;
+  ProjectDetails: undefined;
+  Measurement: undefined;
   AllDetails: undefined;
 };

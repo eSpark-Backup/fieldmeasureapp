@@ -119,6 +119,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
               }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
+              nestedScrollEnabled
             >
               {renderOptions}
             </ScrollView>

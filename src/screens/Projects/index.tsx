@@ -1,13 +1,17 @@
-import { View, Text, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import React, { useState } from 'react';
+
 import {
+  GapView,
   ProjectsList,
   TheButton,
+  TheDatePicker,
   TheText,
   TheTextInput,
 } from '../../components';
 import { RoundPlus, File } from '../../assets';
 import { useProjectStore } from '../../store/ProjectsStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   background,
   border,
@@ -28,13 +32,14 @@ const Projects = () => {
   const [showInputs, setShowInputs] = useState(false);
 
   return (
-    <View
+    <ScrollView
       style={{
         flex: 1,
         backgroundColor: background,
         padding: 20,
       }}
     >
+      <GapView />
       <TheText
         size={24}
         style={{ fontWeight: 'bold' }}
@@ -69,9 +74,7 @@ const Projects = () => {
             />
           </View>
           <View style={{ gap: 10 }}>
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}
-            >
+            <View style={{ ...styles.rowContainer, gap: 15 }}>
               <TheTextInput
                 containerStyle={{ flex: 1 }}
                 label="Quote Number *"
@@ -87,30 +90,24 @@ const Projects = () => {
               label="Address *"
               placeholder="123 Main St, City, State 12345"
             />
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}
-            >
+            <View style={{ ...styles.rowContainer, gap: 15 }}>
               <TheTextInput
                 containerStyle={{ flex: 1 }}
                 label="Technician *"
                 placeholder="Tech Name"
               />
-              <TheTextInput
-                containerStyle={{ flex: 1 }}
-                label="Date *"
-                placeholder="17/07/2025"
-              />
+              <TheDatePicker containerStyle={{ flex: 1 }} label="Date *" />
             </View>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={{ ...styles.rowContainer, gap: 10 }}>
             <TheButton
               style={{ marginVertical: 5, flex: 1 }}
-              btnTitle="Create Project & Start Measuring"
+              btnTitle="Start Measuring"
               onPress={() => increaseProjects()}
             />
             <TheButton
               style={{
-                width: '20%',
+                width: '30%',
                 marginVertical: 5,
                 borderWidth: 1,
                 borderColor: border,
@@ -132,12 +129,11 @@ const Projects = () => {
           />
         </View>
       )}
-
       {projects > 0 ? (
         <ProjectsList
           projects={projects}
           onViewPress={() => {
-            navigation.navigate('AllDetails');
+            navigation.navigate('ProjectDetails');
           }}
         />
       ) : showInputs ? null : (
@@ -160,11 +156,17 @@ const Projects = () => {
           />
         </View>
       )}
-    </View>
+      <GapView />
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+    paddingHorizontal: 20,
+  },
   initialContainer: {
     width: '100%',
     justifyContent: 'center',
@@ -187,6 +189,22 @@ const styles = StyleSheet.create({
     borderColor: primaryColor,
     paddingVertical: 25,
     marginVertical: 20,
+  },
+  inputsContainer: {
+    width: '100%',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'lightgrey',
+    backgroundColor: 'white',
+    borderStyle: 'solid',
+    gap: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    marginVertical: 20,
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
