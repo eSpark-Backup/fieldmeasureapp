@@ -3,4 +3,5 @@ export type RootNavParamList = {
   SignUp: undefined;
   ForgotPassword: undefined;
   Projects: undefined;
+  AllDetails: undefined;
 };

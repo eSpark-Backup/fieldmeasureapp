@@ -7,6 +7,7 @@ import SignIn from '../screens/SignIn';
 import SignUp from '../screens/SignUp';
 import ForgotPassword from '../screens/ForgotPassword';
 import Projects from '../screens/Projects';
+import AllDetails from '../screens/AllDetails';
 
 const Stack = createNativeStackNavigator<RootNavParamList>();
 
@@ -20,6 +21,7 @@ const RootNavigation = () => {
       <Stack.Screen name="SignUp" component={SignUp} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="Projects" component={Projects} />
+      <Stack.Screen name="AllDetails" component={AllDetails} />
     </Stack.Navigator>
   );
 };

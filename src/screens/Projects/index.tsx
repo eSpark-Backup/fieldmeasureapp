@@ -15,8 +15,14 @@ import {
   primaryColor,
   WhiteBackground,
 } from '../../constants/colors';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootNavParamList } from '../../types/navigationParams';
+import { useNavigation } from '@react-navigation/native';
+
+type ProjectsProps = NativeStackScreenProps<RootNavParamList, 'Projects'>;
 
 const Projects = () => {
+  const navigation = useNavigation<ProjectsProps['navigation']>();
   const projects = useProjectStore().projects;
   const increaseProjects = useProjectStore().increaseProjects;
   const [showInputs, setShowInputs] = useState(false);
@@ -128,7 +134,12 @@ const Projects = () => {
       )}
 
       {projects > 0 ? (
-        <ProjectsList projects={projects} />
+        <ProjectsList
+          projects={projects}
+          onViewPress={() => {
+            navigation.navigate('AllDetails');
+          }}
+        />
       ) : showInputs ? null : (
         <View style={styles.initialContainer}>
           <File width={40} height={40} color={border} />

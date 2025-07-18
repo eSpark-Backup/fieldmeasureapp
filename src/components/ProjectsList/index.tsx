@@ -7,19 +7,25 @@ import GapView from '../GapView';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { border, WhiteBackground } from '../../constants/colors';
 
-const ProjectsList = ({ projects }: { projects: number }) => {
+const ProjectsList = ({
+  projects,
+  onViewPress,
+}: {
+  projects: number;
+  onViewPress: () => void;
+}) => {
   return (
     <View style={{ flex: 1, gap: 10 }}>
       <TheText
         style={{ fontWeight: 'bold', fontSize: 20 }}
         text={`Existing Projects (${projects})`}
       />
-      <ProjectCard />
+      <ProjectCard onViewPress={onViewPress} />
     </View>
   );
 };
 
-const ProjectCard = () => {
+const ProjectCard = ({ onViewPress }: { onViewPress: () => void }) => {
   const decreaseProjects = useProjectStore().decreaseProjects;
   return (
     <View style={styles.container}>
@@ -43,7 +49,11 @@ const ProjectCard = () => {
         </View>
       </View>
       <View style={{ justifyContent: 'space-around' }}>
-        <TheButton style={{ padding: 5 }} btnTitle="View" />
+        <TheButton
+          style={{ padding: 5 }}
+          btnTitle="View"
+          onPress={onViewPress}
+        />
         <TheButton
           onPress={() => decreaseProjects()}
           btnColor="#EF4443"
