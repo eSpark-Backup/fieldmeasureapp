@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TheDropdown } from '../../components';
+import { GapView, TheButton, TheDropdown } from '../../components';
 import { background } from '../../constants/colors';
 import { DROPDOWNS } from '../../constants';
+import { useNavigation } from '@react-navigation/native';
 
 const generateInitialValues = () => {
   const initialValues: { [key: string]: string } = {};
@@ -18,6 +19,8 @@ const AllDetails = () => {
     [key: string]: string;
   }>(generateInitialValues());
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
+  const navigation = useNavigation();
 
   const handleSelect = (key: string, value: string) => {
     setSelectedValues(prev => ({ ...prev, [key]: value }));
@@ -43,6 +46,8 @@ const AllDetails = () => {
             />
           ))}
         </View>
+        <GapView length={15} />
+        <TheButton btnTitle="Done" onPress={() => navigation.goBack()} />
       </ScrollView>
     </SafeAreaView>
   );

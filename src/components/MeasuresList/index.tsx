@@ -50,7 +50,7 @@ const MeasureCard = () => {
       <TheText text="Created: 7/18/2025" />
       <TheText text="Measurement Types: tape" />
       <TheButton
-        onPress={() => navigation.navigate('Measurement')}
+        onPress={() => navigation.navigate('AllDetails')}
         btnColor="#F5F5F5"
         style={{ marginVertical: 5, borderWidth: 1, borderColor: '#e0e0e0' }}
         titleColor="black"

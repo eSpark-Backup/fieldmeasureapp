@@ -9,6 +9,7 @@ import {
 import React, { useState } from 'react';
 import TheText from '../TheText';
 import DatePicker from 'react-native-modal-datetime-picker';
+import { border } from '../../constants/colors';
 
 const TheTextInput = ({
   label,
@@ -24,7 +25,10 @@ const TheTextInput = ({
 
   return (
     <View style={containerStyle}>
-      <TheText style={{ fontWeight: '500' }} text={label} />
+      <TheText
+        style={{ fontWeight: '500', paddingBottom: 5, fontSize: 16 }}
+        text={label}
+      />
       <TouchableOpacity activeOpacity={0.8} onPress={() => setShowPicker(true)}>
         <TextInput
           value={selectedDate.toLocaleDateString('en-GB')}
@@ -47,10 +51,11 @@ const TheTextInput = ({
 
 const styles = StyleSheet.create({
   inputStyle: {
+    fontSize: 16,
     color: '#000',
     paddingHorizontal: 15,
     backgroundColor: '#F5F5F5',
-    borderColor: '#E0E0E0',
+    borderColor: border,
     borderWidth: 1,
     borderRadius: 5,
   },
