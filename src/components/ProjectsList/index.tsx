@@ -5,6 +5,9 @@ import TheText from '../TheText';
 import { Calendar, Location, Person } from '../../assets';
 import GapView from '../GapView';
 import { useProjectStore } from '../../store/ProjectsStore';
+import { useNavigation } from '@react-navigation/native';
+import { RootNavParamList } from '../../types/navigationParams';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 const ProjectsList = ({ projects }: { projects: number }) => {
   return (
@@ -14,12 +17,22 @@ const ProjectsList = ({ projects }: { projects: number }) => {
         text={`Existing Projects (${projects})`}
       />
       <ProjectCard />
+      <ProjectCard />
+      <ProjectCard />
+      <ProjectCard />
+      <ProjectCard />
+      <ProjectCard />
+      <ProjectCard />
     </View>
   );
 };
 
 const ProjectCard = () => {
   const decreaseProjects = useProjectStore().decreaseProjects;
+
+  const navigation =
+    useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
+
   return (
     <View style={styles.container}>
       <View style={{ gap: 10 }}>
@@ -42,7 +55,11 @@ const ProjectCard = () => {
         </View>
       </View>
       <View style={{ justifyContent: 'space-around' }}>
-        <TheButton style={{ padding: 5 }} btnTitle="View" />
+        <TheButton
+          style={{ padding: 5 }}
+          btnTitle="View"
+          onPress={() => navigation.navigate('ProjectDetails')}
+        />
         <TheButton
           onPress={() => decreaseProjects()}
           btnColor="#EF4443"
