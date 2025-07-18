@@ -8,3 +8,4 @@ export { default as TheText } from './TheText';
 export { default as TheTextInput } from './TheTextInput';
 export { default as GapView } from './GapView';
 export { default as ProjectsList } from './ProjectsList';
+export { default as TheDropdown } from '././TheDropdown';
