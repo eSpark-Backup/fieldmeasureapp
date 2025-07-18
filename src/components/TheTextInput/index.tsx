@@ -15,6 +15,7 @@ const TheTextInput = ({
   onChange,
   style,
   containerStyle,
+  secureTextEntry,
 }: {
   label: string;
   value?: string;
@@ -22,16 +23,21 @@ const TheTextInput = ({
   onChange?: (text: string) => void;
   style?: TextStyle;
   containerStyle?: ViewStyle;
+  secureTextEntry?: boolean;
 }) => {
   return (
     <View style={containerStyle}>
-      <TheText style={{ fontWeight: '500' }} text={label} />
+      <TheText
+        style={{ fontWeight: '500', paddingBottom: 5, fontSize: 16 }}
+        text={label}
+      />
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={'#9E9E9E'}
         value={value}
         style={[styles.inputStyle, style]}
         onChangeText={onChange}
+        secureTextEntry={secureTextEntry}
       />
     </View>
   );
@@ -45,6 +51,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     borderWidth: 1,
     borderRadius: 5,
+    fontSize: 16,
   },
 });
 
