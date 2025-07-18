@@ -7,10 +7,12 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
+import { Formik } from 'formik';
+import { SignInSchema } from '../../constants/validations/schema';
 
 type SignInProps = NativeStackScreenProps<RootNavParamList, 'SignIn'>;
 
-const SignIn: React.FC = () => {
+const SignIn = () => {
   const navigation = useNavigation<SignInProps['navigation']>();
 
   return (
@@ -19,24 +21,58 @@ const SignIn: React.FC = () => {
         <BuildingLogo />
       </View>
       <View style={styles.formContainer}>
-        <TheTextInput placeholder="abd@gmail.com" label="Email" />
-        <View>
-          <TheTextInput
-            placeholder="*******"
-            label="Password"
-            secureTextEntry
-          />
-          <TheText
-            text="Forgot Password?"
-            onPress={() => navigation.navigate('ForgotPassword')}
-            style={styles.forgotPassword}
-          />
-        </View>
-        <TheButton
-          btnTitle="Login"
-          onPress={() => navigation.navigate('Projects')}
-          style={styles.loginButton}
-        />
+        <Formik
+          initialValues={{ email: '', password: '' }}
+          validationSchema={SignInSchema}
+          onSubmit={values => {
+            console.log('Form Values:', values);
+            navigation.navigate('Projects');
+          }}
+        >
+          {({
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            values,
+            errors,
+            touched,
+          }) => (
+            <>
+              <TheTextInput
+                placeholder="abd@gmail.com"
+                label="Email"
+                value={values.email}
+                onChange={handleChange('email')}
+                onBlur={handleBlur('email')}
+                error={touched.email && errors.email ? errors.email : ''}
+              />
+
+              <TheTextInput
+                label="Password"
+                placeholder="*******"
+                value={values.password}
+                onChange={handleChange('password')}
+                onBlur={handleBlur('password')}
+                secureTextEntry
+                error={
+                  touched.password && errors.password ? errors.password : ''
+                }
+              />
+
+              <TheText
+                text="Forgot Password?"
+                onPress={() => navigation.navigate('ForgotPassword')}
+                style={styles.forgotPassword}
+              />
+
+              <TheButton
+                btnTitle="Login"
+                onPress={handleSubmit}
+                style={styles.loginButton}
+              />
+            </>
+          )}
+        </Formik>
       </View>
       <View style={styles.footer}>
         <TheText text="New to Skyline? " style={styles.footerText} />
@@ -59,12 +95,12 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingVertical: '25%',
+    paddingBottom: '25%',
+    paddingTop: '18%',
   },
   formContainer: {
     paddingVertical: '10%',
     paddingHorizontal: '3%',
-    gap: 16,
   },
   forgotPassword: {
     textAlign: 'right',

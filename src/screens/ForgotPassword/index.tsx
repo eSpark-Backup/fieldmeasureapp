@@ -7,33 +7,66 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
+import { Formik } from 'formik';
+import { ForgotPasswordSchema } from '../../constants/validations/schema';
 
 type ForgotPasswordProps = NativeStackScreenProps<
   RootNavParamList,
   'ForgotPassword'
 >;
 
-const ForgotPassword: React.FC = () => {
+const ForgotPassword = () => {
   const navigation = useNavigation<ForgotPasswordProps['navigation']>();
+
+  const handleForgotPassword = (values: { email: string }) => {
+    console.log('Submitting email:', values.email);
+    navigation.navigate('SignIn');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.logoContainer}>
         <BuildingLogo />
       </View>
-      <View style={styles.formContainer}>
-        <TheText
-          text="Please enter the address associated with your account"
-          style={styles.headerText}
-          size={18}
-        />
-        <TheTextInput placeholder="abd@gmail.com" label="Email" />
-        <TheButton
-          btnTitle="Submit"
-          onPress={() => navigation.navigate('SignIn')}
-          style={styles.loginButton}
-        />
-      </View>
+
+      <Formik
+        initialValues={{ email: '' }}
+        validationSchema={ForgotPasswordSchema}
+        onSubmit={handleForgotPassword}
+      >
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          values,
+          errors,
+          touched,
+        }) => (
+          <View style={styles.formContainer}>
+            <TheText
+              text="Please enter the address associated with your account"
+              style={styles.headerText}
+              size={18}
+            />
+
+            <TheTextInput
+              label="Email"
+              placeholder="abd@gmail.com"
+              value={values.email}
+              onChange={handleChange('email')}
+              onBlur={handleBlur('email')}
+              error={touched.email && errors.email ? errors.email : ''}
+            />
+
+            <TheButton
+              btnTitle="Submit"
+              onPress={handleSubmit}
+              style={styles.loginButton}
+            />
+          </View>
+        )}
+      </Formik>
+
       <View style={styles.footer}>
         <TheText text="New to Skyline? " style={styles.footerText} />
         <TheText
@@ -55,7 +88,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: '25%',
+    paddingTop: '18%',
     paddingBottom: '20%',
   },
   formContainer: {

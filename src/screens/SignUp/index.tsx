@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -8,13 +7,16 @@ import { TheButton, TheText, TheTextInput } from '../../components';
 import { BuildingLogo } from '../../assets';
 import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
+import { Formik } from 'formik';
+import { SignUpSchema } from '../../constants/validations/schema';
 
 type SignUpProps = NativeStackScreenProps<RootNavParamList, 'SignUp'>;
 
-const SignUp: React.FC = () => {
+const SignUp = () => {
   const navigation = useNavigation<SignUpProps['navigation']>();
 
-  const handleSignUp = () => {
+  const handleSignUp = (values: any) => {
+    console.log('Sign Up Form Values:', values);
     navigation.navigate('Projects');
   };
 
@@ -27,26 +29,88 @@ const SignUp: React.FC = () => {
         <View style={styles.logoContainer}>
           <BuildingLogo />
         </View>
-        <View style={styles.formContainer}>
-          <TheTextInput placeholder="John" label="First Name" />
-          <TheTextInput placeholder="Doe" label="Last Name" />
-          <TheTextInput placeholder="abc@gmail.com" label="Email" />
-          <TheTextInput
-            placeholder="********"
-            secureTextEntry
-            label="Password"
-          />
-          <TheTextInput
-            placeholder="********"
-            secureTextEntry
-            label="Confirm Password"
-          />
-          <TheButton
-            btnTitle="Sign Up"
-            onPress={handleSignUp}
-            style={styles.signUpButton}
-          />
-        </View>
+
+        <Formik
+          initialValues={{
+            firstName: '',
+            lastName: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+          }}
+          validationSchema={SignUpSchema}
+          onSubmit={handleSignUp}
+        >
+          {({
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            values,
+            errors,
+            touched,
+          }) => (
+            <View style={styles.formContainer}>
+              <TheTextInput
+                label="First Name"
+                placeholder="John"
+                value={values.firstName}
+                onChange={handleChange('firstName')}
+                onBlur={handleBlur('firstName')}
+                error={
+                  touched.firstName && errors.firstName ? errors.firstName : ''
+                }
+              />
+              <TheTextInput
+                label="Last Name"
+                placeholder="Doe"
+                value={values.lastName}
+                onChange={handleChange('lastName')}
+                onBlur={handleBlur('lastName')}
+                error={
+                  touched.lastName && errors.lastName ? errors.lastName : ''
+                }
+              />
+              <TheTextInput
+                label="Email"
+                placeholder="abc@gmail.com"
+                value={values.email}
+                onChange={handleChange('email')}
+                onBlur={handleBlur('email')}
+                error={touched.email && errors.email ? errors.email : ''}
+              />
+              <TheTextInput
+                label="Password"
+                placeholder="********"
+                secureTextEntry
+                value={values.password}
+                onChange={handleChange('password')}
+                onBlur={handleBlur('password')}
+                error={
+                  touched.password && errors.password ? errors.password : ''
+                }
+              />
+              <TheTextInput
+                label="Confirm Password"
+                placeholder="********"
+                secureTextEntry
+                value={values.confirmPassword}
+                onChange={handleChange('confirmPassword')}
+                onBlur={handleBlur('confirmPassword')}
+                error={
+                  touched.confirmPassword && errors.confirmPassword
+                    ? errors.confirmPassword
+                    : ''
+                }
+              />
+              <TheButton
+                btnTitle="Sign Up"
+                onPress={handleSubmit}
+                style={styles.signUpButton}
+              />
+            </View>
+          )}
+        </Formik>
+
         <View style={styles.footer}>
           <TheText text="Already have an account? " style={styles.footerText} />
           <TheText
@@ -72,12 +136,12 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     paddingBottom: '5%',
-    paddingTop: '25%',
+    paddingTop: '18%',
   },
   formContainer: {
     paddingVertical: '10%',
     paddingHorizontal: '3%',
-    gap: 15,
+    gap: 2,
   },
   signUpButton: {
     width: '70%',
