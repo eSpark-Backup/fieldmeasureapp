@@ -88,7 +88,9 @@ const TheDropdown: React.FC<DropdownProps> = ({
       {title && (
         <View style={styles.labelRow}>
           <TheText style={styles.label} text={title} />
-          {required && <TheText style={styles.required} text=" *" />}
+          {required && (
+            <TheText color={'red'} style={styles.required} text=" *" />
+          )}
         </View>
       )}
 
@@ -99,9 +101,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
         >
           <TheText
             text={selectedItem || placeholder}
-            style={{
-              color: selectedItem ? '#000' : '#969696',
-            }}
+            color={selectedItem ? '#000' : '#969696'}
           />
           <EntypoIcon
             name={show ? 'chevron-up' : 'chevron-down'}
@@ -141,7 +141,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   required: {
-    color: 'red',
     fontSize: 16,
     marginBottom: 5,
   },

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TheButton, TheText, TheTextInput } from '../../components';
+import { GapView, TheButton, TheText, TheTextInput } from '../../components';
 import { BuildingLogo } from '../../assets';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -46,7 +46,7 @@ const SignIn = () => {
                 onBlur={handleBlur('email')}
                 error={touched.email && errors.email ? errors.email : ''}
               />
-
+              <GapView />
               <TheTextInput
                 label="Password"
                 placeholder="*******"
@@ -62,12 +62,13 @@ const SignIn = () => {
               <TheText
                 text="Forgot Password?"
                 onPress={() => navigation.navigate('ForgotPassword')}
+                color={primaryColor}
                 style={styles.forgotPassword}
               />
 
               <TheButton
                 btnTitle="Login"
-                onPress={() => navigation.navigate('Projects')}
+                onPress={handleSubmit}
                 style={styles.loginButton}
               />
             </>
@@ -78,6 +79,7 @@ const SignIn = () => {
         <TheText text="New to Skyline? " style={styles.footerText} />
         <TheText
           text="Create Account"
+          color={primaryColor}
           onPress={() => navigation.navigate('SignUp')}
           style={styles.createAccount}
         />
@@ -106,7 +108,6 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontWeight: 'bold',
     paddingTop: 8,
-    color: primaryColor,
   },
   loginButton: {
     width: '70%',
@@ -125,7 +126,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   createAccount: {
-    color: primaryColor,
     fontWeight: 'bold',
     textAlign: 'center',
   },

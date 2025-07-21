@@ -1,3 +1,5 @@
+import { toolNames } from '../types';
+
 export const DROPDOWNS = [
   {
     data: ['Clear', 'Frosted', 'Tinted', 'Clear', 'Frosted', 'Tinted'],
@@ -83,4 +85,14 @@ export const DROPDOWNS = [
     id: 'doorHeight',
     selected: '',
   },
+];
+
+export const TOOLS: toolNames[] = [
+  'Tape',
+  'Laser',
+  'Rake',
+  'Rectangle',
+  'Corner',
+  'Note',
+  'RoundUp',
 ];

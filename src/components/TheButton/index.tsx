@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ViewStyle,
   TextStyle,
+  ColorValue,
 } from 'react-native';
 import React, { JSX } from 'react';
 import TheText from '../TheText';
@@ -22,8 +23,8 @@ const TheButton = ({
   btnTitle: string;
   icon?: JSX.Element;
   style?: ViewStyle;
-  btnColor?: string;
-  titleColor?: string;
+  btnColor?: ColorValue;
+  titleColor?: ColorValue;
   titleStyle?: TextStyle;
   onPress?: () => void;
 }) => {
@@ -37,14 +38,14 @@ const TheButton = ({
       onPress={onPress}
     >
       {icon}
-      <TheText
-        size={16}
-        style={{
-          color: titleColor ? titleColor : WhiteBackground,
-          ...titleStyle,
-        }}
-        text={btnTitle}
-      />
+      {btnTitle ? (
+        <TheText
+          size={16}
+          color={titleColor ? titleColor : WhiteBackground}
+          style={titleStyle}
+          text={btnTitle}
+        />
+      ) : null}
     </TouchableOpacity>
   );
 };

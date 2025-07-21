@@ -32,10 +32,7 @@ const TheTextInput = ({
 }) => {
   return (
     <View style={containerStyle}>
-      <TheText
-        style={{ fontWeight: '500', paddingBottom: 5, fontSize: 16 }}
-        text={label}
-      />
+      <TheText style={styles.label} text={label} />
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={'#9E9E9E'}
@@ -45,10 +42,14 @@ const TheTextInput = ({
         secureTextEntry={secureTextEntry}
         onBlur={onBlur}
       />
-
-      {/* {error ? (
-        <TheText text={error} style={styles.errorText} size={10} />
-      ) : null} */}
+      {error ? (
+        <TheText
+          text={error}
+          color={'red'}
+          style={styles.errorText}
+          size={10}
+        />
+      ) : null}
     </View>
   );
 };
@@ -64,10 +65,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   errorText: {
-    color: 'red',
     paddingTop: 4,
     textAlign: 'right',
   },
+  label: { fontWeight: '500', paddingVertical: 5, fontSize: 16 },
 });
 
 export default TheTextInput;

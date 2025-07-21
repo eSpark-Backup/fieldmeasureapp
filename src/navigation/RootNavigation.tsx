@@ -39,7 +39,13 @@ const RootNavigation = () => {
           headerShown: true,
         }}
       />
-      <Stack.Screen name="Measurement" component={Measurement} />
+      <Stack.Screen
+        name="Measurement"
+        component={Measurement}
+        options={{
+          headerShown: true,
+        }}
+      />
       <Stack.Screen name="AllDetails" component={AllDetails} />
     </Stack.Navigator>
   );

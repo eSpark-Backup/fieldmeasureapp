@@ -73,7 +73,7 @@ const Projects = () => {
               text="New Project Details"
             />
           </View>
-          <View style={{ gap: 10 }}>
+          <View style={{ gap: 5 }}>
             <View style={{ ...styles.rowContainer, gap: 15 }}>
               <TheTextInput
                 containerStyle={{ flex: 1 }}
