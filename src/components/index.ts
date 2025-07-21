@@ -11,3 +11,4 @@ export { default as GapView } from './GapView';
 export { default as ProjectsList } from './ProjectsList';
 export { default as MeasuresList } from './MeasuresList';
 export { default as TheDropdown } from './TheDropdown';
+export { default as TheTool } from './TheTool';

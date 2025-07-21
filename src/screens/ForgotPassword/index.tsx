@@ -73,6 +73,7 @@ const ForgotPassword = () => {
           text="Create Account"
           onPress={() => navigation.navigate('SignUp')}
           style={styles.createAccount}
+          color={primaryColor}
         />
       </View>
     </SafeAreaView>
@@ -117,7 +118,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   createAccount: {
-    color: primaryColor,
     fontWeight: 'bold',
     textAlign: 'center',
   },

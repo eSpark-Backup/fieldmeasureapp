@@ -24,8 +24,8 @@ const RootNavigation = () => {
         headerShown: false,
         animation: 'none',
         contentStyle: {
-          // top: useSafeAreaInsets().top,
-          // marginBottom: useSafeAreaInsets().bottom + useSafeAreaInsets().top,
+          // marginTop: useSafeAreaInsets().top + useSafeAreaInsets().bottom,
+          // bottom: useSafeAreaInsets().bottom,
         },
       }}
     >

@@ -37,13 +37,9 @@ const TheTextInput = ({
   return (
     <View style={containerStyle}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TheText
-          style={{ fontWeight: '500', paddingBottom: 5, fontSize: 16 }}
-          text={label}
-        />
+        <TheText style={styles.label} text={label} />
         {required && <TheText style={styles.required} text=" *" />}
       </View>
-
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={'#9E9E9E'}
@@ -55,11 +51,15 @@ const TheTextInput = ({
         keyboardType={isNum ? 'decimal-pad' : 'default'}
         inputMode={isNum ? 'decimal' : 'text'}
       />
-
       {error ? (
-        <TheText text={error} style={styles.errorText} size={10} />
+        <TheText
+          text={error}
+          color={'red'}
+          style={styles.errorText}
+          size={10}
+        />
       ) : (
-        <TheText text={''} style={styles.errorText} size={10} />
+        <TheText text={''} color={'red'} style={styles.errorText} size={10} />
       )}
     </View>
   );
@@ -76,13 +76,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   errorText: {
-    color: 'red',
-
     paddingTop: 4,
     textAlign: 'right',
   },
+  label: { fontWeight: '500', paddingVertical: 5, fontSize: 16 },
   required: {
-    color: 'red',
     fontSize: 16,
     marginBottom: 5,
   },

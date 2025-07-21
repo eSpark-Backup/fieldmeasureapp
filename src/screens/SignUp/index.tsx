@@ -104,7 +104,6 @@ const SignUp = () => {
               />
               <TheButton
                 btnTitle="Sign Up"
-                // onPress={() => navigation.navigate('Projects')}
                 onPress={handleSubmit}
                 style={styles.signUpButton}
               />
@@ -117,6 +116,7 @@ const SignUp = () => {
           <TheText
             text="Sign In"
             onPress={() => navigation.navigate('SignIn')}
+            color={primaryColor}
             style={styles.createAccount}
           />
         </View>
@@ -161,7 +161,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   createAccount: {
-    color: primaryColor,
     fontWeight: 'bold',
     textAlign: 'center',
   },

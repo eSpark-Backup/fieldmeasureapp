@@ -72,7 +72,9 @@ const Dropdown: React.FC<DropdownProps> = ({
     <View style={styles.container}>
       <View style={styles.labelRow}>
         <TheText style={styles.label} text={label} />
-        {required && <TheText style={styles.required} text=" *" />}
+        {required && (
+          <TheText color={'red'} style={styles.required} text=" *" />
+        )}
       </View>
       <TouchableOpacity
         ref={dropdownRef}
@@ -120,7 +122,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   required: {
-    color: 'red',
     fontSize: 16,
     marginBottom: 5,
   },

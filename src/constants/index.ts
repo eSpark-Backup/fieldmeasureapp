@@ -1,3 +1,5 @@
+import { toolNames } from '../types';
+
 export const DROPDOWNS = [
   {
     data: [
@@ -120,4 +122,14 @@ export const INPUT_FIELDS = [
     field: 'doorHeight',
     placeholder: 'Enter Height in inches',
   },
+];
+
+export const TOOLS: toolNames[] = [
+  'Tape',
+  'Laser',
+  'Rake',
+  'Rectangle',
+  'Corner',
+  'Note',
+  'RoundUp',
 ];
