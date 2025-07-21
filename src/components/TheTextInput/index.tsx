@@ -46,9 +46,11 @@ const TheTextInput = ({
         onBlur={onBlur}
       />
 
-      {/* {error ? (
+      {error ? (
         <TheText text={error} style={styles.errorText} size={10} />
-      ) : null} */}
+      ) : (
+        <TheText text={''} style={styles.errorText} size={10} />
+      )}
     </View>
   );
 };
@@ -65,6 +67,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
+
     paddingTop: 4,
     textAlign: 'right',
   },
