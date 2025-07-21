@@ -6,3 +6,4 @@ export { default as Calendar } from './vectors/calendar.svg';
 export { default as Camera } from './vectors/camera.svg';
 export { default as Bin } from './vectors/bin.svg';
 export { default as BuildingLogo } from './vectors/buildingLogo.svg';
+export { default as Back } from './vectors/back.svg';

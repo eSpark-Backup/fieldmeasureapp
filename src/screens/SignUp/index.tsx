@@ -104,7 +104,8 @@ const SignUp = () => {
               />
               <TheButton
                 btnTitle="Sign Up"
-                onPress={() => navigation.navigate('Projects')}
+                // onPress={() => navigation.navigate('Projects')}
+                onPress={handleSubmit}
                 style={styles.signUpButton}
               />
             </View>
