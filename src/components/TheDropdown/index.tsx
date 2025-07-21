@@ -30,6 +30,7 @@ interface DropdownProps {
   required?: boolean;
   isOpen: boolean;
   setOpenDropdownId: (id: string | null) => void;
+  error?: string;
 }
 
 const TheDropdown: React.FC<DropdownProps> = ({
@@ -45,6 +46,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
   required,
   isOpen,
   setOpenDropdownId,
+  error,
 }) => {
   const [show, setShow] = useState(false);
   const [selectedItem, setSelectedItem] = useState(selected ?? '');
@@ -69,7 +71,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
           key={item}
           style={[
             styles.optionItem,
-            { borderColor: border, height },
+            { borderColor: border },
             index > 0 && styles.optionItemBorder,
           ]}
           onPress={() => handleSelection(item)}
@@ -80,7 +82,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
           )}
         </TouchableOpacity>
       )),
-    [data, handleSelection, height, selectedItem],
+    [data, handleSelection, selectedItem],
   );
 
   return (
@@ -92,9 +94,9 @@ const TheDropdown: React.FC<DropdownProps> = ({
         </View>
       )}
 
-      <View style={[style, { height }]}>
+      <View style={[style, {}]}>
         <Pressable
-          style={[styles.dropdownButton, { height, borderColor: border }]}
+          style={[styles.dropdownButton, { borderColor: border }]}
           onPress={handleToggle}
         >
           <TheText
@@ -102,6 +104,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
             style={{
               color: selectedItem ? '#000' : '#969696',
             }}
+            size={16}
           />
           <EntypoIcon
             name={show ? 'chevron-up' : 'chevron-down'}
@@ -109,6 +112,11 @@ const TheDropdown: React.FC<DropdownProps> = ({
             size={16}
           />
         </Pressable>
+        {error ? (
+          <TheText text={error} style={styles.errorText} size={10} />
+        ) : (
+          <TheText text={''} style={styles.errorText} size={10} />
+        )}
 
         {isOpen && (
           <View style={[styles.dropdownListWrapper, { zIndex }]}>
@@ -157,7 +165,7 @@ const styles = StyleSheet.create({
   },
   dropdownListWrapper: {
     position: 'absolute',
-    top: '100%',
+    top: '70%',
     width: '100%',
     borderWidth: 1,
     borderBottomRightRadius: 5,
@@ -170,10 +178,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    padding: 10,
   },
   optionItemBorder: {
     borderTopWidth: 0.5,
+  },
+  errorText: {
+    color: 'red',
+    paddingTop: 4,
+    textAlign: 'right',
   },
 });
 

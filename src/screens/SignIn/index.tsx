@@ -67,7 +67,7 @@ const SignIn = () => {
 
               <TheButton
                 btnTitle="Login"
-                // onPress={() => navigation.navigate('Projects')}
+                // onPress={() => navigation.navigate('AllDetails')}
                 onPress={handleSubmit}
                 style={styles.loginButton}
               />
