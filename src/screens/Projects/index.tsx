@@ -133,7 +133,16 @@ const Projects = () => {
         <ProjectsList
           projects={projects}
           onViewPress={() => {
-            navigation.navigate('ProjectDetails');
+            navigation.navigate({
+              name: 'ProjectDetails',
+              params: {
+                projectId: '123135',
+                title: 'John',
+                address: '132132 adjvdjs',
+                date: '2024-01-01',
+                extraInfo: 'Additional info here',
+              },
+            });
           }}
         />
       ) : showInputs ? null : (
