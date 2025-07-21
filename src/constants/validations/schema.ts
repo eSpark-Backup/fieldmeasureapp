@@ -21,4 +21,7 @@ const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
 });
 
-export { SignInSchema, SignUpSchema, ForgotPasswordSchema };
+const DECIMAL_REGEX = /^\d*\.?\d*$/;
+const validateDecimal = (val: string) => DECIMAL_REGEX.test(val);
+
+export { SignInSchema, SignUpSchema, ForgotPasswordSchema, validateDecimal };

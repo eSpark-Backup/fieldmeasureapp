@@ -1,37 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GapView, TheButton, TheDropdown } from '../../components';
+import {
+  GapView,
+  TheButton,
+  TheDatePicker,
+  TheDropdown,
+  TheTextInput,
+} from '../../components';
 import { background } from '../../constants/colors';
-import { DROPDOWNS } from '../../constants';
+import { DROPDOWNS, INPUT_FIELDS } from '../../constants';
 import { useNavigation } from '@react-navigation/native';
+import { validateDecimal } from '../../constants/validations/schema';
+import TheDescriptionBox from '../../components/TheDescriptionBox';
 
-const generateInitialValues = () => {
-  const initialValues: { [key: string]: string } = {};
-  DROPDOWNS.forEach(drop => {
-    initialValues[drop.id] = drop.selected || '';
-  });
-  return initialValues;
-};
+const generateInitialValues = () =>
+  Object.fromEntries(DROPDOWNS.map(drop => [drop.id, drop.selected || '']));
 
 const AllDetails = () => {
-  const [selectedValues, setSelectedValues] = useState<{
-    [key: string]: string;
-  }>(generateInitialValues());
+  const [selectedValues, setSelectedValues] = useState(generateInitialValues());
+  const [description, setDescription] = useState('');
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-
+  const [inputs, setInputs] = useState<{ [key: string]: string }>({
+    curbHeight: '',
+    doorWidth: '',
+    doorHeight: '',
+  });
   const navigation = useNavigation();
 
-  const handleSelect = (key: string, value: string) => {
+  const handleSelect = useCallback((key: string, value: string) => {
     setSelectedValues(prev => ({ ...prev, [key]: value }));
-    console.log(`Selected from ${key}: ${value}`);
-  };
+    setErrors(prev => ({ ...prev, [key]: '' }));
+  }, []);
+
+  const handleInputChange = useCallback((field: string, value: string) => {
+    setInputs(prev => ({ ...prev, [field]: value }));
+    setErrors(prev => ({ ...prev, [field]: '' }));
+  }, []);
+
+  const handleSubmit = useCallback(() => {
+    const newErrors: { [key: string]: string } = {};
+
+    DROPDOWNS.forEach(({ id, title }) => {
+      if (!selectedValues[id]) newErrors[id] = `${title} is required`;
+    });
+
+    INPUT_FIELDS.forEach(({ field, label }) => {
+      const value = inputs[field];
+      if (!value) newErrors[field] = `${label} is required`;
+      else if (!validateDecimal(value))
+        newErrors[field] = `${label} must be a valid decimal`;
+    });
+
+    setErrors(newErrors);
+
+    if (!Object.keys(newErrors).length) {
+      navigation.goBack();
+    } else {
+      console.log('Validation Errors:', newErrors);
+    }
+  }, [selectedValues, inputs, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <View style={{ gap: 15 }}>
-          {DROPDOWNS.map(({ data, placeholder, title, id }, idx) => (
+        <View>
+          <TheDescriptionBox
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Additional notes and details"
+          />
+          {DROPDOWNS.map(({ data, placeholder, title, id }) => (
             <TheDropdown
               key={id}
               data={data}
@@ -43,11 +83,28 @@ const AllDetails = () => {
               required
               isOpen={openDropdownId === id}
               setOpenDropdownId={setOpenDropdownId}
+              error={errors[id]}
             />
           ))}
         </View>
-        <GapView length={15} />
-        <TheButton btnTitle="Done" onPress={() => navigation.goBack()} />
+
+        {INPUT_FIELDS.map(({ label, field, placeholder }) => (
+          <TheTextInput
+            key={field}
+            label={label}
+            required
+            value={inputs[field]}
+            onChange={text => handleInputChange(field, text)}
+            error={errors[field]}
+            isNum
+            placeholder={placeholder}
+          />
+        ))}
+
+        <TheDatePicker label="Date promised" />
+
+        <GapView length={25} mode="vertical" />
+        <TheButton btnTitle="Done" onPress={handleSubmit} />
       </ScrollView>
     </SafeAreaView>
   );

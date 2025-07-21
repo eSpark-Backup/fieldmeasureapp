@@ -13,6 +13,7 @@ import SignUp from '../screens/SignUp';
 import ForgotPassword from '../screens/ForgotPassword';
 import Projects from '../screens/Projects';
 import AllDetails from '../screens/AllDetails';
+import TheHeader from '../components/TheHeader';
 
 const Stack = createNativeStackNavigator<RootNavParamList>();
 
@@ -23,8 +24,8 @@ const RootNavigation = () => {
         headerShown: false,
         animation: 'none',
         contentStyle: {
-          // top: useSafeAreaInsets().top,
-          // marginBottom: useSafeAreaInsets().bottom + useSafeAreaInsets().top,
+          // marginTop: useSafeAreaInsets().top + useSafeAreaInsets().bottom,
+          // bottom: useSafeAreaInsets().bottom,
         },
       }}
     >
@@ -37,6 +38,20 @@ const RootNavigation = () => {
         component={ProjectDetails}
         options={{
           headerShown: true,
+          header: ({ navigation, route }) => {
+            const { projectId, title, address, date, extraInfo } =
+              route.params as RootNavParamList['ProjectDetails'];
+            return (
+              <TheHeader
+                onBackPress={() => navigation.goBack()}
+                projectId={projectId}
+                title={title}
+                address={address}
+                date={date}
+                extraInfo={extraInfo}
+              />
+            );
+          },
         }}
       />
       <Stack.Screen
@@ -44,9 +59,43 @@ const RootNavigation = () => {
         component={Measurement}
         options={{
           headerShown: true,
+          header: ({ navigation, route }) => {
+            const { projectId, title, address, date, extraInfo } =
+              route.params as RootNavParamList['Measurement'];
+            return (
+              <TheHeader
+                onBackPress={() => navigation.goBack()}
+                projectId={projectId}
+                title={title}
+                address={address}
+                date={date}
+                extraInfo={extraInfo}
+              />
+            );
+          },
         }}
       />
-      <Stack.Screen name="AllDetails" component={AllDetails} />
+      <Stack.Screen
+        name="AllDetails"
+        component={AllDetails}
+        options={{
+          headerShown: true,
+          header: ({ navigation, route }) => {
+            const { projectId, title, address, date, extraInfo } =
+              route.params as RootNavParamList['AllDetails'];
+            return (
+              <TheHeader
+                onBackPress={() => navigation.goBack()}
+                projectId={projectId}
+                title={title}
+                address={address}
+                date={date}
+                extraInfo={extraInfo}
+              />
+            );
+          },
+        }}
+      />
     </Stack.Navigator>
   );
 };

@@ -16,9 +16,11 @@ const TheTextInput = ({
   style,
   containerStyle,
   secureTextEntry,
+  required,
   onChange,
   onBlur,
   error,
+  isNum,
 }: {
   label: string;
   value?: string;
@@ -29,10 +31,15 @@ const TheTextInput = ({
   onChange?: (text: string) => void;
   onBlur?: (e: any) => void;
   error?: string;
+  required?: boolean;
+  isNum?: boolean;
 }) => {
   return (
     <View style={containerStyle}>
-      <TheText style={styles.label} text={label} />
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TheText style={styles.label} text={label} />
+        {required && <TheText style={styles.required} text=" *" />}
+      </View>
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={'#9E9E9E'}
@@ -41,6 +48,8 @@ const TheTextInput = ({
         onChangeText={onChange}
         secureTextEntry={secureTextEntry}
         onBlur={onBlur}
+        keyboardType={isNum ? 'decimal-pad' : 'default'}
+        inputMode={isNum ? 'decimal' : 'text'}
       />
       {error ? (
         <TheText
@@ -49,7 +58,9 @@ const TheTextInput = ({
           style={styles.errorText}
           size={10}
         />
-      ) : null}
+      ) : (
+        <TheText text={''} color={'red'} style={styles.errorText} size={10} />
+      )}
     </View>
   );
 };
@@ -69,6 +80,10 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   label: { fontWeight: '500', paddingVertical: 5, fontSize: 16 },
+  required: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
 });
 
 export default TheTextInput;

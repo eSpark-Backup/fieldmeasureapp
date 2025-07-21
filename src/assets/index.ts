@@ -13,3 +13,4 @@ export { default as Rectangle } from './vectors/rectangle.svg';
 export { default as Corner } from './vectors/corner.svg';
 export { default as Note } from './vectors/note.svg';
 export { default as RoundUp } from './vectors/roundup.svg';
+export { default as Back } from './vectors/back.svg';
