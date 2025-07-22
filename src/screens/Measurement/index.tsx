@@ -191,6 +191,7 @@ const Measurement = () => {
               btnTitle="Upload Photo"
               icon={<Upload />}
               titleStyle={{ fontWeight: 'bold' }}
+              onPress={getImage}
             />
           </View>
           <View style={styles.initialContainer}>
