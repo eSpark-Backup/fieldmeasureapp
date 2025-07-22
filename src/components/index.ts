@@ -12,3 +12,4 @@ export { default as ProjectsList } from './ProjectsList';
 export { default as MeasuresList } from './MeasuresList';
 export { default as TheDropdown } from './TheDropdown';
 export { default as TheTool } from './TheTool';
+export { default as TheToggle } from './TheToggle';

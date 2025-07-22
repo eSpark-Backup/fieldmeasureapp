@@ -22,7 +22,7 @@ const TheTextInput = ({
   error,
   isNum,
 }: {
-  label: string;
+  label?: string;
   value?: string;
   placeholder?: string;
   style?: TextStyle;
@@ -37,7 +37,7 @@ const TheTextInput = ({
   return (
     <View style={containerStyle}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TheText style={styles.label} text={label} />
+        {label && <TheText style={styles.label} text={label} />}
         {required && <TheText style={styles.required} text=" *" />}
       </View>
       <TextInput

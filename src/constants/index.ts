@@ -133,3 +133,30 @@ export const TOOLS: toolNames[] = [
   'Note',
   'RoundUp',
 ];
+export const cornerLabels = [
+  'Top L A',
+  'Top R A',
+  'Top R B',
+  'Top L B',
+  'Left A',
+  'Left B',
+  'Center A',
+  'Center B',
+  'Right A',
+  'Right B',
+  'Bot L A',
+  'Bot L B',
+  'Bot R A',
+  'Bot R B',
+];
+
+export const rectangleLabels = [
+  'Top A',
+  'Top B',
+  'Right A',
+  'Right B',
+  'Bot A',
+  'Bot B',
+  'Left A',
+  'Left B',
+];

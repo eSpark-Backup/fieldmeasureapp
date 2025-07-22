@@ -69,6 +69,7 @@ const SignIn = () => {
               <TheButton
                 btnTitle="Login"
                 onPress={handleSubmit}
+                // onPress={() => navigation.navigate('Projects')}
                 style={styles.loginButton}
               />
             </>
@@ -95,6 +96,7 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'flex-start',
   },
+
   logoContainer: {
     alignItems: 'center',
     paddingBottom: '25%',

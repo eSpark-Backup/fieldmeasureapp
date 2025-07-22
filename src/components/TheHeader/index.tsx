@@ -66,7 +66,7 @@ export default TheHeader;
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#eee',
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderColor: '#e6e6e6',
     flexDirection: 'row',
