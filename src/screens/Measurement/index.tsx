@@ -1,5 +1,11 @@
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
 import {
   TheButton,
   TheDropdown,
@@ -7,6 +13,8 @@ import {
   TheTextInput,
   TheTool,
 } from '../../components';
+import TheToggle from '../../components/TheToggle';
+
 import {
   Camera,
   Export,
@@ -17,15 +25,10 @@ import {
   Trash,
   Upload,
 } from '../../assets';
-import { TOOLS } from '../../constants';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+
+import { cornerLabels, rectangleLabels, TOOLS } from '../../constants';
 import { border, primaryColor } from '../../constants/colors';
-import TheToggle from '../../components/TheToggle';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
-import { useNavigation } from '@react-navigation/native';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
 
 type MeasurementProps = NativeStackScreenProps<RootNavParamList, 'Measurement'>;
@@ -116,15 +119,7 @@ const Measurement = () => {
         case 'RoundUp':
           bottomSheetRef.current?.snapToIndex(1);
         default:
-          return (
-            <View key={`${tool}-${index}`} style={styles.noToolSelected}>
-              <TheText
-                text="Unknown Tool"
-                size={16}
-                style={{ textAlign: 'center', color: '#6B7280' }}
-              />
-            </View>
-          );
+          return null;
       }
     });
   };
@@ -174,6 +169,7 @@ const Measurement = () => {
           borderTopRightRadius: 10,
           borderTopLeftRadius: 10,
           borderTopWidth: 0.2,
+          paddingBottom: 30,
         }}
       >
         <BottomSheetScrollView
@@ -237,6 +233,270 @@ const Measurement = () => {
   );
 };
 
+// function MeasureCard({
+//   type,
+//   onDelete,
+//   color,
+// }: {
+//   type: string;
+//   onDelete: () => void;
+//   color?: string;
+// }) {
+//   const [visible, setVisible] = useState(true);
+//   const [lock, setLock] = useState(false);
+//   const [show, setShow] = useState(false);
+//   const [isOpen, setIsOpen] = useState(false);
+//   const [isDistOpen, setIsDistOpen] = useState(false);
+//   const [description, setDescription] = useState('');
+
+//   return (
+//     <View style={styles.initialContainer}>
+//       <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
+//         <View style={[styles.rowContainer, { gap: 5, width: '70%' }]}>
+//           <Badge color={color || '#FBBF24'} />
+//           <TheText
+//             text={`${type} Measurement`}
+//             size={18}
+//             style={{ fontWeight: '600' }}
+//           />
+//         </View>
+//         <View style={[styles.rowContainer, { gap: 5 }]}>
+//           {visible ? (
+//             <Eye color="#6B7280" onPress={() => setVisible(false)} />
+//           ) : (
+//             <EyeClosed color="#6B7280" onPress={() => setVisible(true)} />
+//           )}
+//           <TheToggle value={lock} onValueChange={setLock} />
+//           <Trash onPress={onDelete} />
+//         </View>
+//       </View>
+//       {type === 'Tape' && (
+//         <View
+//           style={[
+//             styles.rowContainer,
+//             { justifyContent: 'flex-start', gap: 15 },
+//           ]}
+//         >
+//           <TheTextInput
+//             placeholder="Enter length"
+//             value={'0'}
+//             label={''}
+//             style={{ width: 60, marginTop: 10 }}
+//           />
+//           <TheText text="in" size={16} />
+//           <TheDropdown
+//             data={['in', 'ft', 'cm', 'm']}
+//             onSelect={() => {}}
+//             placeholder="0"
+//             id={''}
+//             isOpen={isOpen}
+//             setOpenDropdownId={() => setIsOpen(!isOpen)}
+//             style={{ width: 60, marginTop: 10 }}
+//           />
+//         </View>
+//       )}
+//       {type === 'Rake' && (
+//         <>
+//           <View
+//             style={[
+//               styles.rowContainer,
+//               { justifyContent: 'flex-start', gap: 15 },
+//             ]}
+//           >
+//             <TheTextInput
+//               placeholder="Enter length"
+//               value={'0'}
+//               label={''}
+//               style={{ width: 60, marginTop: 10 }}
+//             />
+//             <TheText text="in" size={16} />
+//             <TheDropdown
+//               data={['in', 'ft', 'cm', 'm']}
+//               onSelect={() => {}}
+//               placeholder="0"
+//               id={''}
+//               isOpen={isOpen}
+//               setOpenDropdownId={() => setIsOpen(!isOpen)}
+//               style={{ width: 60, marginTop: 10 }}
+//             />
+//           </View>
+//           <TheButton
+//             btnTitle="Distance"
+//             icon={show ? <Minus /> : <Plus />}
+//             onPress={() => setShow(!show)}
+//             btnColor={show ? '#fbeefdff' : border}
+//             titleStyle={{ fontWeight: 'bold' }}
+//             titleColor={'black'}
+//           />
+//           {show && (
+//             <View
+//               style={[
+//                 styles.rowContainer,
+//                 { justifyContent: 'flex-start', gap: 15 },
+//               ]}
+//             >
+//               <TheTextInput
+//                 placeholder="Enter length"
+//                 value={'0'}
+//                 label={''}
+//                 style={{ width: 60, marginTop: 10 }}
+//               />
+//               <TheText text="in" size={16} />
+//               <TheDropdown
+//                 data={['in', 'ft', 'cm', 'm']}
+//                 onSelect={() => {}}
+//                 placeholder="0"
+//                 id={''}
+//                 isOpen={isDistOpen}
+//                 setOpenDropdownId={() => setIsDistOpen(!isDistOpen)}
+//                 style={{ width: 60, marginTop: 10 }}
+//               />
+//             </View>
+//           )}
+//         </>
+//       )}
+//       {type === 'Note' && (
+//         <TheDescriptionBox
+//           placeholder="Enter your note text here"
+//           value={description}
+//           onChangeText={setDescription}
+//         />
+//       )}
+//       {type === 'Laser' && (
+//         <>
+//           <View
+//             style={[
+//               styles.rowContainer,
+//               { justifyContent: 'flex-start', gap: 15 },
+//             ]}
+//           >
+//             <TheTextInput
+//               placeholder="0"
+//               // value={'0'}
+//               label={'Slide A'}
+//               style={{ width: 60 }}
+//               isNum
+//             />
+//             <TheText text="in" size={16} style={{ marginTop: 20 }} />
+//             <TheDropdown
+//               data={['in', 'ft', 'cm', 'm']}
+//               onSelect={() => {}}
+//               placeholder="0"
+//               id={''}
+//               isOpen={isOpen}
+//               setOpenDropdownId={() => setIsOpen(!isOpen)}
+//               style={{ width: 60, marginTop: 30 }}
+//             />
+//           </View>
+//           <View
+//             style={[
+//               styles.rowContainer,
+//               { justifyContent: 'flex-start', gap: 15 },
+//             ]}
+//           >
+//             <TheTextInput
+//               placeholder="0"
+//               label={'Slide A'}
+//               style={{ width: 60 }}
+//               isNum
+//             />
+//             <TheText text="in" size={16} style={{ marginTop: 20 }} />
+//             <TheDropdown
+//               data={['in', 'ft', 'cm', 'm']}
+//               onSelect={() => {}}
+//               placeholder="0"
+//               id={''}
+//               isOpen={isOpen}
+//               setOpenDropdownId={() => setIsOpen(!isOpen)}
+//               style={{ width: 60, marginTop: 30 }}
+//             />
+//           </View>
+//         </>
+//       )}
+
+//       {type === 'Rectangle' && (
+//         <>
+//           {rectangleLabels.map((label, index) => (
+//             <View
+//               key={index}
+//               style={[
+//                 styles.rowContainer,
+//                 { justifyContent: 'flex-start', gap: 15 },
+//               ]}
+//             >
+//               <TheText text={label + ':'} style={{ width: '18%' }} />
+//               <TheTextInput
+//                 placeholder="Enter length"
+//                 value={'0'}
+//                 label={''}
+//                 style={{ width: 60, marginTop: 10 }}
+//               />
+//               <TheText text="in" size={16} />
+//               <TheDropdown
+//                 data={['in', 'ft', 'cm', 'm']}
+//                 onSelect={() => {}}
+//                 placeholder="0"
+//                 id={''}
+//                 isOpen={isOpen}
+//                 setOpenDropdownId={() => setIsOpen(!isOpen)}
+//                 style={{ width: 60, marginTop: 10 }}
+//               />
+//             </View>
+//           ))}
+//         </>
+//       )}
+//       {type === 'Corner' && (
+//         <>
+//           {cornerLabels.map((label, index) => (
+//             <View
+//               key={index}
+//               style={[
+//                 styles.rowContainer,
+//                 { justifyContent: 'flex-start', gap: 15 },
+//               ]}
+//             >
+//               <TheText text={label + ':'} style={{ width: '18%' }} />
+//               <TheTextInput
+//                 placeholder="Enter length"
+//                 value={'0'}
+//                 label={''}
+//                 style={{ width: 60, marginTop: 10 }}
+//               />
+//               <TheText text="in" size={16} />
+//               <TheDropdown
+//                 data={['in', 'ft', 'cm', 'm']}
+//                 onSelect={() => {}}
+//                 placeholder="0"
+//                 id={''}
+//                 isOpen={isOpen}
+//                 setOpenDropdownId={() => setIsOpen(!isOpen)}
+//                 style={{ width: 60, marginTop: 10 }}
+//               />
+//             </View>
+//           ))}
+//         </>
+//       )}
+//     </View>
+//   );
+// }
+
+const units = ['in', 'ft', 'cm', 'm'];
+
+function Badge({ color }: { color: string }) {
+  return (
+    <View
+      style={{
+        backgroundColor: color,
+        width: 15,
+        aspectRatio: 1,
+        borderRadius: 50,
+        borderWidth: 1,
+        borderColor: border,
+      }}
+    />
+  );
+}
+
 function MeasureCard({
   type,
   onDelete,
@@ -248,13 +508,47 @@ function MeasureCard({
 }) {
   const [visible, setVisible] = useState(true);
   const [lock, setLock] = useState(false);
-  const [show, setShow] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isDistOpen, setIsDistOpen] = useState(false);
+  const [showDist, setShowDist] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
   const [description, setDescription] = useState('');
+
+  const renderInputRow = (
+    label?: string,
+    isNum?: boolean,
+    dropdownId?: string,
+  ) => (
+    <View
+      style={[styles.rowContainer, { justifyContent: 'flex-start', gap: 15 }]}
+    >
+      {label && <TheText text={`${label}:`} style={{ width: '18%' }} />}
+      <TheTextInput
+        placeholder="Enter length"
+        value="0"
+        label=""
+        style={{ width: 60, marginTop: 10 }}
+        isNum={isNum}
+      />
+      <TheText text="in" size={16} />
+      <TheDropdown
+        data={units}
+        onSelect={() => {}}
+        placeholder="0"
+        id={dropdownId || ''}
+        isOpen={openDropdownId === dropdownId}
+        setOpenDropdownId={() =>
+          setOpenDropdownId(prev =>
+            prev === dropdownId ? null : dropdownId ?? null,
+          )
+        }
+        style={{ width: 60, marginTop: 10 }}
+      />
+    </View>
+  );
 
   return (
     <View style={styles.initialContainer}>
+      {/* Header */}
       <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
         <View style={[styles.rowContainer, { gap: 5, width: '70%' }]}>
           <Badge color={color || '#FBBF24'} />
@@ -274,91 +568,41 @@ function MeasureCard({
           <Trash onPress={onDelete} />
         </View>
       </View>
-      {type === 'Tape' && (
-        <View
-          style={[
-            styles.rowContainer,
-            { justifyContent: 'flex-start', gap: 15 },
-          ]}
-        >
-          <TheTextInput
-            placeholder="Enter length"
-            value={'0'}
-            label={''}
-            style={{ width: 60, marginTop: 10 }}
-          />
-          <TheText text="in" size={16} />
-          <TheDropdown
-            data={['in', 'ft', 'cm', 'm']}
-            onSelect={() => {}}
-            placeholder="0"
-            id={''}
-            isOpen={isOpen}
-            setOpenDropdownId={() => setIsOpen(!isOpen)}
-            style={{ width: 60, marginTop: 10 }}
-          />
-        </View>
-      )}
+
+      {/* Type-specific Inputs */}
+      {type === 'Tape' && renderInputRow(undefined, false, 'tape')}
+
       {type === 'Rake' && (
         <>
-          <View
-            style={[
-              styles.rowContainer,
-              { justifyContent: 'flex-start', gap: 15 },
-            ]}
-          >
-            <TheTextInput
-              placeholder="Enter length"
-              value={'0'}
-              label={''}
-              style={{ width: 60, marginTop: 10 }}
-            />
-            <TheText text="in" size={16} />
-            <TheDropdown
-              data={['in', 'ft', 'cm', 'm']}
-              onSelect={() => {}}
-              placeholder="0"
-              id={''}
-              isOpen={isOpen}
-              setOpenDropdownId={() => setIsOpen(!isOpen)}
-              style={{ width: 60, marginTop: 10 }}
-            />
-          </View>
+          {renderInputRow(undefined, false, 'rake')}
           <TheButton
             btnTitle="Distance"
-            icon={show ? <Plus /> : <Minus />}
-            onPress={() => setShow(!show)}
-            btnColor={show ? '#fbeefdff' : border}
+            icon={showDist ? <Minus /> : <Plus />}
+            onPress={() => setShowDist(!showDist)}
+            btnColor={showDist ? '#fbeefdff' : border}
             titleStyle={{ fontWeight: 'bold' }}
-            titleColor={'black'}
+            titleColor="black"
           />
-          {show && (
-            <View
-              style={[
-                styles.rowContainer,
-                { justifyContent: 'flex-start', gap: 15 },
-              ]}
-            >
-              <TheTextInput
-                placeholder="Enter length"
-                value={'0'}
-                label={''}
-                style={{ width: 60, marginTop: 10 }}
-              />
-              <TheText text="in" size={16} />
-              <TheDropdown
-                data={['in', 'ft', 'cm', 'm']}
-                onSelect={() => {}}
-                placeholder="0"
-                id={''}
-                isOpen={isDistOpen}
-                setOpenDropdownId={() => setIsDistOpen(!isDistOpen)}
-                style={{ width: 60, marginTop: 10 }}
-              />
-            </View>
-          )}
+          {showDist && renderInputRow(undefined, false, 'rake-distance')}
         </>
       )}
+
+      {type === 'Laser' && (
+        <>
+          {renderInputRow('Slide A', true, 'laser-slide-a')}
+          {renderInputRow('Slide B', true, 'laser-slide-b')}
+        </>
+      )}
+
+      {type === 'Rectangle' &&
+        rectangleLabels.map((label, index) =>
+          renderInputRow(label, false, `rectangle-${index}`),
+        )}
+
+      {type === 'Corner' &&
+        cornerLabels.map((label, index) =>
+          renderInputRow(label, false, `corner-${index}`),
+        )}
       {type === 'Note' && (
         <TheDescriptionBox
           placeholder="Enter your note text here"
@@ -366,73 +610,7 @@ function MeasureCard({
           onChangeText={setDescription}
         />
       )}
-      {type === 'Laser' && (
-        <>
-          <View
-            style={[
-              styles.rowContainer,
-              { justifyContent: 'flex-start', gap: 15 },
-            ]}
-          >
-            <TheTextInput
-              placeholder="0"
-              // value={'0'}
-              label={'Slide A'}
-              style={{ width: 60 }}
-              isNum
-            />
-            <TheText text="in" size={16} style={{ marginTop: 20 }} />
-            <TheDropdown
-              data={['in', 'ft', 'cm', 'm']}
-              onSelect={() => {}}
-              placeholder="0"
-              id={''}
-              isOpen={isOpen}
-              setOpenDropdownId={() => setIsOpen(!isOpen)}
-              style={{ width: 60, marginTop: 30 }}
-            />
-          </View>
-          <View
-            style={[
-              styles.rowContainer,
-              { justifyContent: 'flex-start', gap: 15 },
-            ]}
-          >
-            <TheTextInput
-              placeholder="0"
-              label={'Slide A'}
-              style={{ width: 60 }}
-              isNum
-            />
-            <TheText text="in" size={16} style={{ marginTop: 20 }} />
-            <TheDropdown
-              data={['in', 'ft', 'cm', 'm']}
-              onSelect={() => {}}
-              placeholder="0"
-              id={''}
-              isOpen={isOpen}
-              setOpenDropdownId={() => setIsOpen(!isOpen)}
-              style={{ width: 60, marginTop: 30 }}
-            />
-          </View>
-        </>
-      )}
     </View>
-  );
-}
-
-function Badge({ color }: { color: string }) {
-  return (
-    <View
-      style={{
-        backgroundColor: color,
-        width: 15,
-        aspectRatio: 1,
-        borderRadius: 50,
-        borderWidth: 1,
-        borderColor: border,
-      }}
-    />
   );
 }
 
@@ -454,6 +632,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     borderRadius: 10,
   },
+
   rowContainer: {
     flexDirection: 'row',
     alignItems: 'center',
