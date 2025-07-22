@@ -18,3 +18,6 @@ export { default as Eye } from './vectors/eye.svg';
 export { default as EyeClosed } from './vectors/eye-closed.svg';
 export { default as Trash } from './vectors/trash.svg';
 export { default as Upload } from './vectors/upload.svg';
+export { default as Export } from './vectors/export.svg';
+export { default as Plus } from './vectors/plus.svg';
+export { default as Minus } from './vectors/minus.svg';

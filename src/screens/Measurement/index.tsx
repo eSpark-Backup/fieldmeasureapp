@@ -7,7 +7,16 @@ import {
   TheTextInput,
   TheTool,
 } from '../../components';
-import { Camera, Eye, EyeClosed, Trash, Upload } from '../../assets';
+import {
+  Camera,
+  Export,
+  Eye,
+  EyeClosed,
+  Minus,
+  Plus,
+  Trash,
+  Upload,
+} from '../../assets';
 import { TOOLS } from '../../constants';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -17,6 +26,7 @@ import TheToggle from '../../components/TheToggle';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
 import { useNavigation } from '@react-navigation/native';
+import TheDescriptionBox from '../../components/TheDescriptionBox';
 
 type MeasurementProps = NativeStackScreenProps<RootNavParamList, 'Measurement'>;
 
@@ -181,7 +191,11 @@ const Measurement = () => {
             />
           </View>
           <View style={styles.initialContainer}>
-            <TheButton btnTitle="Upload Photo" icon={<Upload />} />
+            <TheButton
+              btnTitle="Upload Photo"
+              icon={<Upload />}
+              titleStyle={{ fontWeight: 'bold' }}
+            />
           </View>
           <View style={styles.initialContainer}>
             <TheButton
@@ -211,6 +225,12 @@ const Measurement = () => {
           </View>
 
           {renderToolContent()}
+          <TheButton
+            btnTitle="Export Report"
+            titleStyle={{ fontWeight: 'bold' }}
+            icon={<Export />}
+            // onPress={handleSaveMeasurements}
+          />
         </BottomSheetScrollView>
       </BottomSheet>
     </GestureHandlerRootView>
@@ -228,7 +248,10 @@ function MeasureCard({
 }) {
   const [visible, setVisible] = useState(true);
   const [lock, setLock] = useState(false);
+  const [show, setShow] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [description, setDescription] = useState('');
+
   return (
     <View style={styles.initialContainer}>
       <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
@@ -274,6 +297,98 @@ function MeasureCard({
             style={{ width: 60, marginTop: 10 }}
           />
         </View>
+      )}
+      {type === 'Rake' && (
+        <>
+          <View
+            style={[
+              styles.rowContainer,
+              { justifyContent: 'flex-start', gap: 15 },
+            ]}
+          >
+            <TheTextInput
+              placeholder="Enter length"
+              value={'0'}
+              label={''}
+              style={{ width: 60, marginTop: 10 }}
+            />
+            <TheText text="in" size={16} />
+            <TheDropdown
+              data={['in', 'ft', 'cm', 'm']}
+              onSelect={() => {}}
+              placeholder="0"
+              id={''}
+              isOpen={isOpen}
+              setOpenDropdownId={() => setIsOpen(!isOpen)}
+              style={{ width: 60, marginTop: 10 }}
+            />
+          </View>
+          <TheButton
+            btnTitle="Distance"
+            icon={show ? <Plus /> : <Minus />}
+            onPress={() => setShow(!show)}
+            btnColor={show ? '#fbeefdff' : border}
+            titleStyle={{ fontWeight: 'bold', color: 'Black' }}
+          />
+        </>
+      )}
+      {type === 'Note' && (
+        <TheDescriptionBox
+          placeholder="Enter your note text here"
+          value={description}
+          onChangeText={setDescription}
+        />
+      )}
+      {type === 'Laser' && (
+        <>
+          <View
+            style={[
+              styles.rowContainer,
+              { justifyContent: 'flex-start', gap: 15 },
+            ]}
+          >
+            <TheTextInput
+              placeholder="0"
+              // value={'0'}
+              label={'Slide A'}
+              style={{ width: 60 }}
+              isNum
+            />
+            <TheText text="in" size={16} style={{ marginTop: 20 }} />
+            <TheDropdown
+              data={['in', 'ft', 'cm', 'm']}
+              onSelect={() => {}}
+              placeholder="0"
+              id={''}
+              isOpen={isOpen}
+              setOpenDropdownId={() => setIsOpen(!isOpen)}
+              style={{ width: 60, marginTop: 30 }}
+            />
+          </View>
+          <View
+            style={[
+              styles.rowContainer,
+              { justifyContent: 'flex-start', gap: 15 },
+            ]}
+          >
+            <TheTextInput
+              placeholder="0"
+              label={'Slide A'}
+              style={{ width: 60 }}
+              isNum
+            />
+            <TheText text="in" size={16} style={{ marginTop: 20 }} />
+            <TheDropdown
+              data={['in', 'ft', 'cm', 'm']}
+              onSelect={() => {}}
+              placeholder="0"
+              id={''}
+              isOpen={isOpen}
+              setOpenDropdownId={() => setIsOpen(!isOpen)}
+              style={{ width: 60, marginTop: 30 }}
+            />
+          </View>
+        </>
       )}
     </View>
   );
