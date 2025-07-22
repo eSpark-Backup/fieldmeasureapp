@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GapView, TheButton, TheText, TheTextInput } from '../../components';
@@ -9,6 +9,9 @@ import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
 import { SignInSchema } from '../../constants/validations/schema';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+// import BottomSheet from '@gorhom/bottom-sheet';
 
 type SignInProps = NativeStackScreenProps<RootNavParamList, 'SignIn'>;
 
@@ -68,7 +71,8 @@ const SignIn = () => {
 
               <TheButton
                 btnTitle="Login"
-                onPress={handleSubmit}
+                // onPress={handleSubmit}
+                onPress={() => navigation.navigate('Projects')}
                 style={styles.loginButton}
               />
             </>
@@ -95,6 +99,7 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'flex-start',
   },
+
   logoContainer: {
     alignItems: 'center',
     paddingBottom: '25%',
