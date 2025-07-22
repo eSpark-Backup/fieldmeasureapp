@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 import React from 'react';
 import TheButton from '../TheButton';
 import TheText from '../TheText';
@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { RootNavParamList } from '../../types/navigationParams';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { border, WhiteBackground } from '../../constants/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ProjectsList = ({
   projects,
@@ -23,7 +24,14 @@ const ProjectsList = ({
         style={{ fontWeight: 'bold', fontSize: 20 }}
         text={`Existing Projects (${projects})`}
       />
-      <ProjectCard onViewPress={onViewPress} />
+      <FlatList
+        data={Array(projects)}
+        renderItem={({ index }) => (
+          <ProjectCard key={index} onViewPress={onViewPress} />
+        )}
+        ListFooterComponent={<GapView length={useSafeAreaInsets().bottom} />}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };

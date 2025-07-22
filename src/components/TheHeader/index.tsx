@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Back } from '../../assets';
 import TheText from '../TheText';
 import { border } from '../../constants/colors';
+import GapView from '../GapView';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface TheHeaderProps {
   onBackPress: () => void;
@@ -64,7 +66,7 @@ export default TheHeader;
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#eee',
     borderBottomWidth: 1,
     borderColor: '#e6e6e6',
     flexDirection: 'row',

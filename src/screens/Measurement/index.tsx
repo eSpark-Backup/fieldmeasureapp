@@ -1,9 +1,19 @@
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import React, { useState } from 'react';
-import { TheText, TheTool } from '../../components';
-import { Camera } from '../../assets';
+import {
+  CornerTool,
+  LaserTool,
+  RakeTool,
+  ReactangleTool,
+  TapeTool,
+  TheText,
+  TheTool,
+} from '../../components';
+import { Camera, Laser } from '../../assets';
 import { TOOLS } from '../../constants';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Svg from 'react-native-svg';
 
 const Measurement = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -34,11 +44,20 @@ const Measurement = () => {
           <TheText text="Upload a photo to start adding measurements" />
         </View>
       ) : (
-        <Image
-          resizeMode="center"
-          style={{ flex: 1 }}
-          source={{ uri: selectedPhoto }}
-        />
+        <GestureHandlerRootView style={styles.container}>
+          <Image
+            resizeMode="center"
+            style={{ flex: 1 }}
+            source={{ uri: selectedPhoto }}
+          />
+          <Svg height="100%" width="100%" style={{ position: 'absolute' }}>
+            {/* <LaserTool /> */}
+            {/* <ReactangleTool /> */}
+            <CornerTool />
+            {/* <RakeTool /> */}
+            {/* <TapeTool /> */}
+          </Svg>
+        </GestureHandlerRootView>
       )}
       <View style={styles.tools}>
         {TOOLS.map((item, index) => (
@@ -50,6 +69,7 @@ const Measurement = () => {
 };
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
   noPhoto: { flex: 1, gap: 10, alignItems: 'center', justifyContent: 'center' },
   tools: {
     flexDirection: 'row',
