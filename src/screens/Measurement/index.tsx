@@ -1,16 +1,31 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import React, { useState } from 'react';
 import { TheText, TheTool } from '../../components';
 import { Camera } from '../../assets';
 import { TOOLS } from '../../constants';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 const Measurement = () => {
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+
+  const getImage = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      includeExtra: true,
+    });
+    console.log('image result', result);
+    if (result?.assets && result?.assets[0].uri) {
+      setSelectedPhoto(result?.assets[0].uri);
+    }
+  };
+
   return (
     <View style={{ flex: 1, paddingHorizontal: 20 }}>
       {!selectedPhoto ? (
         <View style={styles.noPhoto}>
-          <Camera color={'#9CA3AF'} />
+          <TouchableOpacity onPress={getImage}>
+            <Camera color={'#9CA3AF'} />
+          </TouchableOpacity>
           <TheText
             text="No Photo Selected"
             size={18}
@@ -18,7 +33,13 @@ const Measurement = () => {
           />
           <TheText text="Upload a photo to start adding measurements" />
         </View>
-      ) : null}
+      ) : (
+        <Image
+          resizeMode="center"
+          style={{ flex: 1 }}
+          source={{ uri: selectedPhoto }}
+        />
+      )}
       <View style={styles.tools}>
         {TOOLS.map((item, index) => (
           <TheTool key={index} toolName={item} />

@@ -23,10 +23,6 @@ const RootNavigation = () => {
       screenOptions={{
         headerShown: false,
         animation: 'none',
-        contentStyle: {
-          // marginTop: useSafeAreaInsets().top + useSafeAreaInsets().bottom,
-          // bottom: useSafeAreaInsets().bottom,
-        },
       }}
     >
       <Stack.Screen name="SignIn" component={SignIn} />

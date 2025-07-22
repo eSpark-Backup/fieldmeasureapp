@@ -11,7 +11,6 @@ const App = () => {
     <SafeAreaProvider>
       <NavigationContainer>
         <StatusBar
-          translucent={true}
           barStyle={'dark-content'}
           backgroundColor={WhiteBackground}
         />

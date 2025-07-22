@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   GapView,
   TheButton,
@@ -13,6 +12,7 @@ import { DROPDOWNS, INPUT_FIELDS } from '../../constants';
 import { useNavigation } from '@react-navigation/native';
 import { validateDecimal } from '../../constants/validations/schema';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const generateInitialValues = () =>
   Object.fromEntries(DROPDOWNS.map(drop => [drop.id, drop.selected || '']));
@@ -63,7 +63,7 @@ const AllDetails = () => {
   }, [selectedValues, inputs, navigation]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View>
           <TheDescriptionBox
@@ -100,13 +100,12 @@ const AllDetails = () => {
             placeholder={placeholder}
           />
         ))}
-
         <TheDatePicker label="Date promised" />
-
         <GapView length={25} mode="vertical" />
         <TheButton btnTitle="Done" onPress={handleSubmit} />
+        <GapView length={useSafeAreaInsets().bottom} mode="vertical" />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -114,7 +113,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: background,
-    padding: 20,
+    paddingHorizontal: 20,
     justifyContent: 'flex-start',
   },
 });
