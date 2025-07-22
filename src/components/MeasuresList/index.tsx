@@ -51,7 +51,7 @@ const MeasureCard = () => {
       <TheText text="Measurement Types: tape" />
       <TheButton
         onPress={() =>
-          navigation.navigate('AllDetails', {
+          navigation.navigate('Measurement', {
             projectId: '123135',
             title: 'John',
             address: '132132 adjvdjs',
