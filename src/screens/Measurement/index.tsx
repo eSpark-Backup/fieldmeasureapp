@@ -250,6 +250,7 @@ function MeasureCard({
   const [lock, setLock] = useState(false);
   const [show, setShow] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isDistOpen, setIsDistOpen] = useState(false);
   const [description, setDescription] = useState('');
 
   return (
@@ -328,8 +329,34 @@ function MeasureCard({
             icon={show ? <Plus /> : <Minus />}
             onPress={() => setShow(!show)}
             btnColor={show ? '#fbeefdff' : border}
-            titleStyle={{ fontWeight: 'bold', color: 'Black' }}
+            titleStyle={{ fontWeight: 'bold' }}
+            titleColor={'black'}
           />
+          {show && (
+            <View
+              style={[
+                styles.rowContainer,
+                { justifyContent: 'flex-start', gap: 15 },
+              ]}
+            >
+              <TheTextInput
+                placeholder="Enter length"
+                value={'0'}
+                label={''}
+                style={{ width: 60, marginTop: 10 }}
+              />
+              <TheText text="in" size={16} />
+              <TheDropdown
+                data={['in', 'ft', 'cm', 'm']}
+                onSelect={() => {}}
+                placeholder="0"
+                id={''}
+                isOpen={isDistOpen}
+                setOpenDropdownId={() => setIsDistOpen(!isDistOpen)}
+                style={{ width: 60, marginTop: 10 }}
+              />
+            </View>
+          )}
         </>
       )}
       {type === 'Note' && (
