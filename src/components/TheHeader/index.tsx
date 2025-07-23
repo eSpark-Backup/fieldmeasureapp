@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Back } from '../../assets';
 import TheText from '../TheText';
 import { border } from '../../constants/colors';
+import GapView from '../GapView';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface TheHeaderProps {
   onBackPress: () => void;

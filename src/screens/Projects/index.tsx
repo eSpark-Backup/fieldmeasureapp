@@ -32,14 +32,14 @@ const Projects = () => {
   const [showInputs, setShowInputs] = useState(false);
 
   return (
-    <ScrollView
+    <View
       style={{
         flex: 1,
         backgroundColor: background,
-        padding: 20,
+        paddingHorizontal: 20,
       }}
     >
-      <GapView />
+      <GapView length={useSafeAreaInsets().top} />
       <TheText
         size={24}
         style={{ fontWeight: 'bold' }}
@@ -165,8 +165,7 @@ const Projects = () => {
           />
         </View>
       )}
-      <GapView />
-    </ScrollView>
+    </View>
   );
 };
 

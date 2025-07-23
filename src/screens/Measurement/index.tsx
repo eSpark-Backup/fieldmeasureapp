@@ -1,19 +1,24 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-
 import {
+  CornerTool,
+  LaserTool,
+  RakeTool,
+  ReactangleTool,
+  TapeTool,
+  TheText,
+  TheTool,
   TheButton,
   TheDropdown,
-  TheText,
   TheTextInput,
-  TheTool,
+  TheToggle,
 } from '../../components';
-import TheToggle from '../../components/TheToggle';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Svg from 'react-native-svg';
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import {
   Camera,
@@ -30,16 +35,18 @@ import { cornerLabels, rectangleLabels, TOOLS } from '../../constants';
 import { border, primaryColor } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type MeasurementProps = NativeStackScreenProps<RootNavParamList, 'Measurement'>;
 
 const Measurement = () => {
   const navigation = useNavigation<MeasurementProps['navigation']>();
+  const bottomInset = useSafeAreaInsets().bottom;
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [mainLock, setMainLock] = useState(false);
-  const snapPoints = useMemo(() => ['5%', 650], []);
+  const snapPoints = useMemo(() => [bottomInset + 30, 650], []);
   const bottomSheetRef = useRef<BottomSheet>(null);
 
   const handleSheetChanges = useCallback((index: number) => {
@@ -126,25 +133,39 @@ const Measurement = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: 'white' }}>
-      <View style={{ flex: 1, paddingHorizontal: 20, marginBottom: '5%' }}>
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: 20,
+          marginBottom: bottomInset + 20,
+          backgroundColor: '#F9FAFB',
+        }}
+      >
         {!selectedPhoto ? (
-          <View style={styles.noPhoto}>
-            <TouchableOpacity onPress={getImage}>
-              <Camera color={'#9CA3AF'} />
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.noPhoto} onPress={getImage}>
+            <Camera color={'#9CA3AF'} />
             <TheText
               text="No Photo Selected"
               size={18}
               style={{ fontWeight: '500' }}
             />
             <TheText text="Upload a photo to start adding measurements" />
-          </View>
+          </TouchableOpacity>
         ) : (
-          <Image
-            resizeMode="contain"
-            style={{ flex: 1 }}
-            source={{ uri: selectedPhoto }}
-          />
+          <>
+            <Image
+              resizeMode="center"
+              style={{ flex: 1 }}
+              source={{ uri: selectedPhoto }}
+            />
+            <Svg height="100%" width="100%" style={{ position: 'absolute' }}>
+              {/* <LaserTool /> */}
+              {/* <ReactangleTool /> */}
+              <CornerTool />
+              {/* <RakeTool /> */}
+              {/* <TapeTool /> */}
+            </Svg>
+          </>
         )}
         <View style={styles.tools}>
           {TOOLS.map((item, index) => (
@@ -166,9 +187,12 @@ const Measurement = () => {
         maxDynamicContentSize={650}
         animateOnMount={true}
         handleStyle={{
-          borderTopRightRadius: 10,
-          borderTopLeftRadius: 10,
-          borderTopWidth: 0.2,
+          borderTopRightRadius: 20,
+          borderTopLeftRadius: 20,
+          borderTopWidth: 1,
+          borderLeftWidth: 1,
+          borderRightWidth: 1,
+          borderColor: '#DCDCDC',
           paddingBottom: 30,
         }}
       >
@@ -233,253 +257,6 @@ const Measurement = () => {
     </GestureHandlerRootView>
   );
 };
-
-// function MeasureCard({
-//   type,
-//   onDelete,
-//   color,
-// }: {
-//   type: string;
-//   onDelete: () => void;
-//   color?: string;
-// }) {
-//   const [visible, setVisible] = useState(true);
-//   const [lock, setLock] = useState(false);
-//   const [show, setShow] = useState(false);
-//   const [isOpen, setIsOpen] = useState(false);
-//   const [isDistOpen, setIsDistOpen] = useState(false);
-//   const [description, setDescription] = useState('');
-
-//   return (
-//     <View style={styles.initialContainer}>
-//       <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
-//         <View style={[styles.rowContainer, { gap: 5, width: '70%' }]}>
-//           <Badge color={color || '#FBBF24'} />
-//           <TheText
-//             text={`${type} Measurement`}
-//             size={18}
-//             style={{ fontWeight: '600' }}
-//           />
-//         </View>
-//         <View style={[styles.rowContainer, { gap: 5 }]}>
-//           {visible ? (
-//             <Eye color="#6B7280" onPress={() => setVisible(false)} />
-//           ) : (
-//             <EyeClosed color="#6B7280" onPress={() => setVisible(true)} />
-//           )}
-//           <TheToggle value={lock} onValueChange={setLock} />
-//           <Trash onPress={onDelete} />
-//         </View>
-//       </View>
-//       {type === 'Tape' && (
-//         <View
-//           style={[
-//             styles.rowContainer,
-//             { justifyContent: 'flex-start', gap: 15 },
-//           ]}
-//         >
-//           <TheTextInput
-//             placeholder="Enter length"
-//             value={'0'}
-//             label={''}
-//             style={{ width: 60, marginTop: 10 }}
-//           />
-//           <TheText text="in" size={16} />
-//           <TheDropdown
-//             data={['in', 'ft', 'cm', 'm']}
-//             onSelect={() => {}}
-//             placeholder="0"
-//             id={''}
-//             isOpen={isOpen}
-//             setOpenDropdownId={() => setIsOpen(!isOpen)}
-//             style={{ width: 60, marginTop: 10 }}
-//           />
-//         </View>
-//       )}
-//       {type === 'Rake' && (
-//         <>
-//           <View
-//             style={[
-//               styles.rowContainer,
-//               { justifyContent: 'flex-start', gap: 15 },
-//             ]}
-//           >
-//             <TheTextInput
-//               placeholder="Enter length"
-//               value={'0'}
-//               label={''}
-//               style={{ width: 60, marginTop: 10 }}
-//             />
-//             <TheText text="in" size={16} />
-//             <TheDropdown
-//               data={['in', 'ft', 'cm', 'm']}
-//               onSelect={() => {}}
-//               placeholder="0"
-//               id={''}
-//               isOpen={isOpen}
-//               setOpenDropdownId={() => setIsOpen(!isOpen)}
-//               style={{ width: 60, marginTop: 10 }}
-//             />
-//           </View>
-//           <TheButton
-//             btnTitle="Distance"
-//             icon={show ? <Minus /> : <Plus />}
-//             onPress={() => setShow(!show)}
-//             btnColor={show ? '#fbeefdff' : border}
-//             titleStyle={{ fontWeight: 'bold' }}
-//             titleColor={'black'}
-//           />
-//           {show && (
-//             <View
-//               style={[
-//                 styles.rowContainer,
-//                 { justifyContent: 'flex-start', gap: 15 },
-//               ]}
-//             >
-//               <TheTextInput
-//                 placeholder="Enter length"
-//                 value={'0'}
-//                 label={''}
-//                 style={{ width: 60, marginTop: 10 }}
-//               />
-//               <TheText text="in" size={16} />
-//               <TheDropdown
-//                 data={['in', 'ft', 'cm', 'm']}
-//                 onSelect={() => {}}
-//                 placeholder="0"
-//                 id={''}
-//                 isOpen={isDistOpen}
-//                 setOpenDropdownId={() => setIsDistOpen(!isDistOpen)}
-//                 style={{ width: 60, marginTop: 10 }}
-//               />
-//             </View>
-//           )}
-//         </>
-//       )}
-//       {type === 'Note' && (
-//         <TheDescriptionBox
-//           placeholder="Enter your note text here"
-//           value={description}
-//           onChangeText={setDescription}
-//         />
-//       )}
-//       {type === 'Laser' && (
-//         <>
-//           <View
-//             style={[
-//               styles.rowContainer,
-//               { justifyContent: 'flex-start', gap: 15 },
-//             ]}
-//           >
-//             <TheTextInput
-//               placeholder="0"
-//               // value={'0'}
-//               label={'Slide A'}
-//               style={{ width: 60 }}
-//               isNum
-//             />
-//             <TheText text="in" size={16} style={{ marginTop: 20 }} />
-//             <TheDropdown
-//               data={['in', 'ft', 'cm', 'm']}
-//               onSelect={() => {}}
-//               placeholder="0"
-//               id={''}
-//               isOpen={isOpen}
-//               setOpenDropdownId={() => setIsOpen(!isOpen)}
-//               style={{ width: 60, marginTop: 30 }}
-//             />
-//           </View>
-//           <View
-//             style={[
-//               styles.rowContainer,
-//               { justifyContent: 'flex-start', gap: 15 },
-//             ]}
-//           >
-//             <TheTextInput
-//               placeholder="0"
-//               label={'Slide A'}
-//               style={{ width: 60 }}
-//               isNum
-//             />
-//             <TheText text="in" size={16} style={{ marginTop: 20 }} />
-//             <TheDropdown
-//               data={['in', 'ft', 'cm', 'm']}
-//               onSelect={() => {}}
-//               placeholder="0"
-//               id={''}
-//               isOpen={isOpen}
-//               setOpenDropdownId={() => setIsOpen(!isOpen)}
-//               style={{ width: 60, marginTop: 30 }}
-//             />
-//           </View>
-//         </>
-//       )}
-
-//       {type === 'Rectangle' && (
-//         <>
-//           {rectangleLabels.map((label, index) => (
-//             <View
-//               key={index}
-//               style={[
-//                 styles.rowContainer,
-//                 { justifyContent: 'flex-start', gap: 15 },
-//               ]}
-//             >
-//               <TheText text={label + ':'} style={{ width: '18%' }} />
-//               <TheTextInput
-//                 placeholder="Enter length"
-//                 value={'0'}
-//                 label={''}
-//                 style={{ width: 60, marginTop: 10 }}
-//               />
-//               <TheText text="in" size={16} />
-//               <TheDropdown
-//                 data={['in', 'ft', 'cm', 'm']}
-//                 onSelect={() => {}}
-//                 placeholder="0"
-//                 id={''}
-//                 isOpen={isOpen}
-//                 setOpenDropdownId={() => setIsOpen(!isOpen)}
-//                 style={{ width: 60, marginTop: 10 }}
-//               />
-//             </View>
-//           ))}
-//         </>
-//       )}
-//       {type === 'Corner' && (
-//         <>
-//           {cornerLabels.map((label, index) => (
-//             <View
-//               key={index}
-//               style={[
-//                 styles.rowContainer,
-//                 { justifyContent: 'flex-start', gap: 15 },
-//               ]}
-//             >
-//               <TheText text={label + ':'} style={{ width: '18%' }} />
-//               <TheTextInput
-//                 placeholder="Enter length"
-//                 value={'0'}
-//                 label={''}
-//                 style={{ width: 60, marginTop: 10 }}
-//               />
-//               <TheText text="in" size={16} />
-//               <TheDropdown
-//                 data={['in', 'ft', 'cm', 'm']}
-//                 onSelect={() => {}}
-//                 placeholder="0"
-//                 id={''}
-//                 isOpen={isOpen}
-//                 setOpenDropdownId={() => setIsOpen(!isOpen)}
-//                 style={{ width: 60, marginTop: 10 }}
-//               />
-//             </View>
-//           ))}
-//         </>
-//       )}
-//     </View>
-//   );
-// }
 
 const units = ['in', 'ft', 'cm', 'm'];
 
@@ -616,6 +393,7 @@ function MeasureCard({
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
   initialContainer: {
     width: '100%',
     borderRadius: 10,
@@ -643,6 +421,7 @@ const styles = StyleSheet.create({
     gap: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
   },
   noToolSelected: {
     padding: 40,
@@ -667,8 +446,8 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   handleIndicator: {
-    backgroundColor: primaryColor,
-    width: 100,
+    backgroundColor: '#DCDCDC',
+    width: 50,
     height: 4,
     borderRadius: 2,
   },
