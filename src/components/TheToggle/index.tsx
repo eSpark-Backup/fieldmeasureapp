@@ -46,7 +46,7 @@ export const TheToggle = ({
 
   const translateX = animatedValue.interpolate({
     inputRange: large ? [0, 1] : [0, 1],
-    outputRange: large ? [0, 53] : [0, 18],
+    outputRange: large ? [0, 22] : [0, 18],
   });
 
   return (
@@ -54,18 +54,15 @@ export const TheToggle = ({
       <View
         style={
           Boolean(value)
-            ? [
-                styles.switchContainerActive,
-                large && { width: 100, height: 30 },
-              ]
-            : [styles.switchContainer, large && { width: 100, height: 30 }]
+            ? [styles.switchContainerActive, large && { width: 50, height: 30 }]
+            : [styles.switchContainer, large && { width: 50, height: 30 }]
         }
       >
         <Animated.View
           style={[
             styles.switchHandle,
             { transform: [{ translateX }] },
-            large && { width: 35, height: 20, marginLeft: '5%' },
+            large && { width: 20, height: 20, marginLeft: '5%' },
           ]}
         />
       </View>

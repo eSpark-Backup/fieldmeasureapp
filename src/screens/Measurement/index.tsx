@@ -1,5 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Linking,
+} from 'react-native';
 import {
   CornerTool,
   LaserTool,
@@ -19,6 +25,9 @@ import Svg from 'react-native-svg';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ViewShot from 'react-native-view-shot';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
 
 import {
   Camera,
@@ -40,19 +49,22 @@ import {
 import { border, primaryColor } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type MeasurementProps = NativeStackScreenProps<RootNavParamList, 'Measurement'>;
 
 const Measurement = () => {
   const navigation = useNavigation<MeasurementProps['navigation']>();
   const bottomInset = useSafeAreaInsets().bottom;
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(
+    'file:///data/user/0/com.fieldmeasureapp/cache/Your-File-Name7007548664402403253.jpg',
+  );
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [mainLock, setMainLock] = useState(false);
   const snapPoints = useMemo(() => [bottomInset + 30, 650], []);
   const bottomSheetRef = useRef<BottomSheet>(null);
+
+  const ref = useRef<ViewShot>(null);
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log('handleSheetChanges', index);
@@ -128,12 +140,113 @@ const Measurement = () => {
               color="#50cac0ff"
             />
           );
+        // case 'RoundUp':
+        //   bottomSheetRef.current?.snapToIndex(1);
         case 'RoundUp':
-          bottomSheetRef.current?.snapToIndex(1);
+          captureImage();
         default:
           return null;
       }
     });
+  };
+
+  // const captureImage = useCallback(() => {
+  //   ref.current?.capture!().then(uri => {
+  //     console.log('do something with ', uri);
+  //   });
+  // }, []);
+
+  const captureImage = async () => {
+    let options = {
+      html: `<style>
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+    td,
+    th {
+      text-align: left;
+      padding: 2px;
+    }
+    th {
+      padding-block: 8px;
+    }
+  </style>
+  <h2>Measurement Report</h2>
+  <p>Quote: 12323as</p>
+  <p>Client: John</p>
+  <p>Client: John</p>
+  <p>Date: 7/17/2025</p>
+
+  <img src="file:///data/user/0/com.fieldmeasureapp/cache/Your-File-Name7007548664402403253.jpg" alt="Flowers in Chania" width="460" height="600">
+
+  <h2>Measurements (Total 5)</h2>
+  <table>
+    <tr>
+      <th>Label</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Area</th>
+    </tr>
+    <tr>
+      <td>Note1</td>
+      <td>NOTE</td>
+      <td>511px</td>
+      <td>Attach Bath</td>
+    </tr>
+    <tr>
+      <td>Note1</td>
+      <td>NOTE</td>
+      <td>511px</td>
+      <td>Attach Bath</td>
+    </tr>
+    <tr>
+      <td>Note1</td>
+      <td>NOTE</td>
+      <td>511px</td>
+      <td>Attach Bath</td>
+    </tr>
+    <tr>
+      <td>Note1</td>
+      <td>NOTE</td>
+      <td>511px</td>
+      <td>Attach Bath</td>
+    </tr>
+    <tr>
+      <td>Note1</td>
+      <td>NOTE</td>
+      <td>511px</td>
+      <td>Attach Bath</td>
+    </tr>
+    <tr>
+      <td>Note1</td>
+      <td>NOTE</td>
+      <td>511px</td>
+      <td>Attach Bath</td>
+    </tr>
+    <tr>
+      <td>Note1</td>
+      <td>NOTE</td>
+      <td>511px</td>
+      <td>Attach Bath</td>
+    </tr>
+    <tr>
+      <td>Note1</td>
+      <td>NOTE</td>
+      <td>511px</td>
+      <td>Attach Bath</td>
+    </tr>
+  </table>`,
+      fileName: 'test',
+      directory: 'Documents',
+    };
+
+    let file = await RNHTMLtoPDF.convert(options);
+    console.log(file.filePath);
+    Linking.openURL(file.filePath!);
+    // alert(file.filePath);
   };
 
   return (
@@ -157,7 +270,15 @@ const Measurement = () => {
             <TheText text="Upload a photo to start adding measurements" />
           </TouchableOpacity>
         ) : (
-          <>
+          <ViewShot
+            ref={ref}
+            style={{ flex: 1, marginVertical: 10 }}
+            options={{
+              fileName: 'Your-File-Name',
+              format: 'jpg',
+              quality: 0.9,
+            }}
+          >
             <Image
               resizeMode="center"
               style={{ flex: 1 }}
@@ -170,7 +291,7 @@ const Measurement = () => {
               {/* <RakeTool /> */}
               {/* <TapeTool /> */}
             </Svg>
-          </>
+          </ViewShot>
         )}
         <View style={styles.tools}>
           {TOOLS.map((item, index) => (
@@ -208,6 +329,7 @@ const Measurement = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
+          keyboardShouldPersistTaps={'handled'}
         >
           <View style={styles.initialContainer}>
             <TheTextInput
@@ -228,7 +350,7 @@ const Measurement = () => {
           </View>
           <View style={styles.initialContainer}>
             <TheButton
-              btnTitle="View Details"
+              btnTitle="Add Details"
               onPress={() => {
                 navigation.navigate('AllDetails', {
                   projectId: '123135',
@@ -246,8 +368,8 @@ const Measurement = () => {
             style={[styles.rowContainer, { justifyContent: 'space-between' }]}
           >
             <TheText
-              text="Measurements"
-              size={24}
+              text={`Measurements(${selectedTools.length})`}
+              size={23}
               style={{ fontWeight: 'bold', marginVertical: 20 }}
             />
             <TheToggle value={mainLock} onValueChange={setMainLock} large />

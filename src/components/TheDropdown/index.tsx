@@ -113,7 +113,12 @@ const TheDropdown: React.FC<DropdownProps> = ({
           />
         </Pressable>
         {error ? (
-          <TheText text={error} style={styles.errorText} size={10} />
+          <TheText
+            color={'red'}
+            text={error}
+            style={styles.errorText}
+            size={10}
+          />
         ) : (
           <TheText text={''} style={styles.errorText} size={10} />
         )}

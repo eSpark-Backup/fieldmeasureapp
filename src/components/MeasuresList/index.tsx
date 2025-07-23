@@ -36,12 +36,12 @@ const MeasureCard = () => {
   return (
     <View style={styles.initialContainer}>
       <View style={styles.nameContainer}>
-        <View style={{ ...styles.rowContainer, gap: 5 }}>
-          <Location width={18} height={18} color={'black'} />
+        <View style={{ ...styles.rowContainer, gap: 2 }}>
+          <Location width={22} height={22} color={'black'} />
           <TheText size={18} style={{ fontWeight: 'bold' }} text="Location" />
         </View>
         <TouchableOpacity>
-          <Bin width={18} height={18} color={'#EF4444'} />
+          <Bin width={22} height={22} color={'#EF4444'} />
         </TouchableOpacity>
       </View>
       <View style={styles.imageContainer}>

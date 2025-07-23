@@ -52,7 +52,7 @@ const CornerTool = () => {
       prevTranslationY.value = translationY.value;
     })
     .onUpdate(event => {
-      const maxTranslateX = width - 20;
+      const maxTranslateX = width - 60;
       const maxTranslateY = height - 90;
 
       translationX.value = clamp(
@@ -74,7 +74,7 @@ const CornerTool = () => {
       prevTranslationY2.value = translationY2.value;
     })
     .onUpdate(event => {
-      const maxTranslateX = width - 20;
+      const maxTranslateX = width - 60;
       const maxTranslateY = height - 90;
 
       translationX2.value = clamp(
@@ -96,7 +96,7 @@ const CornerTool = () => {
       prevTranslationY3.value = translationY3.value;
     })
     .onUpdate(event => {
-      const maxTranslateX = width - 20;
+      const maxTranslateX = width - 60;
       const maxTranslateY = height - 90;
 
       translationX3.value = clamp(
@@ -118,7 +118,7 @@ const CornerTool = () => {
       prevTranslationY4.value = translationY4.value;
     })
     .onUpdate(event => {
-      const maxTranslateX = width - 20;
+      const maxTranslateX = width - 60;
       const maxTranslateY = height - 90;
 
       translationX4.value = clamp(
@@ -139,7 +139,7 @@ const CornerTool = () => {
       prevTranslationY5.value = translationY5.value;
     })
     .onUpdate(event => {
-      const maxTranslateX = width - 20;
+      const maxTranslateX = width - 60;
       const maxTranslateY = height - 90;
 
       translationX5.value = clamp(
@@ -160,7 +160,7 @@ const CornerTool = () => {
       prevTranslationY6.value = translationY6.value;
     })
     .onUpdate(event => {
-      const maxTranslateX = width - 20;
+      const maxTranslateX = width - 60;
       const maxTranslateY = height - 90;
 
       translationX6.value = clamp(
@@ -352,56 +352,56 @@ const CornerTool = () => {
         x={10}
         y={10}
         stroke="red"
-        strokeWidth="2"
-        strokeDasharray={[5, 5]}
+        strokeWidth="3"
+        strokeDasharray={[15, 5]}
       />
       <AnimatedLine
         animatedProps={animatedLineProps2}
         x={10}
         y={10}
         stroke="red"
-        strokeWidth="2"
-        strokeDasharray={[5, 5]}
+        strokeWidth="3"
+        strokeDasharray={[15, 5]}
       />
       <AnimatedLine
         animatedProps={animatedLineProps3}
         x={10}
         y={10}
         stroke="red"
-        strokeWidth="2"
-        strokeDasharray={[5, 5]}
+        strokeWidth="3"
+        strokeDasharray={[15, 5]}
       />
       <AnimatedLine
         animatedProps={animatedLinePropsCenter}
         x={10}
         y={10}
         stroke="red"
-        strokeWidth="2"
-        strokeDasharray={[5, 5]}
+        strokeWidth="3"
+        strokeDasharray={[15, 5]}
       />
       <AnimatedLine
         animatedProps={animatedLineProps4}
         x={10}
         y={10}
         stroke="red"
-        strokeWidth="2"
-        strokeDasharray={[5, 5]}
+        strokeWidth="3"
+        strokeDasharray={[15, 5]}
       />
       <AnimatedLine
         animatedProps={animatedLineProps5}
         x={10}
         y={10}
         stroke="red"
-        strokeWidth="2"
-        strokeDasharray={[5, 5]}
+        strokeWidth="3"
+        strokeDasharray={[15, 5]}
       />
       <AnimatedLine
         animatedProps={animatedLineProps6}
         x={10}
         y={10}
         stroke="red"
-        strokeWidth="2"
-        strokeDasharray={[5, 5]}
+        strokeWidth="3"
+        strokeDasharray={[15, 5]}
       />
       <GestureDetector gesture={pan4}>
         <Animated.View style={[styles.box, animatedStyles4]}></Animated.View>
