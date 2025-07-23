@@ -31,7 +31,12 @@ import {
   Upload,
 } from '../../assets';
 
-import { cornerLabels, rectangleLabels, TOOLS } from '../../constants';
+import {
+  cornerLabels,
+  fractionalInches,
+  rectangleLabels,
+  TOOLS,
+} from '../../constants';
 import { border, primaryColor } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
@@ -186,6 +191,9 @@ const Measurement = () => {
         handleIndicatorStyle={styles.handleIndicator}
         maxDynamicContentSize={650}
         animateOnMount={true}
+        activeOffsetY={[-5, 5]}
+        failOffsetX={[-5, 5]}
+        simultaneousHandlers={undefined}
         handleStyle={{
           borderTopRightRadius: 20,
           borderTopLeftRadius: 20,
@@ -258,8 +266,6 @@ const Measurement = () => {
   );
 };
 
-const units = ['in', 'ft', 'cm', 'm'];
-
 function Badge({ color }: { color: string }) {
   return (
     <View
@@ -304,12 +310,12 @@ function MeasureCard({
         placeholder="Enter length"
         value="0"
         label=""
-        style={{ width: 60, marginTop: 10 }}
+        style={{ width: 70, marginTop: 10 }}
         isNum={isNum}
       />
       <TheText text="in" size={16} />
       <TheDropdown
-        data={units}
+        data={fractionalInches}
         onSelect={() => {}}
         placeholder="0"
         id={dropdownId || ''}
@@ -319,7 +325,7 @@ function MeasureCard({
             prev === dropdownId ? null : dropdownId ?? null,
           )
         }
-        style={{ width: 60, marginTop: 10 }}
+        style={{ width: 70, marginTop: 10 }}
       />
     </View>
   );

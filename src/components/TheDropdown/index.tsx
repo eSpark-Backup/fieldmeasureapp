@@ -107,7 +107,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
             size={16}
           />
           <EntypoIcon
-            name={show ? 'chevron-up' : 'chevron-down'}
+            name={isOpen ? 'chevron-up' : 'chevron-down'}
             color={'#66666666'}
             size={16}
           />
@@ -123,11 +123,11 @@ const TheDropdown: React.FC<DropdownProps> = ({
             <ScrollView
               style={{
                 backgroundColor: background,
-                maxHeight: data.length > 4 ? 150 : undefined,
+                maxHeight: 150,
               }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
-              nestedScrollEnabled
+              nestedScrollEnabled={true}
             >
               {renderOptions}
             </ScrollView>
