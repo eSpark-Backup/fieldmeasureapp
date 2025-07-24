@@ -1,16 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Linking,
-} from 'react-native';
+import { View, StyleSheet, Image, Dimensions } from 'react-native';
 import {
   CornerTool,
   LaserTool,
   RakeTool,
-  ReactangleTool,
   TapeTool,
   TheText,
   TheTool,
@@ -18,6 +11,8 @@ import {
   TheDropdown,
   TheTextInput,
   TheToggle,
+  GapView,
+  RectangleTool,
 } from '../../components';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -28,6 +23,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ViewShot from 'react-native-view-shot';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import FileViewer from 'react-native-file-viewer';
 
 import {
   Camera,
@@ -36,6 +32,7 @@ import {
   EyeClosed,
   Minus,
   Plus,
+  RoundPlus,
   Trash,
   Upload,
 } from '../../assets';
@@ -49,20 +46,26 @@ import {
 import { border, primaryColor } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
+import { pdfHTML } from '.';
 
 type MeasurementProps = NativeStackScreenProps<RootNavParamList, 'Measurement'>;
+const { width, height } = Dimensions.get('screen');
 
 const Measurement = () => {
   const navigation = useNavigation<MeasurementProps['navigation']>();
   const bottomInset = useSafeAreaInsets().bottom;
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(
-    'file:///data/user/0/com.fieldmeasureapp/cache/Your-File-Name7007548664402403253.jpg',
-  );
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [mainLock, setMainLock] = useState(false);
   const snapPoints = useMemo(() => [bottomInset + 30, 650], []);
   const bottomSheetRef = useRef<BottomSheet>(null);
+
+  const [TapeT, setTapeT] = useState(false);
+  const [LaserT, setLaserT] = useState(false);
+  const [RakeT, setRakeT] = useState(false);
+  const [RectanlgeT, setRectanlgeT] = useState(false);
+  const [CornerT, setCornerT] = useState(false);
 
   const ref = useRef<ViewShot>(null);
 
@@ -82,7 +85,9 @@ const Measurement = () => {
   };
 
   const handleToolPress = (toolName: string) => {
+    renderTool(toolName);
     console.log('Selected tool:', toolName);
+
     setSelectedTools(prev => [...prev, toolName]);
     // Optionally expand the bottom sheet when a tool is selected
     // bottomSheetRef.current?.snapToIndex(1);
@@ -143,109 +148,52 @@ const Measurement = () => {
         // case 'RoundUp':
         //   bottomSheetRef.current?.snapToIndex(1);
         case 'RoundUp':
-          captureImage();
+          exportReport();
         default:
           return null;
       }
     });
   };
 
-  // const captureImage = useCallback(() => {
-  //   ref.current?.capture!().then(uri => {
-  //     console.log('do something with ', uri);
-  //   });
-  // }, []);
-
-  const captureImage = async () => {
-    let options = {
-      html: `<style>
-    table {
-      font-family: arial, sans-serif;
-      border-collapse: collapse;
-      width: 80%;
+  const renderTool = (tool: string) => {
+    switch (tool) {
+      case 'Tape':
+        return setTapeT(true);
+      case 'Laser':
+        return setLaserT(true);
+      case 'Rake':
+        return setRakeT(true);
+      case 'Rectangle':
+        return setRectanlgeT(true);
+      case 'Corner':
+        return setCornerT(true);
+      // case 'Note':
+      //   return (
+      //     <MeasureCard key={index + tool} {...commonProps} color="#50cac0ff" />
+      //   );
+      // case 'RoundUp':
+      //   bottomSheetRef.current?.snapToIndex(1);
+      // case 'RoundUp':
+      //   exportReport();
+      default:
+        return null;
     }
+  };
 
-    td,
-    th {
-      text-align: left;
-      padding: 2px;
-    }
-    th {
-      padding-block: 8px;
-    }
-  </style>
-  <h2>Measurement Report</h2>
-  <p>Quote: 12323as</p>
-  <p>Client: John</p>
-  <p>Client: John</p>
-  <p>Date: 7/17/2025</p>
+  const exportReport = async () => {
+    ref.current?.capture!().then(async uri => {
+      console.log('do something with ', uri);
+      let options = {
+        html: pdfHTML(uri),
+        fileName: 'test',
+        directory: 'Documents',
+      };
 
-  <img src="file:///data/user/0/com.fieldmeasureapp/cache/Your-File-Name7007548664402403253.jpg" alt="Flowers in Chania" width="460" height="600">
+      let file = await RNHTMLtoPDF.convert(options);
+      console.log(file.filePath);
+      FileViewer.open(file.filePath!);
+    });
 
-  <h2>Measurements (Total 5)</h2>
-  <table>
-    <tr>
-      <th>Label</th>
-      <th>Type</th>
-      <th>Value</th>
-      <th>Area</th>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-  </table>`,
-      fileName: 'test',
-      directory: 'Documents',
-    };
-
-    let file = await RNHTMLtoPDF.convert(options);
-    console.log(file.filePath);
-    Linking.openURL(file.filePath!);
     // alert(file.filePath);
   };
 
@@ -260,7 +208,7 @@ const Measurement = () => {
         }}
       >
         {!selectedPhoto ? (
-          <TouchableOpacity style={styles.noPhoto} onPress={getImage}>
+          <View style={styles.noPhoto}>
             <Camera color={'#9CA3AF'} />
             <TheText
               text="No Photo Selected"
@@ -268,14 +216,18 @@ const Measurement = () => {
               style={{ fontWeight: '500' }}
             />
             <TheText text="Upload a photo to start adding measurements" />
-          </TouchableOpacity>
+            <TheButton
+              btnTitle="Add Image"
+              icon={<RoundPlus width={20} height={20} color={'white'} />}
+              onPress={getImage}
+            />
+          </View>
         ) : (
           <ViewShot
             ref={ref}
-            style={{ flex: 1, marginVertical: 10 }}
+            style={{ flex: 1, marginVertical: 10, justifyContent: 'center' }}
             options={{
               fileName: 'Your-File-Name',
-              format: 'jpg',
               quality: 0.9,
             }}
           >
@@ -285,11 +237,11 @@ const Measurement = () => {
               source={{ uri: selectedPhoto }}
             />
             <Svg height="100%" width="100%" style={{ position: 'absolute' }}>
-              {/* <LaserTool /> */}
-              {/* <ReactangleTool /> */}
-              <CornerTool />
-              {/* <RakeTool /> */}
-              {/* <TapeTool /> */}
+              {TapeT && <TapeTool />}
+              {LaserT && <LaserTool />}
+              {RakeT && <RakeTool />}
+              {RectanlgeT && <RectangleTool />}
+              {CornerT && <CornerTool />}
             </Svg>
           </ViewShot>
         )}
@@ -326,7 +278,6 @@ const Measurement = () => {
         }}
       >
         <BottomSheetScrollView
-          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
           keyboardShouldPersistTaps={'handled'}
@@ -372,7 +323,11 @@ const Measurement = () => {
               size={23}
               style={{ fontWeight: 'bold', marginVertical: 20 }}
             />
-            <TheToggle value={mainLock} onValueChange={setMainLock} large />
+            <View style={styles.rowContainer}>
+              <TheText style={{ fontWeight: '500' }} text="Lock All" />
+              <GapView mode="horizontal" />
+              <TheToggle value={mainLock} onValueChange={setMainLock} large />
+            </View>
           </View>
 
           {renderToolContent()}
@@ -382,6 +337,7 @@ const Measurement = () => {
             icon={<Export />}
             // onPress={handleSaveMeasurements}
           />
+          <GapView length={useSafeAreaInsets().bottom + 10} />
         </BottomSheetScrollView>
       </BottomSheet>
     </GestureHandlerRootView>
@@ -569,9 +525,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: 20,
-  },
-  scrollContent: {
-    paddingBottom: 10,
   },
   handleIndicator: {
     backgroundColor: '#DCDCDC',

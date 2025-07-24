@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  Animated,
-  TouchableOpacity,
-  View,
-  DimensionValue,
-} from 'react-native';
-import {
-  background,
-  border,
-  primaryColor,
-  WhiteBackground,
-} from '../../constants/colors';
+import { StyleSheet, Animated, TouchableOpacity, View } from 'react-native';
+import { border, primaryColor, WhiteBackground } from '../../constants/colors';
 
 interface IAnimatedButton {
   value: boolean;
@@ -72,11 +61,6 @@ export const TheToggle = ({
 export default TheToggle;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -13,34 +13,34 @@ const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
 const CornerTool = () => {
-  const translationX = useSharedValue(width - width + 10);
+  const translationX = useSharedValue(width * 0.1);
   const translationY = useSharedValue(height / 3.5);
-  const prevTranslationX = useSharedValue(width - width + 10);
+  const prevTranslationX = useSharedValue(width * 0.1);
   const prevTranslationY = useSharedValue(height / 3.5);
 
-  const translationX2 = useSharedValue(width - width + 10);
-  const translationY2 = useSharedValue(height / 1.5);
-  const prevTranslationX2 = useSharedValue(width - width + 10);
-  const prevTranslationY2 = useSharedValue(height / 1.5);
+  const translationX2 = useSharedValue(width * 0.1);
+  const translationY2 = useSharedValue(height / 2);
+  const prevTranslationX2 = useSharedValue(width * 0.1);
+  const prevTranslationY2 = useSharedValue(height / 2);
 
-  const translationX3 = useSharedValue(width / 2 - 10);
-  const translationY3 = useSharedValue(height / 1.5);
-  const prevTranslationX3 = useSharedValue(width / 2 - 10);
-  const prevTranslationY3 = useSharedValue(height / 1.5);
+  const translationX3 = useSharedValue(width / 2 - 30);
+  const translationY3 = useSharedValue(height / 2);
+  const prevTranslationX3 = useSharedValue(width / 2 - 30);
+  const prevTranslationY3 = useSharedValue(height / 2);
 
-  const translationX4 = useSharedValue(width - 20 - 40);
-  const translationY4 = useSharedValue(height / 1.5);
-  const prevTranslationX4 = useSharedValue(width - 20 - 40);
-  const prevTranslationY4 = useSharedValue(height / 1.5);
+  const translationX4 = useSharedValue(width - width * 0.25);
+  const translationY4 = useSharedValue(height / 2);
+  const prevTranslationX4 = useSharedValue(width - width * 0.25);
+  const prevTranslationY4 = useSharedValue(height / 2);
 
-  const translationX5 = useSharedValue(width - 20 - 40);
+  const translationX5 = useSharedValue(width - width * 0.25);
   const translationY5 = useSharedValue(height / 3.5);
-  const prevTranslationX5 = useSharedValue(width - 20 - 40);
+  const prevTranslationX5 = useSharedValue(width - width * 0.25);
   const prevTranslationY5 = useSharedValue(height / 3.5);
 
-  const translationX6 = useSharedValue(width / 2 - 10);
+  const translationX6 = useSharedValue(width / 2 - 30);
   const translationY6 = useSharedValue(height / 3.5);
-  const prevTranslationX6 = useSharedValue(width / 2 - 10);
+  const prevTranslationX6 = useSharedValue(width / 2 - 30);
   const prevTranslationY6 = useSharedValue(height / 3.5);
 
   const scale = useSharedValue(1);
@@ -333,6 +333,16 @@ const CornerTool = () => {
     y2: translationY3.value,
   }));
 
+  const animatedLines = [
+    animatedLineProps1,
+    animatedLineProps2,
+    animatedLineProps3,
+    animatedLinePropsCenter,
+    animatedLineProps4,
+    animatedLineProps5,
+    animatedLineProps6,
+  ];
+
   return (
     <View style={{ position: 'absolute' }}>
       <GestureDetector gesture={pan}>
@@ -347,62 +357,16 @@ const CornerTool = () => {
       {/* <Animated.View style={[styles.sizeBox, sizeBoxStyles]}></Animated.View>
       <Animated.View style={[styles.sizeBox, sizeBox1Styles]}></Animated.View>
       <Animated.View style={[styles.sizeBox, sizeBox2Styles]}></Animated.View> */}
-      <AnimatedLine
-        animatedProps={animatedLineProps1}
-        x={10}
-        y={10}
-        stroke="red"
-        strokeWidth="3"
-        strokeDasharray={[15, 5]}
-      />
-      <AnimatedLine
-        animatedProps={animatedLineProps2}
-        x={10}
-        y={10}
-        stroke="red"
-        strokeWidth="3"
-        strokeDasharray={[15, 5]}
-      />
-      <AnimatedLine
-        animatedProps={animatedLineProps3}
-        x={10}
-        y={10}
-        stroke="red"
-        strokeWidth="3"
-        strokeDasharray={[15, 5]}
-      />
-      <AnimatedLine
-        animatedProps={animatedLinePropsCenter}
-        x={10}
-        y={10}
-        stroke="red"
-        strokeWidth="3"
-        strokeDasharray={[15, 5]}
-      />
-      <AnimatedLine
-        animatedProps={animatedLineProps4}
-        x={10}
-        y={10}
-        stroke="red"
-        strokeWidth="3"
-        strokeDasharray={[15, 5]}
-      />
-      <AnimatedLine
-        animatedProps={animatedLineProps5}
-        x={10}
-        y={10}
-        stroke="red"
-        strokeWidth="3"
-        strokeDasharray={[15, 5]}
-      />
-      <AnimatedLine
-        animatedProps={animatedLineProps6}
-        x={10}
-        y={10}
-        stroke="red"
-        strokeWidth="3"
-        strokeDasharray={[15, 5]}
-      />
+      {animatedLines.map((props, i) => (
+        <AnimatedLine
+          key={`line-${i}`}
+          x={10}
+          y={10}
+          animatedProps={props}
+          stroke="#c2410c"
+          strokeWidth="5"
+        />
+      ))}
       <GestureDetector gesture={pan4}>
         <Animated.View style={[styles.box, animatedStyles4]}></Animated.View>
       </GestureDetector>
@@ -420,9 +384,10 @@ const styles = StyleSheet.create({
   box: {
     height: 20,
     width: 20,
-    backgroundColor: '#b58df1',
+    backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,
+    borderColor: '#2975D2',
     position: 'absolute',
     zIndex: 1000,
   },

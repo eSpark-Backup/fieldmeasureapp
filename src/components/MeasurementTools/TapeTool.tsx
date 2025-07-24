@@ -16,7 +16,7 @@ const TapeTool = () => {
   const scale = useSharedValue(1);
 
   const initialX = [width / 2, width / 2];
-  const initialY = [height / 3.5, height / 1.5];
+  const initialY = [height / 3.5, height / 2];
 
   const points = initialX.map((x, i) => ({
     x: useSharedValue(x),
@@ -56,7 +56,7 @@ const TapeTool = () => {
     })),
   );
 
-  const animatedLines = [...Array(2)].map((_, i) => {
+  const animatedLines = [...Array(1)].map((_, i) => {
     return useAnimatedProps(() => ({
       x1: points[i].x.value,
       y1: points[i].y.value,
@@ -78,9 +78,8 @@ const TapeTool = () => {
           x={10}
           y={10}
           animatedProps={props}
-          stroke="red"
-          strokeWidth="2"
-          strokeDasharray={[2, 2]}
+          stroke="#1d4ed8"
+          strokeWidth="5"
         />
       ))}
     </View>
@@ -91,9 +90,10 @@ const styles = StyleSheet.create({
   box: {
     height: 20,
     width: 20,
-    backgroundColor: '#b58df1',
+    backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,
+    borderColor: '#2975D2',
     position: 'absolute',
   },
   box2: {
