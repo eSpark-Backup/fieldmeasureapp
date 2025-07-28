@@ -14,8 +14,13 @@ import {
   GapView,
   RectangleTool,
 } from '../../components';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { launchImageLibrary } from 'react-native-image-picker';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+  ScrollView,
+} from 'react-native-gesture-handler';
 import Svg from 'react-native-svg';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
@@ -46,13 +51,23 @@ import {
 import { border, primaryColor } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
-import { pdfHTML } from '.';
+import { pdfHTML } from './utils';
+import Animated, {
+  clamp,
+  runOnJS,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withDecay,
+} from 'react-native-reanimated';
+
+const { width, height } = Dimensions.get('screen');
 
 type MeasurementProps = NativeStackScreenProps<RootNavParamList, 'Measurement'>;
-const { width, height } = Dimensions.get('screen');
 
 const Measurement = () => {
   const navigation = useNavigation<MeasurementProps['navigation']>();
+  const topInset = useSafeAreaInsets().top;
   const bottomInset = useSafeAreaInsets().bottom;
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
@@ -67,7 +82,57 @@ const Measurement = () => {
   const [RectanlgeT, setRectanlgeT] = useState(false);
   const [CornerT, setCornerT] = useState(false);
 
+  const [scaleVal, setScaleVal] = useState(1);
+
   const ref = useRef<ViewShot>(null);
+
+  const scale = useSharedValue(1);
+  const startScale = useSharedValue(0);
+
+  const translateY = useSharedValue(0);
+
+  const prevTranslationY = useSharedValue(0);
+
+  useAnimatedReaction(
+    () => scale.value,
+    newScale => {
+      runOnJS(setScaleVal)(newScale);
+    },
+  );
+
+  const pinch = Gesture.Pinch()
+    .onStart(() => {
+      startScale.value = scale.value;
+    })
+    .onUpdate(event => {
+      scale.value = clamp(startScale.value * event.scale, 1, 2);
+    });
+
+  console.log('scale val', scale.value);
+
+  const panGesture = Gesture.Pan()
+    .onStart(e => {
+      prevTranslationY.value = translateY.value;
+    })
+    .onUpdate(e => {
+      translateY.value = clamp(
+        prevTranslationY.value + e.translationY,
+        -height / 2,
+        height / 2,
+      );
+    })
+    .onEnd(e => {
+      translateY.value = withDecay({
+        velocity: e.velocityY,
+        clamp: [-height / 2, height / 2],
+      });
+    });
+
+  const composedGesture = Gesture.Simultaneous(pinch, panGesture);
+
+  const boxAnimatedStyles = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
+  }));
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log('handleSheetChanges', index);
@@ -202,9 +267,12 @@ const Measurement = () => {
       <View
         style={{
           flex: 1,
+          flexDirection: 'row',
           paddingHorizontal: 20,
-          marginBottom: bottomInset + 20,
+          marginTop: bottomInset,
+          marginBottom: bottomInset,
           backgroundColor: '#F9FAFB',
+          gap: 10,
         }}
       >
         {!selectedPhoto ? (
@@ -225,38 +293,110 @@ const Measurement = () => {
         ) : (
           <ViewShot
             ref={ref}
-            style={{ flex: 1, marginVertical: 10, justifyContent: 'center' }}
+            style={{
+              // flex: 1,
+              width: '60%',
+              marginVertical: 10,
+              justifyContent: 'center',
+            }}
             options={{
               fileName: 'Your-File-Name',
               quality: 0.9,
             }}
           >
-            <Image
-              resizeMode="center"
-              style={{ flex: 1 }}
-              source={{ uri: selectedPhoto }}
-            />
-            <Svg height="100%" width="100%" style={{ position: 'absolute' }}>
-              {TapeT && <TapeTool />}
-              {LaserT && <LaserTool />}
-              {RakeT && <RakeTool />}
-              {RectanlgeT && <RectangleTool />}
-              {CornerT && <CornerTool />}
-            </Svg>
+            <GestureDetector gesture={composedGesture}>
+              <Animated.View style={[{ flex: 1 }, boxAnimatedStyles]}>
+                <Image
+                  resizeMode="contain"
+                  style={{ flex: 1 }}
+                  source={{ uri: selectedPhoto }}
+                />
+                <Svg
+                  height="100%"
+                  width="100%"
+                  style={{ position: 'absolute' }}
+                >
+                  {TapeT && <TapeTool scaleValue={scaleVal} />}
+                  {LaserT && <LaserTool />}
+                  {RakeT && <RakeTool />}
+                  {RectanlgeT && <RectangleTool />}
+                  {CornerT && <CornerTool />}
+                </Svg>
+              </Animated.View>
+            </GestureDetector>
           </ViewShot>
         )}
-        <View style={styles.tools}>
-          {TOOLS.map((item, index) => (
-            <TheTool
-              key={index}
-              toolName={item}
-              onPress={() => handleToolPress(item)}
+
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          <View style={styles.tools}>
+            {TOOLS.map((item, index) => (
+              <TheTool
+                key={index}
+                toolName={item}
+                onPress={() => handleToolPress(item)}
+              />
+            ))}
+          </View>
+          <View style={styles.initialContainer}>
+            <TheTextInput
+              label="Location"
+              placeholder="Kitchen, Bathroom, Living Room"
+              value={location}
+              onChange={setLocation}
+              required
             />
-          ))}
-        </View>
+          </View>
+          <View style={styles.initialContainer}>
+            <TheButton
+              btnTitle="Upload Photo"
+              icon={<Upload />}
+              titleStyle={{ fontWeight: 'bold' }}
+              onPress={getImage}
+            />
+          </View>
+          <View style={styles.initialContainer}>
+            <TheButton
+              btnTitle="Add Details"
+              onPress={() => {
+                navigation.navigate('AllDetails', {
+                  projectId: '123135',
+                  title: 'John',
+                  address: '132132 adjvdjs',
+                  date: '2024-01-01',
+                  extraInfo: 'Additional info here',
+                });
+              }}
+              titleStyle={{ fontWeight: 'bold' }}
+              btnColor={'#fcac17ff'}
+            />
+          </View>
+          <View
+            style={[styles.rowContainer, { justifyContent: 'space-between' }]}
+          >
+            <TheText
+              text={`Measurements(${selectedTools.length})`}
+              size={23}
+              style={{ fontWeight: 'bold', marginVertical: 20 }}
+            />
+            <View style={styles.rowContainer}>
+              <TheText style={{ fontWeight: '500' }} text="Lock All" />
+              <GapView mode="horizontal" />
+              <TheToggle value={mainLock} onValueChange={setMainLock} large />
+            </View>
+          </View>
+
+          {renderToolContent()}
+          <TheButton
+            btnTitle="Export Report"
+            titleStyle={{ fontWeight: 'bold' }}
+            icon={<Export />}
+            // onPress={handleSaveMeasurements}
+          />
+          <GapView length={useSafeAreaInsets().bottom + 10} />
+        </ScrollView>
       </View>
 
-      <BottomSheet
+      {/* <BottomSheet
         ref={bottomSheetRef}
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
@@ -339,7 +479,7 @@ const Measurement = () => {
           />
           <GapView length={useSafeAreaInsets().bottom + 10} />
         </BottomSheetScrollView>
-      </BottomSheet>
+      </BottomSheet> */}
     </GestureHandlerRootView>
   );
 };
@@ -484,7 +624,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'lightgrey',
     padding: 20,
-    marginVertical: 10,
+    marginVertical: 5,
     backgroundColor: 'white',
     gap: 10,
   },
@@ -501,7 +641,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noPhoto: {
-    flex: 1,
+    width: '60%',
     gap: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -515,7 +655,7 @@ const styles = StyleSheet.create({
   tools: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    marginBottom: 20,
+    marginVertical: 10,
     gap: 5,
   },
   contentContainer: {

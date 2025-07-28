@@ -26,6 +26,7 @@ const ProjectsList = ({
       />
       <FlatList
         data={Array(projects)}
+        ItemSeparatorComponent={() => <GapView />}
         renderItem={({ index }) => (
           <ProjectCard key={index} onViewPress={onViewPress} />
         )}

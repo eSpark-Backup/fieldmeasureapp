@@ -4,6 +4,7 @@ import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
+  SharedValue,
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
@@ -12,9 +13,7 @@ import Animated, {
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
-const TapeTool = () => {
-  const scale = useSharedValue(1);
-
+const TapeTool = ({ scaleValue }: { scaleValue: number }) => {
   const initialX = [width / 2, width / 2];
   const initialY = [height / 3.5, height / 2];
 
@@ -34,12 +33,12 @@ const TapeTool = () => {
       })
       .onUpdate(event => {
         point.x.value = clamp(
-          point.prevX.value + event.translationX,
+          point.prevX.value + event.translationX / scaleValue,
           1,
           width - 20,
         );
         point.y.value = clamp(
-          point.prevY.value + event.translationY,
+          point.prevY.value + event.translationY / scaleValue,
           1,
           height - 90,
         );
@@ -48,11 +47,9 @@ const TapeTool = () => {
 
   const animatedStyles = points.map(point =>
     useAnimatedStyle(() => ({
-      transform: [
-        { translateX: point.x.value },
-        { translateY: point.y.value },
-        { scale: scale.value },
-      ],
+      width: 20 * (2 / scaleValue / 2),
+      height: 20 * (2 / scaleValue / 2),
+      transform: [{ translateX: point.x.value }, { translateY: point.y.value }],
     })),
   );
 
@@ -75,11 +72,11 @@ const TapeTool = () => {
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}
-          x={10}
-          y={10}
+          x={10 * (2 / scaleValue / 2)}
+          y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke="#1d4ed8"
-          strokeWidth="5"
+          strokeWidth="2"
         />
       ))}
     </View>
@@ -88,8 +85,8 @@ const TapeTool = () => {
 
 const styles = StyleSheet.create({
   box: {
-    height: 20,
-    width: 20,
+    // height: 20,
+    // width: 20,
     backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,

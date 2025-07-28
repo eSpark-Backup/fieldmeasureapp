@@ -58,9 +58,7 @@ const TheTextInput = ({
           style={styles.errorText}
           size={10}
         />
-      ) : (
-        <TheText text={''} color={'red'} style={styles.errorText} size={10} />
-      )}
+      ) : null}
     </View>
   );
 };

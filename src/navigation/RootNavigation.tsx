@@ -1,19 +1,16 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { RootNavParamList } from '../types/navigationParams';
 import ProjectDetails from '../screens/ProjectDetails';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View } from 'react-native';
-import Measurement from '../screens/Measurement';
-import { TheText } from '../components';
-
 import SignIn from '../screens/SignIn';
 import SignUp from '../screens/SignUp';
 import ForgotPassword from '../screens/ForgotPassword';
 import Projects from '../screens/Projects';
 import AllDetails from '../screens/AllDetails';
 import TheHeader from '../components/TheHeader';
+import Measurement from '../screens/Measurement';
+
+import { RootNavParamList } from '../types/navigationParams';
 
 const Stack = createNativeStackNavigator<RootNavParamList>();
 
@@ -24,7 +21,7 @@ const RootNavigation = () => {
         headerShown: false,
         animation: 'none',
       }}
-      initialRouteName="Projects"
+      // initialRouteName="Projects"
     >
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="SignUp" component={SignUp} />

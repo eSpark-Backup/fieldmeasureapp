@@ -32,7 +32,7 @@ const Projects = () => {
   const [showInputs, setShowInputs] = useState(false);
 
   return (
-    <View
+    <ScrollView
       style={{
         flex: 1,
         backgroundColor: background,
@@ -165,7 +165,7 @@ const Projects = () => {
           />
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 };
 

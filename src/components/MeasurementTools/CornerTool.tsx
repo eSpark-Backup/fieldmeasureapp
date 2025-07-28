@@ -364,7 +364,7 @@ const CornerTool = () => {
           y={10}
           animatedProps={props}
           stroke="#c2410c"
-          strokeWidth="5"
+          strokeWidth="1"
         />
       ))}
       <GestureDetector gesture={pan4}>
