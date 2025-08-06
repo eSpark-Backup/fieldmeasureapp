@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, Image, Dimensions, ViewStyle } from 'react-native';
 import {
   CornerTool,
   LaserTool,
@@ -175,22 +175,34 @@ const Measurement = () => {
             <MeasureCard
               key={index + tool}
               {...commonProps}
+              style={{ zIndex: 1000 + selectedTools.length - index }}
               color={primaryColor}
             />
           );
         case 'Laser':
           return (
-            <MeasureCard key={index + tool} {...commonProps} color="#FBBF24" />
+            <MeasureCard
+              key={index + tool}
+              {...commonProps}
+              style={{ zIndex: 100 + selectedTools.length - index }}
+              color="#FBBF24"
+            />
           );
         case 'Rake':
           return (
-            <MeasureCard key={index + tool} {...commonProps} color="#BB86FC" />
+            <MeasureCard
+              key={index + tool}
+              {...commonProps}
+              style={{ zIndex: 100 + selectedTools.length - index }}
+              color="#BB86FC"
+            />
           );
         case 'Rectangle':
           return (
             <MeasureCard
               key={index + tool}
               {...commonProps}
+              style={{ zIndex: 100 + selectedTools.length - index }}
               color="#86b9fcff"
             />
           );
@@ -199,6 +211,7 @@ const Measurement = () => {
             <MeasureCard
               key={index + tool}
               {...commonProps}
+              style={{ zIndex: 100 + selectedTools.length - index }}
               color="#ca5056ff"
             />
           );
@@ -207,6 +220,7 @@ const Measurement = () => {
             <MeasureCard
               key={index + tool}
               {...commonProps}
+              style={{ zIndex: 100 + selectedTools.length - index }}
               color="#50cac0ff"
             />
           );
@@ -384,8 +398,7 @@ const Measurement = () => {
               <TheToggle value={mainLock} onValueChange={setMainLock} large />
             </View>
           </View>
-
-          {renderToolContent()}
+          <View style={{ zIndex: 1000 }}>{renderToolContent()}</View>
           <TheButton
             btnTitle="Export Report"
             titleStyle={{ fontWeight: 'bold' }}
@@ -503,10 +516,12 @@ function MeasureCard({
   type,
   onDelete,
   color,
+  style,
 }: {
   type: string;
   onDelete: () => void;
   color?: string;
+  style?: ViewStyle;
 }) {
   const [visible, setVisible] = useState(true);
   const [lock, setLock] = useState(false);
@@ -521,14 +536,18 @@ function MeasureCard({
     dropdownId?: string,
   ) => (
     <View
-      style={[styles.rowContainer, { justifyContent: 'flex-start', gap: 15 }]}
+      style={[
+        styles.rowContainer,
+        style,
+        { justifyContent: 'flex-start', gap: 15 },
+      ]}
     >
       {label && <TheText text={`${label}:`} style={{ width: '18%' }} />}
       <TheTextInput
         placeholder="Enter length"
         value="0"
         label=""
-        style={{ width: 70, marginTop: 10 }}
+        style={{ width: 70 }}
         isNum={isNum}
       />
       <TheText text="in" size={16} />
@@ -543,7 +562,7 @@ function MeasureCard({
             prev === dropdownId ? null : dropdownId ?? null,
           )
         }
-        style={{ width: 70, marginTop: 10 }}
+        style={{ width: 70 }}
       />
     </View>
   );

@@ -106,6 +106,20 @@ export const DROPDOWNS = [
   },
 ];
 
+export const TECHS = {
+  data: [
+    'James Carter',
+    'Liam Bennett',
+    'Ayaan Malik',
+    'Noah Thompson',
+    'Omar Rahman',
+  ],
+  placeholder: 'Select Technician',
+  title: 'Technicians',
+  id: 'technicians',
+  selected: '',
+};
+
 export const INPUT_FIELDS = [
   {
     label: 'Curb/Tub Height',

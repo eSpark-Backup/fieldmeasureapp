@@ -36,7 +36,13 @@ const TheTextInput = ({
 }) => {
   return (
     <View style={containerStyle}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: 5,
+        }}
+      >
         {label && <TheText style={styles.label} text={label} />}
         {required && <TheText style={styles.required} text=" *" />}
       </View>
@@ -77,10 +83,9 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     textAlign: 'right',
   },
-  label: { fontWeight: '500', paddingVertical: 5, fontSize: 16 },
+  label: { fontWeight: '500', fontSize: 16 },
   required: {
     fontSize: 16,
-    marginBottom: 5,
   },
 });
 

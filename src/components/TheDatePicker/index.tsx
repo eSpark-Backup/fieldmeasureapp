@@ -15,20 +15,28 @@ const TheTextInput = ({
   label,
   containerStyle,
   style,
+  required,
 }: {
   label: string;
   containerStyle?: ViewStyle;
   style?: TextStyle;
+  required?: boolean;
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   return (
     <View style={containerStyle}>
-      <TheText
-        style={{ fontWeight: '500', paddingBottom: 5, fontSize: 16 }}
-        text={label}
-      />
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: 5,
+        }}
+      >
+        {label && <TheText style={styles.label} text={label} />}
+        {required && <TheText style={styles.required} text=" *" />}
+      </View>
       <TouchableOpacity activeOpacity={0.8} onPress={() => setShowPicker(true)}>
         <TextInput
           value={selectedDate.toLocaleDateString('en-GB')}
@@ -58,6 +66,10 @@ const styles = StyleSheet.create({
     borderColor: border,
     borderWidth: 1,
     borderRadius: 5,
+  },
+  label: { fontWeight: '500', fontSize: 16 },
+  required: {
+    fontSize: 16,
   },
 });
 

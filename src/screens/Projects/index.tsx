@@ -6,6 +6,7 @@ import {
   ProjectsList,
   TheButton,
   TheDatePicker,
+  TheDropdown,
   TheText,
   TheTextInput,
 } from '../../components';
@@ -22,6 +23,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
 import { useNavigation } from '@react-navigation/native';
+import { TECHS } from '../../constants';
 
 type ProjectsProps = NativeStackScreenProps<RootNavParamList, 'Projects'>;
 
@@ -30,6 +32,7 @@ const Projects = () => {
   const projects = useProjectStore().projects;
   const increaseProjects = useProjectStore().increaseProjects;
   const [showInputs, setShowInputs] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   return (
     <ScrollView
@@ -63,6 +66,7 @@ const Projects = () => {
             paddingVertical: 20,
             paddingHorizontal: 20,
             marginVertical: 20,
+            zIndex: 100,
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
@@ -77,25 +81,39 @@ const Projects = () => {
             <View style={{ ...styles.rowContainer, gap: 15 }}>
               <TheTextInput
                 containerStyle={{ flex: 1 }}
-                label="Quote Number *"
+                label="Quote Number"
                 placeholder="Q-2024-001"
+                required
               />
               <TheTextInput
                 containerStyle={{ flex: 1 }}
-                label="Client Name *"
+                label="Client Name"
                 placeholder="John Smith"
+                required
               />
             </View>
             <TheTextInput
-              label="Address *"
+              label="Address"
               placeholder="123 Main St, City, State 12345"
+              required
             />
             <View style={{ ...styles.rowContainer, gap: 15 }}>
-              <TheTextInput
-                containerStyle={{ flex: 1 }}
-                label="Technician *"
-                placeholder="Tech Name"
-              />
+              <View style={{ flex: 1 }}>
+                <TheDropdown
+                  data={TECHS.data}
+                  placeholder={TECHS.placeholder}
+                  title={TECHS.title}
+                  id={TECHS.id}
+                  style={{ flex: 1 }}
+                  // selected={selectedValues[id]}
+                  onSelect={({ key, value }) => console.log(key, value)}
+                  required
+                  isOpen={openDropdownId == TECHS.id}
+                  setOpenDropdownId={setOpenDropdownId}
+                  zIndex={10000}
+                  // error={errors[id]}
+                />
+              </View>
               <TheDatePicker containerStyle={{ flex: 1 }} label="Date *" />
             </View>
           </View>

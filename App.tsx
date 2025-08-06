@@ -14,7 +14,7 @@ const App = () => {
           barStyle={'dark-content'}
           backgroundColor={WhiteBackground}
         />
-        <RootNavigation />
+        {/* <RootNavigation /> */}
       </NavigationContainer>
     </SafeAreaProvider>
   );
