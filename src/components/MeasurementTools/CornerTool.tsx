@@ -13,34 +13,34 @@ const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
 const CornerTool = () => {
-  const translationX = useSharedValue(width * 0.1);
+  const translationX = useSharedValue(width / 2 / 3);
   const translationY = useSharedValue(height / 3.5);
-  const prevTranslationX = useSharedValue(width * 0.1);
+  const prevTranslationX = useSharedValue(width / 2 / 3);
   const prevTranslationY = useSharedValue(height / 3.5);
 
-  const translationX2 = useSharedValue(width * 0.1);
+  const translationX2 = useSharedValue(width / 2 / 3);
   const translationY2 = useSharedValue(height / 2);
-  const prevTranslationX2 = useSharedValue(width * 0.1);
+  const prevTranslationX2 = useSharedValue(width / 2 / 3);
   const prevTranslationY2 = useSharedValue(height / 2);
 
-  const translationX3 = useSharedValue(width / 2 - 30);
+  const translationX3 = useSharedValue(width / 2 / 1.6);
   const translationY3 = useSharedValue(height / 2);
-  const prevTranslationX3 = useSharedValue(width / 2 - 30);
+  const prevTranslationX3 = useSharedValue(width / 2 / 1.6);
   const prevTranslationY3 = useSharedValue(height / 2);
 
-  const translationX4 = useSharedValue(width - width * 0.25);
+  const translationX4 = useSharedValue(width / 2 / 1.2);
   const translationY4 = useSharedValue(height / 2);
-  const prevTranslationX4 = useSharedValue(width - width * 0.25);
+  const prevTranslationX4 = useSharedValue(width / 2 / 1.2);
   const prevTranslationY4 = useSharedValue(height / 2);
 
-  const translationX5 = useSharedValue(width - width * 0.25);
+  const translationX5 = useSharedValue(width / 2 / 1.2);
   const translationY5 = useSharedValue(height / 3.5);
-  const prevTranslationX5 = useSharedValue(width - width * 0.25);
+  const prevTranslationX5 = useSharedValue(width / 2 / 1.2);
   const prevTranslationY5 = useSharedValue(height / 3.5);
 
-  const translationX6 = useSharedValue(width / 2 - 30);
+  const translationX6 = useSharedValue(width / 2 / 1.6);
   const translationY6 = useSharedValue(height / 3.5);
-  const prevTranslationX6 = useSharedValue(width / 2 - 30);
+  const prevTranslationX6 = useSharedValue(width / 2 / 1.6);
   const prevTranslationY6 = useSharedValue(height / 3.5);
 
   const scale = useSharedValue(1);

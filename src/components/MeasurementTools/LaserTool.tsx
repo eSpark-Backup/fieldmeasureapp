@@ -15,7 +15,7 @@ const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 const LaserTool = () => {
   const scale = useSharedValue(1);
 
-  const initialX = [width / 2, width / 2];
+  const initialX = [width / 2 / 2, width / 2 / 2];
   const initialY = [height / 3.5, height / 2];
 
   const points = initialX.map((x, i) => ({

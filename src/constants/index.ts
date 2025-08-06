@@ -193,3 +193,11 @@ export const fractionalInches = [
   '7/8',
   '15/16',
 ];
+
+const Project = {
+  qouteNumber: 'HJJHB123',
+  name: 'HJJHB123',
+  address: 'HJJHB123',
+  techName: 'HJJHB123',
+  date: 'HJJHB123',
+};

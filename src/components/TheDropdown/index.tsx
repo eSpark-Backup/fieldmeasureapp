@@ -137,8 +137,14 @@ const TheDropdown: React.FC<DropdownProps> = ({
           />
         ) : null}
 
+        {/* {renderOptions} */}
         {isOpen && (
-          <View style={[styles.dropdownListWrapper, { zIndex }]}>
+          <View
+            style={[
+              styles.dropdownListWrapper,
+              { top: error ? '70%' : '90%', zIndex },
+            ]}
+          >
             <ScrollView
               style={{
                 backgroundColor: background,

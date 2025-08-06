@@ -33,16 +33,16 @@ const RootNavigation = () => {
         options={{
           headerShown: true,
           header: ({ navigation, route }) => {
-            const { projectId, title, address, date, extraInfo } =
+            const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['ProjectDetails'];
             return (
               <TheHeader
                 onBackPress={() => navigation.goBack()}
-                projectId={projectId}
-                title={title}
+                qouteNumber={qouteNumber}
+                name={name}
                 address={address}
+                techName={techName}
                 date={date}
-                extraInfo={extraInfo}
               />
             );
           },
@@ -54,16 +54,16 @@ const RootNavigation = () => {
         options={{
           headerShown: true,
           header: ({ navigation, route }) => {
-            const { projectId, title, address, date, extraInfo } =
+            const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['Measurement'];
             return (
               <TheHeader
                 onBackPress={() => navigation.goBack()}
-                projectId={projectId}
-                title={title}
+                qouteNumber={qouteNumber}
+                name={name}
                 address={address}
+                techName={techName}
                 date={date}
-                extraInfo={extraInfo}
               />
             );
           },
@@ -75,16 +75,16 @@ const RootNavigation = () => {
         options={{
           headerShown: true,
           header: ({ navigation, route }) => {
-            const { projectId, title, address, date, extraInfo } =
+            const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['AllDetails'];
             return (
               <TheHeader
                 onBackPress={() => navigation.goBack()}
-                projectId={projectId}
-                title={title}
+                qouteNumber={qouteNumber}
+                name={name}
                 address={address}
+                techName={techName}
                 date={date}
-                extraInfo={extraInfo}
               />
             );
           },

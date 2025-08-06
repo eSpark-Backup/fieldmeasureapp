@@ -6,3 +6,12 @@ export type toolNames =
   | 'Corner'
   | 'Note'
   | 'RoundUp';
+
+export type Project = {
+  id: number;
+  qouteNumber: string;
+  name: string;
+  address: string;
+  techName: string;
+  date: string;
+};

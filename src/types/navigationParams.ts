@@ -5,26 +5,26 @@ export type RootNavParamList = {
   Projects: undefined;
 
   ProjectDetails: {
-    projectId: string;
-    title: string;
+    qouteNumber: string;
+    name: string;
     address: string;
+    techName: string;
     date: string;
-    extraInfo?: string;
   };
 
   Measurement: {
-    projectId: string;
-    title: string;
+    qouteNumber: string;
+    name: string;
     address: string;
+    techName: string;
     date: string;
-    extraInfo?: string;
   };
 
   AllDetails: {
-    projectId: string;
-    title: string;
+    qouteNumber: string;
+    name: string;
     address: string;
+    techName: string;
     date: string;
-    extraInfo?: string;
   };
 };

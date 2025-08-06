@@ -23,7 +23,7 @@ import {
 } from 'react-native-gesture-handler';
 import Svg from 'react-native-svg';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ViewShot from 'react-native-view-shot';
@@ -60,6 +60,7 @@ import Animated, {
   useSharedValue,
   withDecay,
 } from 'react-native-reanimated';
+import { Project } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -67,6 +68,9 @@ type MeasurementProps = NativeStackScreenProps<RootNavParamList, 'Measurement'>;
 
 const Measurement = () => {
   const navigation = useNavigation<MeasurementProps['navigation']>();
+  const route = useRoute<NativeStackScreenProps<RootNavParamList>['route']>();
+  const projectInfo: Project | undefined = route.params as Project | undefined;
+
   const topInset = useSafeAreaInsets().top;
   const bottomInset = useSafeAreaInsets().bottom;
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -309,7 +313,7 @@ const Measurement = () => {
             ref={ref}
             style={{
               // flex: 1,
-              width: '60%',
+              width: '65%',
               marginVertical: 10,
               justifyContent: 'center',
             }}
@@ -372,13 +376,15 @@ const Measurement = () => {
             <TheButton
               btnTitle="Add Details"
               onPress={() => {
-                navigation.navigate('AllDetails', {
-                  projectId: '123135',
-                  title: 'John',
-                  address: '132132 adjvdjs',
-                  date: '2024-01-01',
-                  extraInfo: 'Additional info here',
-                });
+                if (projectInfo) {
+                  navigation.navigate('AllDetails', {
+                    qouteNumber: projectInfo?.qouteNumber!,
+                    name: projectInfo.name,
+                    address: projectInfo.address,
+                    techName: projectInfo.techName,
+                    date: projectInfo.date,
+                  });
+                }
               }}
               titleStyle={{ fontWeight: 'bold' }}
               btnColor={'#fcac17ff'}
@@ -534,39 +540,53 @@ function MeasureCard({
     label?: string,
     isNum?: boolean,
     dropdownId?: string,
-  ) => (
-    <View
-      style={[
-        styles.rowContainer,
-        style,
-        { justifyContent: 'flex-start', gap: 15 },
-      ]}
-    >
-      {label && <TheText text={`${label}:`} style={{ width: '18%' }} />}
-      <TheTextInput
-        placeholder="Enter length"
-        value="0"
-        label=""
-        style={{ width: 70 }}
-        isNum={isNum}
-      />
-      <TheText text="in" size={16} />
-      <TheDropdown
-        data={fractionalInches}
-        onSelect={() => {}}
-        placeholder="0"
-        id={dropdownId || ''}
-        isOpen={openDropdownId === dropdownId}
-        setOpenDropdownId={() =>
-          setOpenDropdownId(prev =>
-            prev === dropdownId ? null : dropdownId ?? null,
-          )
-        }
-        style={{ width: 70 }}
-      />
-    </View>
-  );
+    index?: number,
+    length?: number,
+  ) => {
+    console.log('index', index);
 
+    return (
+      <View
+        style={[
+          styles.rowContainer,
+          style,
+          {
+            justifyContent: 'flex-start',
+            gap: 15,
+            zIndex: 100 - index!,
+          },
+        ]}
+      >
+        {label && <TheText text={`${label}:`} style={{ width: '18%' }} />}
+        <TheTextInput
+          placeholder="Enter length"
+          value="0"
+          label=""
+          style={{ width: 70 }}
+          isNum={isNum}
+        />
+        <TheText text="in" size={16} />
+        <TheDropdown
+          data={fractionalInches}
+          onSelect={() => {}}
+          placeholder="0"
+          id={dropdownId || ''}
+          isOpen={openDropdownId === dropdownId}
+          setOpenDropdownId={() =>
+            setOpenDropdownId(prev =>
+              prev === dropdownId ? null : dropdownId ?? null,
+            )
+          }
+          style={{
+            width: 70,
+
+            // backgroundColor: index == 0 ? 'red' : undefined,
+          }}
+          // containerStyle={{ zIndex: index == 0 ? 1000 : undefined }}
+        />
+      </View>
+    );
+  };
   return (
     <View style={styles.initialContainer}>
       {/* Header */}
@@ -622,7 +642,13 @@ function MeasureCard({
 
       {type === 'Corner' &&
         cornerLabels.map((label, index) =>
-          renderInputRow(label, false, `corner-${index}`),
+          renderInputRow(
+            label,
+            false,
+            `corner-${index}`,
+            index,
+            cornerLabels.length,
+          ),
         )}
       {type === 'Note' && (
         <TheDescriptionBox
@@ -660,7 +686,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noPhoto: {
-    width: '60%',
+    width: '65%',
     gap: 10,
     alignItems: 'center',
     justifyContent: 'center',

@@ -1,10 +1,4 @@
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import { Bin, Camera, Location } from '../../assets';
 import TheText from '../TheText';
@@ -12,27 +6,67 @@ import TheButton from '../TheButton';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
+import { Project } from '../../types';
 
-const MeasuresList = () => {
+const MeasuresList = (project: Project) => {
+  const navigation =
+    useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
+
+  console.log('project', project);
+
   return (
     <FlatList
       data={[1, 2, 3]}
-      renderItem={() => <MeasureCard />}
-      ListHeaderComponent={
-        <TheText
-          size={24}
-          style={{ fontWeight: 'bold', marginVertical: 10 }}
-          text="Saved Measures"
+      renderItem={() => (
+        <MeasureCard
+          onView={() =>
+            navigation.navigate('Measurement', {
+              qouteNumber: project.qouteNumber,
+              name: project.name,
+              address: project.address,
+              techName: project.techName,
+              date: project.date,
+            })
+          }
         />
+      )}
+      ListHeaderComponent={
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <TheText
+            size={24}
+            style={{ fontWeight: 'bold', marginVertical: 10 }}
+            text="Saved Measures"
+          />
+          <TheButton
+            btnTitle="Add Measure"
+            onPress={() =>
+              navigation.navigate('Measurement', {
+                qouteNumber: project.qouteNumber,
+                name: project.name,
+                address: project.address,
+                techName: project.techName,
+                date: project.date,
+              })
+            }
+          />
+        </View>
       }
       showsVerticalScrollIndicator={false}
     />
   );
 };
 
-const MeasureCard = () => {
-  const navigation =
-    useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
+type MeasureCardProps = {
+  onView: () => void;
+};
+
+const MeasureCard = ({ onView }: MeasureCardProps) => {
   return (
     <View style={styles.initialContainer}>
       <View style={styles.nameContainer}>
@@ -50,15 +84,7 @@ const MeasureCard = () => {
       <TheText text="Created: 7/18/2025" />
       <TheText text="Measurement Types: tape" />
       <TheButton
-        onPress={() =>
-          navigation.navigate('Measurement', {
-            projectId: '123135',
-            title: 'John',
-            address: '132132 adjvdjs',
-            date: '2024-01-01',
-            extraInfo: 'Additional info here',
-          })
-        }
+        onPress={onView}
         btnColor="#F5F5F5"
         style={{ marginVertical: 5, borderWidth: 1, borderColor: '#e0e0e0' }}
         titleColor="black"

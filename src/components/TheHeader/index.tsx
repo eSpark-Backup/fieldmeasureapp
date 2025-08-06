@@ -8,20 +8,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface TheHeaderProps {
   onBackPress: () => void;
-  projectId?: string;
-  title?: string;
-  address?: string;
-  date?: string;
-  extraInfo?: string;
+  qouteNumber: string;
+  name: string;
+  address: string;
+  techName: string;
+  date: string;
 }
 
 const TheHeader: React.FC<TheHeaderProps> = ({
   onBackPress,
-  projectId = '123135',
-  title = 'Default Title',
+  qouteNumber = '123135',
+  name = 'Default Title',
   address = 'Default Address',
+  techName = 'Default Tech',
   date = '21/07/2025',
-  extraInfo = 'Default Extra Info',
 }) => {
   return (
     <View style={styles.container}>
@@ -29,14 +29,14 @@ const TheHeader: React.FC<TheHeaderProps> = ({
       <View>
         <View style={styles.row}>
           <View style={styles.badge}>
-            <TheText style={styles.badgeText} text={projectId} size={10} />
+            <TheText style={styles.badgeText} text={qouteNumber} size={10} />
           </View>
-          <TheText style={styles.title} text={title} size={16} />
+          <TheText style={styles.title} text={name} size={16} />
         </View>
         <View style={[styles.row]}>
           <TheText style={styles.subText} size={10} text={address} />
           <Separator />
-          <TheText style={styles.subText} size={10} text={extraInfo} />
+          <TheText style={styles.subText} size={10} text={techName} />
           <Separator />
           <TheText style={styles.subText} size={10} text={date} />
         </View>

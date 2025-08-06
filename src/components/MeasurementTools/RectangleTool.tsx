@@ -16,10 +16,10 @@ const RectangleTool = () => {
   const scale = useSharedValue(1);
 
   const initialX = [
-    width - width + 20,
-    width - width + 20,
-    width / 1.2,
-    width / 1.2,
+    width / 2 / 3,
+    width / 2 / 3,
+    width / 1.2 / 2,
+    width / 1.2 / 2,
   ];
   const initialY = [height / 3.5, height / 2, height / 2, height / 3.5];
 

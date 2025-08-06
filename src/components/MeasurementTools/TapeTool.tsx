@@ -14,7 +14,7 @@ const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
 const TapeTool = ({ scaleValue }: { scaleValue: number }) => {
-  const initialX = [width / 2, width / 2];
+  const initialX = [width / 2 / 2, width / 2 / 2];
   const initialY = [height / 3.5, height / 2];
 
   const points = initialX.map((x, i) => ({
