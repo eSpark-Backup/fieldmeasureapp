@@ -6,55 +6,55 @@ import TheButton from '../TheButton';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
-import { Project } from '../../types';
+import { Measure, Project } from '../../types';
+import { useProjectStore } from '../../store/ProjectsStore';
 
-const MeasuresList = (project: Project) => {
+interface MeasuresListProps {
+  id: number;
+  qouteNumber: string;
+  name: string;
+  address: string;
+  techName: string;
+  date: string;
+  measures?: Measure[];
+}
+
+const MeasuresList = (project: MeasuresListProps) => {
   const navigation =
     useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
 
-  console.log('project', project);
+  const handleAddMeasure = () => {
+    navigation.navigate('Measurement', {
+      ...project,
+    });
+  };
+
+  const handleViewMeasure = (measure: Measure) => {
+    navigation.navigate('Measurement', {
+      ...project,
+      existingMeasure: measure, // 👈 pass this
+    });
+  };
 
   return (
     <FlatList
-      data={[1, 2, 3]}
-      renderItem={() => (
+      data={project.measures || []}
+      keyExtractor={item => item.id}
+      renderItem={({ item }) => (
         <MeasureCard
-          onView={() =>
-            navigation.navigate('Measurement', {
-              qouteNumber: project.qouteNumber,
-              name: project.name,
-              address: project.address,
-              techName: project.techName,
-              date: project.date,
-            })
-          }
+          measure={item}
+          onView={() => handleViewMeasure(item)}
+          projectId={project.id}
         />
       )}
       ListHeaderComponent={
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <View style={styles.header}>
           <TheText
             size={24}
             style={{ fontWeight: 'bold', marginVertical: 10 }}
             text="Saved Measures"
           />
-          <TheButton
-            btnTitle="Add Measure"
-            onPress={() =>
-              navigation.navigate('Measurement', {
-                qouteNumber: project.qouteNumber,
-                name: project.name,
-                address: project.address,
-                techName: project.techName,
-                date: project.date,
-              })
-            }
-          />
+          <TheButton btnTitle="Add Measure" onPress={handleAddMeasure} />
         </View>
       }
       showsVerticalScrollIndicator={false}
@@ -63,26 +63,37 @@ const MeasuresList = (project: Project) => {
 };
 
 type MeasureCardProps = {
+  measure: Measure;
   onView: () => void;
+  projectId: number;
 };
 
-const MeasureCard = ({ onView }: MeasureCardProps) => {
+const MeasureCard = ({ measure, onView, projectId }: MeasureCardProps) => {
+  const { removeMeasureFromProject } = useProjectStore();
+
+  const handleDelete = () => {
+    removeMeasureFromProject(projectId, measure.id);
+  };
   return (
     <View style={styles.initialContainer}>
       <View style={styles.nameContainer}>
         <View style={{ ...styles.rowContainer, gap: 2 }}>
           <Location width={22} height={22} color={'black'} />
-          <TheText size={18} style={{ fontWeight: 'bold' }} text="Location" />
+          <TheText
+            size={18}
+            style={{ fontWeight: 'bold' }}
+            text={measure.location}
+          />
         </View>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleDelete}>
           <Bin width={22} height={22} color={'#EF4444'} />
         </TouchableOpacity>
       </View>
       <View style={styles.imageContainer}>
         <Camera width={40} height={40} color={'#9CA3AF'} />
       </View>
-      <TheText text="Created: 7/18/2025" />
-      <TheText text="Measurement Types: tape" />
+      <TheText text={`Created: 07/8/2025`} />
+      <TheText text={`Measurement Type: temp`} />
       <TheButton
         onPress={onView}
         btnColor="#F5F5F5"
@@ -98,10 +109,10 @@ const MeasureCard = ({ onView }: MeasureCardProps) => {
 export default MeasuresList;
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-    padding: 20,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   nameContainer: {
     flexDirection: 'row',

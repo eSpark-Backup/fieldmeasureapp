@@ -1,3 +1,5 @@
+import { Measure } from '.';
+
 export type RootNavParamList = {
   SignIn: undefined;
   SignUp: undefined;
@@ -18,6 +20,7 @@ export type RootNavParamList = {
     address: string;
     techName: string;
     date: string;
+    existingMeasure?: Measure; // Optional for editing existing measures
   };
 
   AllDetails: {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -53,6 +53,10 @@ const TheDropdown: React.FC<DropdownProps> = ({
 }) => {
   const [show, setShow] = useState(false);
   const [selectedItem, setSelectedItem] = useState(selected ?? '');
+
+  useEffect(() => {
+    setSelectedItem(selected ?? '');
+  }, [selected]);
 
   const handleToggle = () => {
     setOpenDropdownId(isOpen ? null : id);

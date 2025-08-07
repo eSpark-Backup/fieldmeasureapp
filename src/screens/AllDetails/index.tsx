@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   GapView,
@@ -13,24 +13,28 @@ import { useNavigation } from '@react-navigation/native';
 import { validateDecimal } from '../../constants/validations/schema';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useProjectStore } from '../../store/ProjectsStore';
 
 const generateInitialValues = () =>
   Object.fromEntries(DROPDOWNS.map(drop => [drop.id, drop.selected || '']));
 
 const AllDetails = () => {
-  const [selectedValues, setSelectedValues] = useState(generateInitialValues());
+  const [selectedValues, setSelectedValues] = useState(
+    () => tempMeasure?.selectedValues || generateInitialValues(),
+  );
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [inputs, setInputs] = useState<{ [key: string]: string }>({
-    curbHeight: '',
-    doorWidth: '',
-    doorHeight: '',
+    curbHeight: '10',
+    doorWidth: '10',
+    doorHeight: '10',
   });
   const navigation = useNavigation();
+  const { setTempMeasure, tempMeasure } = useProjectStore();
 
   const handleSelect = useCallback((key: string, value: string) => {
-    setSelectedValues(prev => ({ ...prev, [key]: value }));
+    setSelectedValues((prev: any) => ({ ...prev, [key]: value }));
     setErrors(prev => ({ ...prev, [key]: '' }));
   }, []);
 
@@ -56,11 +60,42 @@ const AllDetails = () => {
     setErrors(newErrors);
 
     if (!Object.keys(newErrors).length) {
-      navigation.goBack();
+      const tempData = {
+        selectedValues,
+        inputs,
+        description,
+        timestamp: Date.now(), // optional, can help with sorting
+      };
+
+      setTempMeasure(tempData);
+      navigation.goBack(); // 👈 Go back to MeasurementScreen
     } else {
       console.log('Validation Errors:', newErrors);
     }
-  }, [selectedValues, inputs, navigation]);
+  }, [selectedValues, inputs, description, navigation, setTempMeasure]);
+
+  useEffect(() => {
+    if (tempMeasure) {
+      console.log('🌟 Temp measure loaded:', tempMeasure);
+
+      if (tempMeasure.selectedValues) {
+        setSelectedValues(tempMeasure.selectedValues);
+      }
+
+      if (tempMeasure.inputs) {
+        setInputs(tempMeasure.inputs);
+      }
+
+      if (tempMeasure.description) {
+        setDescription(tempMeasure.description);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log('🌟 Selected values:', selectedValues);
+    console.log('🌟 Inputs:', inputs);
+  }, [selectedValues, inputs]);
 
   return (
     <View style={styles.container}>
@@ -78,7 +113,9 @@ const AllDetails = () => {
               placeholder={placeholder}
               title={title}
               id={id}
-              selected={selectedValues[id]}
+              selected={
+                data.find(option => option === selectedValues[id]) || null
+              }
               onSelect={({ key, value }) => handleSelect(key, value)}
               required
               isOpen={openDropdownId === id}
@@ -100,7 +137,7 @@ const AllDetails = () => {
             placeholder={placeholder}
           />
         ))}
-        <TheDatePicker label="Date promised" />
+        <TheDatePicker label="Date promised" value={''} onChange={date => {}} />
         <GapView length={25} mode="vertical" />
         <TheButton btnTitle="Done" onPress={handleSubmit} />
         <GapView length={useSafeAreaInsets().bottom} mode="vertical" />

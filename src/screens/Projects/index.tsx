@@ -54,6 +54,7 @@ const Projects = () => {
       address: values.address,
       techName: values.techName,
       date: values.date,
+      measures: [],
     };
     addProject(data);
   };
@@ -236,16 +237,7 @@ const Projects = () => {
         <ProjectsList
           projects={projects}
           onViewPress={data => {
-            navigation.navigate({
-              name: 'ProjectDetails',
-              params: {
-                qouteNumber: data.qouteNumber,
-                name: data.name,
-                address: data.address,
-                techName: data.date,
-                date: data.techName,
-              },
-            });
+            navigation.navigate('ProjectDetails', data);
           }}
         />
       ) : showInputs ? null : (

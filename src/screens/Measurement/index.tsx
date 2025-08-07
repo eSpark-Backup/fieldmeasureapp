@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, StyleSheet, Image, Dimensions, ViewStyle } from 'react-native';
 import {
   CornerTool,
@@ -23,11 +29,12 @@ import {
 } from 'react-native-gesture-handler';
 import Svg from 'react-native-svg';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ViewShot from 'react-native-view-shot';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import uuid from 'react-native-uuid';
+// import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import FileViewer from 'react-native-file-viewer';
 
 import {
@@ -60,17 +67,23 @@ import Animated, {
   useSharedValue,
   withDecay,
 } from 'react-native-reanimated';
-import { Project } from '../../types';
+import { Measure, Project } from '../../types';
+import { useProjectStore } from '../../store/ProjectsStore';
 
 const { width, height } = Dimensions.get('screen');
 
 type MeasurementProps = NativeStackScreenProps<RootNavParamList, 'Measurement'>;
 
+type MeasurementRouteParams = Project & { existingMeasure?: Measure };
+
 const Measurement = () => {
   const navigation = useNavigation<MeasurementProps['navigation']>();
-  const route = useRoute<NativeStackScreenProps<RootNavParamList>['route']>();
+  const route = useRoute<RouteProp<RootNavParamList, 'Measurement'>>();
+  const { id: projectId, existingMeasure } =
+    route.params as MeasurementRouteParams;
   const projectInfo: Project | undefined = route.params as Project | undefined;
-
+  const { tempMeasure, setTempMeasure, clearTempMeasure, addMeasureToProject } =
+    useProjectStore();
   const topInset = useSafeAreaInsets().top;
   const bottomInset = useSafeAreaInsets().bottom;
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -96,6 +109,48 @@ const Measurement = () => {
   const translateY = useSharedValue(0);
 
   const prevTranslationY = useSharedValue(0);
+
+  // 🧠 On mount, prefill if editing
+  useEffect(() => {
+    if (existingMeasure) {
+      setTempMeasure(existingMeasure.details);
+      setLocation(existingMeasure.location || '');
+    } else {
+      clearTempMeasure();
+    }
+  }, [existingMeasure]);
+
+  // ✅ Save logic handles both create + update
+  const handleSaveMeasurements = () => {
+    if (!projectId) {
+      console.warn('No valid project ID.');
+      return;
+    }
+
+    if (!tempMeasure) {
+      console.warn('No temp measure data to save.');
+      return;
+    }
+
+    const newMeasure: Measure = {
+      id: existingMeasure?.id || uuid.v4().toString(),
+      location,
+      details: tempMeasure,
+      timestamp: Date.now(),
+    };
+
+    addMeasureToProject(projectId, newMeasure);
+    clearTempMeasure();
+
+    console.log('✅ Measure saved for project:', projectId);
+
+    const updated = useProjectStore
+      .getState()
+      .projects.find(p => p.id === projectId);
+    console.log('📦 Updated Project:', updated);
+
+    navigation.goBack(); // optional: return after save
+  };
 
   useAnimatedReaction(
     () => scale.value,
@@ -272,9 +327,9 @@ const Measurement = () => {
         directory: 'Documents',
       };
 
-      let file = await RNHTMLtoPDF.convert(options);
-      console.log(file.filePath);
-      FileViewer.open(file.filePath!);
+      // let file = await RNHTMLtoPDF.convert(options);
+      // console.log(file.filePath);
+      // FileViewer.open(file.filePath!);
     });
 
     // alert(file.filePath);
@@ -410,6 +465,13 @@ const Measurement = () => {
             titleStyle={{ fontWeight: 'bold' }}
             icon={<Export />}
             // onPress={handleSaveMeasurements}
+          />
+          <TheButton
+            btnTitle="Save"
+            titleStyle={{ fontWeight: 'bold' }}
+            // icon={<Export />}
+            onPress={handleSaveMeasurements}
+            style={{ marginTop: 10 }}
           />
           <GapView length={useSafeAreaInsets().bottom + 10} />
         </ScrollView>
