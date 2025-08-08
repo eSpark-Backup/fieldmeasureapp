@@ -22,7 +22,7 @@ import {
 } from '../../constants/colors';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { TECHS } from '../../constants';
 import { Project } from '../../types';
 import { Formik } from 'formik';
@@ -39,12 +39,8 @@ const Projects = () => {
   const addProject = useProjectStore().addProject;
   const [showInputs, setShowInputs] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-
-  const [quoteNo, setQuoteNo] = useState('');
-  const [clientName, setClientName] = useState('');
-  const [address, setAddress] = useState('');
-  const [techName, setTechName] = useState('');
-  const [dateSel, setDateSel] = useState<Date>(new Date());
+  const route = useRoute<ProjectsProps['route']>(); // typed
+  const role = route.params?.role; // <-- get the role
 
   const addProj = (values: Project) => {
     const data: Project = {
@@ -232,6 +228,13 @@ const Projects = () => {
             btnTitle="Create New Project"
           />
         </View>
+      )}
+      {role === 'admin' && (
+        <TheButton
+          btnTitle="Add Technician"
+          onPress={() => navigation.navigate('AddTechnician')}
+          style={{ marginBottom: 10 }}
+        />
       )}
       {projects.length > 0 ? (
         <ProjectsList

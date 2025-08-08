@@ -201,3 +201,7 @@ const Project = {
   techName: 'HJJHB123',
   date: 'HJJHB123',
 };
+export const creds = {
+  email: 'admin@gmail.com',
+  password: '123456',
+};

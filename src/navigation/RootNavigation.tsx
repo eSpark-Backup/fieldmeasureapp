@@ -11,6 +11,7 @@ import TheHeader from '../components/TheHeader';
 import Measurement from '../screens/Measurement';
 
 import { RootNavParamList } from '../types/navigationParams';
+import AddTechnician from '../screens/AddTechnician';
 
 const Stack = createNativeStackNavigator<RootNavParamList>();
 
@@ -21,12 +22,13 @@ const RootNavigation = () => {
         headerShown: false,
         animation: 'none',
       }}
-      initialRouteName="Projects"
+      // initialRouteName="Projects"
     >
-      {/* <Stack.Screen name="SignIn" component={SignIn} /> */}
+      <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="SignUp" component={SignUp} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="Projects" component={Projects} />
+      <Stack.Screen name="AddTechnician" component={AddTechnician} />
       <Stack.Screen
         name="ProjectDetails"
         component={ProjectDetails}

@@ -1,10 +1,13 @@
 import { Measure } from '.';
 
+type Role = 'admin' | 'technician';
+
 export type RootNavParamList = {
   SignIn: undefined;
   SignUp: undefined;
   ForgotPassword: undefined;
-  Projects: undefined;
+  Projects: { role: Role; techId?: string }; // techId is optional for admin role
+  AddTechnician: undefined;
 
   ProjectDetails: {
     qouteNumber: string;
