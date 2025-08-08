@@ -57,6 +57,21 @@ const MeasuresList = (project: MeasuresListProps) => {
           <TheButton btnTitle="Add Measure" onPress={handleAddMeasure} />
         </View>
       }
+      ListEmptyComponent={
+        <View
+          style={{
+            height: 200,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <TheText
+            size={22}
+            style={{ fontWeight: '500', marginVertical: 10 }}
+            text={'No Saved Measures available.'}
+          />
+        </View>
+      }
       showsVerticalScrollIndicator={false}
     />
   );

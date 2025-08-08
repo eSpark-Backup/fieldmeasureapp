@@ -21,7 +21,7 @@ const TheTextInput = ({
   error,
 }: {
   label: string;
-  containerStyle?: ViewStyle;
+  containerStyle?: TextStyle;
   style?: TextStyle;
   required?: boolean;
   value: string;

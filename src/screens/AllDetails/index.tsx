@@ -105,6 +105,7 @@ const AllDetails = () => {
             value={description}
             onChangeText={setDescription}
             placeholder="Additional notes and details"
+            textStyle={{ color: '#000' }}
           />
           {DROPDOWNS.map(({ data, placeholder, title, id }) => (
             <TheDropdown
@@ -137,7 +138,13 @@ const AllDetails = () => {
             placeholder={placeholder}
           />
         ))}
-        <TheDatePicker label="Date promised" value={''} onChange={date => {}} />
+        <TheDatePicker
+          label="Date promised"
+          style={{ color: '#000' }}
+          value={''}
+          containerStyle={{}}
+          onChange={date => {}}
+        />
         <GapView length={25} mode="vertical" />
         <TheButton btnTitle="Done" onPress={handleSubmit} />
         <GapView length={useSafeAreaInsets().bottom} mode="vertical" />

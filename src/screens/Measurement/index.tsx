@@ -20,7 +20,7 @@ import {
   GapView,
   RectangleTool,
 } from '../../components';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import {
   Gesture,
   GestureDetector,
@@ -69,6 +69,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Measure, Project } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
+import { showToast } from '../../utils/showToast';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -122,13 +123,25 @@ const Measurement = () => {
 
   // ✅ Save logic handles both create + update
   const handleSaveMeasurements = () => {
+    console.log('yaha aya', tempMeasure);
+
     if (!projectId) {
       console.warn('No valid project ID.');
       return;
     }
 
-    if (!tempMeasure) {
-      console.warn('No temp measure data to save.');
+    if (!location) {
+      showToast('Location is required.');
+      return;
+    }
+
+    if (!selectedPhoto) {
+      showToast('Please select photo first.');
+      return;
+    }
+
+    if (tempMeasure == null) {
+      showToast('Add measure details data to save.');
       return;
     }
 
@@ -208,7 +221,29 @@ const Measurement = () => {
     }
   };
 
+  const captureImage = async () => {
+    try {
+      const result = await launchCamera({
+        mediaType: 'photo',
+        saveToPhotos: true, // optional: saves the captured photo to gallery
+        includeExtra: true,
+      });
+
+      console.log('camera result', result);
+
+      if (result?.assets && result?.assets[0]?.uri) {
+        setSelectedPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error capturing image:', error);
+    }
+  };
+
   const handleToolPress = (toolName: string) => {
+    if (!selectedPhoto) {
+      showToast('Please select photo first.');
+      return;
+    }
     renderTool(toolName);
     console.log('Selected tool:', toolName);
 
@@ -221,76 +256,123 @@ const Measurement = () => {
     setSelectedTools(prev => prev.filter((_, index) => index !== toolIndex));
   };
 
-  const renderToolContent = () => {
-    return selectedTools.map((tool, index) => {
-      const commonProps = {
-        onDelete: () => handleToolDelete(index),
-        type: tool,
-      };
+  // const renderToolContent = () => {
+  //   return selectedTools.map((tool, index) => {
+  //     const commonProps = {
+  //       onDelete: () => handleToolDelete(index),
+  //       type: tool,
+  //     };
 
-      switch (tool) {
-        case 'Tape':
-          return (
-            <MeasureCard
-              key={index + tool}
-              {...commonProps}
-              style={{ zIndex: 1000 + selectedTools.length - index }}
-              color={primaryColor}
-            />
-          );
-        case 'Laser':
-          return (
-            <MeasureCard
-              key={index + tool}
-              {...commonProps}
-              style={{ zIndex: 100 + selectedTools.length - index }}
-              color="#FBBF24"
-            />
-          );
-        case 'Rake':
-          return (
-            <MeasureCard
-              key={index + tool}
-              {...commonProps}
-              style={{ zIndex: 100 + selectedTools.length - index }}
-              color="#BB86FC"
-            />
-          );
-        case 'Rectangle':
-          return (
-            <MeasureCard
-              key={index + tool}
-              {...commonProps}
-              style={{ zIndex: 100 + selectedTools.length - index }}
-              color="#86b9fcff"
-            />
-          );
-        case 'Corner':
-          return (
-            <MeasureCard
-              key={index + tool}
-              {...commonProps}
-              style={{ zIndex: 100 + selectedTools.length - index }}
-              color="#ca5056ff"
-            />
-          );
-        case 'Note':
-          return (
-            <MeasureCard
-              key={index + tool}
-              {...commonProps}
-              style={{ zIndex: 100 + selectedTools.length - index }}
-              color="#50cac0ff"
-            />
-          );
-        // case 'RoundUp':
-        //   bottomSheetRef.current?.snapToIndex(1);
-        case 'RoundUp':
-          exportReport();
-        default:
-          return null;
-      }
-    });
+  //     switch (tool) {
+  //       case 'Tape':
+  //         return (
+  //           <MeasureCard
+  //             key={index + tool}
+  //             {...commonProps}
+  //             style={{ zIndex: 1000 + selectedTools.length - index }}
+  //             color={primaryColor}
+  //           />
+  //         );
+  //       case 'Laser':
+  //         return (
+  //           <MeasureCard
+  //             key={index + tool}
+  //             {...commonProps}
+  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             color="#FBBF24"
+  //           />
+  //         );
+  //       case 'Rake':
+  //         return (
+  //           <MeasureCard
+  //             key={index + tool}
+  //             {...commonProps}
+  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             color="#BB86FC"
+  //           />
+  //         );
+  //       case 'Rectangle':
+  //         return (
+  //           <MeasureCard
+  //             key={index + tool}
+  //             {...commonProps}
+  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             color="#86b9fcff"
+  //           />
+  //         );
+  //       case 'Corner':
+  //         return (
+  //           <MeasureCard
+  //             key={index + tool}
+  //             {...commonProps}
+  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             color="#ca5056ff"
+  //           />
+  //         );
+  //       case 'Note':
+  //         return (
+  //           <MeasureCard
+  //             key={index + tool}
+  //             {...commonProps}
+  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             color="#50cac0ff"
+  //           />
+  //         );
+  //       // case 'RoundUp':
+  //       //   bottomSheetRef.current?.snapToIndex(1);
+  //       case 'RoundUp':
+  //         exportReport();
+  //       default:
+  //         return null;
+  //     }
+  //   });
+  // };
+
+  const renderToolContent = () => {
+    return (
+      <View>
+        {TapeT && (
+          <MeasureCard
+            onDelete={() => setTapeT(false)}
+            type={'Tape'}
+            style={{ zIndex: 1000 }}
+            color={primaryColor}
+          />
+        )}
+        {LaserT && (
+          <MeasureCard
+            onDelete={() => setTapeT(false)}
+            type={'Laser'}
+            style={{ zIndex: 1000 }}
+            color="#FBBF24"
+          />
+        )}
+        {RakeT && (
+          <MeasureCard
+            onDelete={() => setTapeT(false)}
+            type={'Rake'}
+            style={{ zIndex: 1000 }}
+            color="#BB86FC"
+          />
+        )}
+        {RectanlgeT && (
+          <MeasureCard
+            onDelete={() => setTapeT(false)}
+            type={'Rectangle'}
+            style={{ zIndex: 1000 }}
+            color="#86b9fcff"
+          />
+        )}
+        {CornerT && (
+          <MeasureCard
+            onDelete={() => setTapeT(false)}
+            type={'Corner'}
+            style={{ zIndex: 1000 }}
+            color="#ca5056ff"
+          />
+        )}
+      </View>
+    );
   };
 
   const renderTool = (tool: string) => {
@@ -356,12 +438,20 @@ const Measurement = () => {
               size={18}
               style={{ fontWeight: '500' }}
             />
-            <TheText text="Upload a photo to start adding measurements" />
-            <TheButton
-              btnTitle="Add Image"
-              icon={<RoundPlus width={20} height={20} color={'white'} />}
-              onPress={getImage}
-            />
+            <TheText text="Select a photo to start adding measurements" />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TheButton
+                btnTitle="Capture"
+                icon={<RoundPlus width={20} height={20} color={'white'} />}
+                onPress={captureImage}
+              />
+              <TheText text="OR" style={{ marginHorizontal: 10 }} />
+              <TheButton
+                btnTitle="Upload Image"
+                icon={<RoundPlus width={20} height={20} color={'white'} />}
+                onPress={getImage}
+              />
+            </View>
           </View>
         ) : (
           <ViewShot
@@ -460,12 +550,12 @@ const Measurement = () => {
             </View>
           </View>
           <View style={{ zIndex: 1000 }}>{renderToolContent()}</View>
-          <TheButton
+          {/* <TheButton
             btnTitle="Export Report"
             titleStyle={{ fontWeight: 'bold' }}
             icon={<Export />}
             // onPress={handleSaveMeasurements}
-          />
+          /> */}
           <TheButton
             btnTitle="Save"
             titleStyle={{ fontWeight: 'bold' }}
@@ -605,8 +695,6 @@ function MeasureCard({
     index?: number,
     length?: number,
   ) => {
-    console.log('index', index);
-
     return (
       <View
         style={[
@@ -615,7 +703,6 @@ function MeasureCard({
           {
             justifyContent: 'flex-start',
             gap: 15,
-            zIndex: 100 - index!,
           },
         ]}
       >
@@ -641,10 +728,7 @@ function MeasureCard({
           }
           style={{
             width: 70,
-
-            // backgroundColor: index == 0 ? 'red' : undefined,
           }}
-          // containerStyle={{ zIndex: index == 0 ? 1000 : undefined }}
         />
       </View>
     );
