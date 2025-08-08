@@ -17,7 +17,7 @@ const SignUp = () => {
 
   const handleSignUp = (values: any) => {
     console.log('Sign Up Form Values:', values);
-    navigation.navigate('Projects');
+    navigation.navigate('SignIn');
   };
 
   return (

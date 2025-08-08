@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -12,11 +12,14 @@ import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
 import { SignInSchema } from '../../constants/validations/schema';
+import { creds } from '../../constants';
+import { useProjectStore } from '../../store/ProjectsStore';
 
 type SignInProps = NativeStackScreenProps<RootNavParamList, 'SignIn'>;
 
 const SignIn = () => {
   const navigation = useNavigation<SignInProps['navigation']>();
+  const technicians = useProjectStore(state => state.technicians);
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
@@ -26,8 +29,24 @@ const SignIn = () => {
           initialValues={{ email: '', password: '' }}
           validationSchema={SignInSchema}
           onSubmit={values => {
-            console.log('Form Values:', values);
-            navigation.navigate('Projects');
+            if (
+              values.email === creds.email &&
+              values.password === creds.password
+            ) {
+              navigation.navigate('Projects', { role: 'admin' });
+            } else {
+              const tech = technicians.find(
+                t => t.email === values.email && t.password === values.password,
+              );
+              if (tech) {
+                navigation.navigate('Projects', {
+                  role: 'technician',
+                  techId: tech.id,
+                });
+              } else {
+                Alert.alert('Invalid credentials');
+              }
+            }
           }}
         >
           {({
