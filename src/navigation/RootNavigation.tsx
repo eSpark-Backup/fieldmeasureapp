@@ -1,19 +1,16 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { RootNavParamList } from '../types/navigationParams';
 import ProjectDetails from '../screens/ProjectDetails';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View } from 'react-native';
-import Measurement from '../screens/Measurement';
-import { TheText } from '../components';
-
 import SignIn from '../screens/SignIn';
 import SignUp from '../screens/SignUp';
 import ForgotPassword from '../screens/ForgotPassword';
 import Projects from '../screens/Projects';
 import AllDetails from '../screens/AllDetails';
 import TheHeader from '../components/TheHeader';
+import Measurement from '../screens/Measurement';
+
+import { RootNavParamList } from '../types/navigationParams';
 
 const Stack = createNativeStackNavigator<RootNavParamList>();
 
@@ -26,7 +23,7 @@ const RootNavigation = () => {
       }}
       initialRouteName="Projects"
     >
-      <Stack.Screen name="SignIn" component={SignIn} />
+      {/* <Stack.Screen name="SignIn" component={SignIn} /> */}
       <Stack.Screen name="SignUp" component={SignUp} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="Projects" component={Projects} />
@@ -36,16 +33,16 @@ const RootNavigation = () => {
         options={{
           headerShown: true,
           header: ({ navigation, route }) => {
-            const { projectId, title, address, date, extraInfo } =
+            const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['ProjectDetails'];
             return (
               <TheHeader
                 onBackPress={() => navigation.goBack()}
-                projectId={projectId}
-                title={title}
+                qouteNumber={qouteNumber}
+                name={name}
                 address={address}
+                techName={techName}
                 date={date}
-                extraInfo={extraInfo}
               />
             );
           },
@@ -57,16 +54,16 @@ const RootNavigation = () => {
         options={{
           headerShown: true,
           header: ({ navigation, route }) => {
-            const { projectId, title, address, date, extraInfo } =
+            const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['Measurement'];
             return (
               <TheHeader
                 onBackPress={() => navigation.goBack()}
-                projectId={projectId}
-                title={title}
+                qouteNumber={qouteNumber}
+                name={name}
                 address={address}
+                techName={techName}
                 date={date}
-                extraInfo={extraInfo}
               />
             );
           },
@@ -78,16 +75,16 @@ const RootNavigation = () => {
         options={{
           headerShown: true,
           header: ({ navigation, route }) => {
-            const { projectId, title, address, date, extraInfo } =
+            const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['AllDetails'];
             return (
               <TheHeader
                 onBackPress={() => navigation.goBack()}
-                projectId={projectId}
-                title={title}
+                qouteNumber={qouteNumber}
+                name={name}
                 address={address}
+                techName={techName}
                 date={date}
-                extraInfo={extraInfo}
               />
             );
           },

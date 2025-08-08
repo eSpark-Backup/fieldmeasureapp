@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   ViewStyle,
   StyleProp,
+  TextInput,
 } from 'react-native';
 
 import TheText from '../TheText';
@@ -31,6 +32,7 @@ interface DropdownProps {
   isOpen: boolean;
   setOpenDropdownId: (id: string | null) => void;
   error?: string;
+  containerStyle?: ViewStyle;
 }
 
 const TheDropdown: React.FC<DropdownProps> = ({
@@ -47,9 +49,14 @@ const TheDropdown: React.FC<DropdownProps> = ({
   isOpen,
   setOpenDropdownId,
   error,
+  containerStyle,
 }) => {
   const [show, setShow] = useState(false);
   const [selectedItem, setSelectedItem] = useState(selected ?? '');
+
+  useEffect(() => {
+    setSelectedItem(selected ?? '');
+  }, [selected]);
 
   const handleToggle = () => {
     setOpenDropdownId(isOpen ? null : id);
@@ -86,18 +93,31 @@ const TheDropdown: React.FC<DropdownProps> = ({
   );
 
   return (
-    <View>
-      {title && (
-        <View style={styles.labelRow}>
-          <TheText style={styles.label} text={title} />
-          {required && (
-            <TheText color={'red'} style={styles.required} text=" *" />
-          )}
-        </View>
-      )}
+    <View style={containerStyle}>
+      <View style={styles.labelRow}>
+        {title && <TheText style={styles.label} text={title} />}
+        {required && <TheText style={styles.required} text=" *" />}
+      </View>
 
       <View style={[style, {}]}>
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={handleToggle}
+          style={{ justifyContent: 'center' }}
+        >
+          <TextInput
+            value={selectedItem || placeholder}
+            style={[styles.inputStyle, style]}
+            editable={false}
+          />
+          <EntypoIcon
+            name={isOpen ? 'chevron-up' : 'chevron-down'}
+            color={'#66666666'}
+            size={16}
+            style={{ position: 'absolute', right: 15 }}
+          />
+        </TouchableOpacity>
+        {/* <Pressable
           style={[styles.dropdownButton, { borderColor: border }]}
           onPress={handleToggle}
         >
@@ -111,15 +131,24 @@ const TheDropdown: React.FC<DropdownProps> = ({
             color={'#66666666'}
             size={16}
           />
-        </Pressable>
+        </Pressable> */}
         {error ? (
-          <TheText text={error} style={styles.errorText} size={10} />
-        ) : (
-          <TheText text={''} style={styles.errorText} size={10} />
-        )}
+          <TheText
+            color={'red'}
+            text={error}
+            style={styles.errorText}
+            size={10}
+          />
+        ) : null}
 
+        {/* {renderOptions} */}
         {isOpen && (
-          <View style={[styles.dropdownListWrapper, { zIndex }]}>
+          <View
+            style={[
+              styles.dropdownListWrapper,
+              { top: error ? '70%' : '90%', zIndex },
+            ]}
+          >
             <ScrollView
               style={{
                 backgroundColor: background,
@@ -142,15 +171,14 @@ const styles = StyleSheet.create({
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 5,
   },
   label: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 5,
   },
   required: {
     fontSize: 16,
-    marginBottom: 5,
   },
   dropdownButton: {
     borderWidth: 1,
@@ -164,7 +192,7 @@ const styles = StyleSheet.create({
   },
   dropdownListWrapper: {
     position: 'absolute',
-    top: '70%',
+    top: '90%',
     width: '100%',
     borderWidth: 1,
     borderBottomRightRadius: 5,
@@ -186,6 +214,15 @@ const styles = StyleSheet.create({
     color: 'red',
     paddingTop: 4,
     textAlign: 'right',
+  },
+  inputStyle: {
+    fontSize: 16,
+    color: '#000',
+    paddingHorizontal: 15,
+    backgroundColor: '#F5F5F5',
+    borderColor: border,
+    borderWidth: 1,
+    borderRadius: 5,
   },
 });
 

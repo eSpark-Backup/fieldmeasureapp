@@ -1,10 +1,4 @@
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import { Bin, Camera, Location } from '../../assets';
 import TheText from '../TheText';
@@ -12,53 +6,96 @@ import TheButton from '../TheButton';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
+import { Measure, Project } from '../../types';
+import { useProjectStore } from '../../store/ProjectsStore';
 
-const MeasuresList = () => {
+interface MeasuresListProps {
+  id: number;
+  qouteNumber: string;
+  name: string;
+  address: string;
+  techName: string;
+  date: string;
+  measures?: Measure[];
+}
+
+const MeasuresList = (project: MeasuresListProps) => {
+  const navigation =
+    useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
+
+  const handleAddMeasure = () => {
+    navigation.navigate('Measurement', {
+      ...project,
+    });
+  };
+
+  const handleViewMeasure = (measure: Measure) => {
+    navigation.navigate('Measurement', {
+      ...project,
+      existingMeasure: measure, // 👈 pass this
+    });
+  };
+
   return (
     <FlatList
-      data={[1, 2, 3]}
-      renderItem={() => <MeasureCard />}
-      ListHeaderComponent={
-        <TheText
-          size={24}
-          style={{ fontWeight: 'bold', marginVertical: 10 }}
-          text="Saved Measures"
+      data={project.measures || []}
+      keyExtractor={item => item.id}
+      renderItem={({ item }) => (
+        <MeasureCard
+          measure={item}
+          onView={() => handleViewMeasure(item)}
+          projectId={project.id}
         />
+      )}
+      ListHeaderComponent={
+        <View style={styles.header}>
+          <TheText
+            size={24}
+            style={{ fontWeight: 'bold', marginVertical: 10 }}
+            text="Saved Measures"
+          />
+          <TheButton btnTitle="Add Measure" onPress={handleAddMeasure} />
+        </View>
       }
       showsVerticalScrollIndicator={false}
     />
   );
 };
 
-const MeasureCard = () => {
-  const navigation =
-    useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
+type MeasureCardProps = {
+  measure: Measure;
+  onView: () => void;
+  projectId: number;
+};
+
+const MeasureCard = ({ measure, onView, projectId }: MeasureCardProps) => {
+  const { removeMeasureFromProject } = useProjectStore();
+
+  const handleDelete = () => {
+    removeMeasureFromProject(projectId, measure.id);
+  };
   return (
     <View style={styles.initialContainer}>
       <View style={styles.nameContainer}>
-        <View style={{ ...styles.rowContainer, gap: 5 }}>
-          <Location width={18} height={18} color={'black'} />
-          <TheText size={18} style={{ fontWeight: 'bold' }} text="Location" />
+        <View style={{ ...styles.rowContainer, gap: 2 }}>
+          <Location width={22} height={22} color={'black'} />
+          <TheText
+            size={18}
+            style={{ fontWeight: 'bold' }}
+            text={measure.location}
+          />
         </View>
-        <TouchableOpacity>
-          <Bin width={18} height={18} color={'#EF4444'} />
+        <TouchableOpacity onPress={handleDelete}>
+          <Bin width={22} height={22} color={'#EF4444'} />
         </TouchableOpacity>
       </View>
       <View style={styles.imageContainer}>
         <Camera width={40} height={40} color={'#9CA3AF'} />
       </View>
-      <TheText text="Created: 7/18/2025" />
-      <TheText text="Measurement Types: tape" />
+      <TheText text={`Created: 07/8/2025`} />
+      <TheText text={`Measurement Type: temp`} />
       <TheButton
-        onPress={() =>
-          navigation.navigate('Measurement', {
-            projectId: '123135',
-            title: 'John',
-            address: '132132 adjvdjs',
-            date: '2024-01-01',
-            extraInfo: 'Additional info here',
-          })
-        }
+        onPress={onView}
         btnColor="#F5F5F5"
         style={{ marginVertical: 5, borderWidth: 1, borderColor: '#e0e0e0' }}
         titleColor="black"
@@ -72,10 +109,10 @@ const MeasureCard = () => {
 export default MeasuresList;
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-    padding: 20,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   nameContainer: {
     flexDirection: 'row',

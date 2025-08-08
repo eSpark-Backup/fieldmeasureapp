@@ -12,16 +12,16 @@ import Animated, {
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
-const ReactangleTool = () => {
+const RectangleTool = () => {
   const scale = useSharedValue(1);
 
   const initialX = [
-    width - width + 20,
-    width - width + 20,
-    width / 1.2,
-    width / 1.2,
+    width / 2 / 3,
+    width / 2 / 3,
+    width / 1.2 / 2,
+    width / 1.2 / 2,
   ];
-  const initialY = [height / 3.5, height / 1.5, height / 1.5, height / 3.5];
+  const initialY = [height / 3.5, height / 2, height / 2, height / 3.5];
 
   const points = initialX.map((x, i) => ({
     x: useSharedValue(x),
@@ -83,9 +83,8 @@ const ReactangleTool = () => {
           x={10}
           y={10}
           animatedProps={props}
-          stroke="red"
-          strokeWidth="2"
-          strokeDasharray={[2, 2]}
+          stroke="#15803d"
+          strokeWidth="5"
         />
       ))}
     </View>
@@ -96,9 +95,10 @@ const styles = StyleSheet.create({
   box: {
     height: 20,
     width: 20,
-    backgroundColor: '#b58df1',
+    backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,
+    borderColor: '#2975D2',
     position: 'absolute',
   },
   box2: {
@@ -111,4 +111,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReactangleTool;
+export default RectangleTool;

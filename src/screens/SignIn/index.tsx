@@ -1,6 +1,9 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { GapView, TheButton, TheText, TheTextInput } from '../../components';
 import { BuildingLogo } from '../../assets';
 import { useNavigation } from '@react-navigation/native';
@@ -16,10 +19,8 @@ const SignIn = () => {
   const navigation = useNavigation<SignInProps['navigation']>();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.logoContainer}>
-        <BuildingLogo />
-      </View>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
+      <BuildingLogo />
       <View style={styles.formContainer}>
         <Formik
           initialValues={{ email: '', password: '' }}
@@ -45,6 +46,7 @@ const SignIn = () => {
                 onChange={handleChange('email')}
                 onBlur={handleBlur('email')}
                 error={touched.email && errors.email ? errors.email : ''}
+                style={{ width: '100%' }}
               />
               <GapView />
               <TheTextInput
@@ -85,26 +87,27 @@ const SignIn = () => {
           style={styles.createAccount}
         />
       </View>
-    </SafeAreaView>
+      <GapView length={useSafeAreaInsets().bottom} />
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: background,
     padding: 20,
-    justifyContent: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'space-around',
   },
 
-  logoContainer: {
-    alignItems: 'center',
-    paddingBottom: '25%',
-    paddingTop: '18%',
-  },
   formContainer: {
-    paddingVertical: '10%',
-    paddingHorizontal: '3%',
+    // flex: 1,
+    // justifyContent: 'space-evenly',
+    // paddingVertical: '10%',
+    // paddingHorizontal: '3%',
+    width: '100%',
+    marginVertical: 20,
   },
   forgotPassword: {
     textAlign: 'right',
@@ -117,11 +120,11 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   footer: {
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    flex: 1,
-    paddingBottom: 20,
+    // flex: 1,
     flexDirection: 'row',
+    justifyContent: 'center',
+    // alignItems: 'flex-end',
+    // paddingBottom: 20,
   },
   footerText: {
     textAlign: 'center',

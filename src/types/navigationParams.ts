@@ -1,3 +1,5 @@
+import { Measure } from '.';
+
 export type RootNavParamList = {
   SignIn: undefined;
   SignUp: undefined;
@@ -5,26 +7,27 @@ export type RootNavParamList = {
   Projects: undefined;
 
   ProjectDetails: {
-    projectId: string;
-    title: string;
+    qouteNumber: string;
+    name: string;
     address: string;
+    techName: string;
     date: string;
-    extraInfo?: string;
   };
 
   Measurement: {
-    projectId: string;
-    title: string;
+    qouteNumber: string;
+    name: string;
     address: string;
+    techName: string;
     date: string;
-    extraInfo?: string;
+    existingMeasure?: Measure; // Optional for editing existing measures
   };
 
   AllDetails: {
-    projectId: string;
-    title: string;
+    qouteNumber: string;
+    name: string;
     address: string;
+    techName: string;
     date: string;
-    extraInfo?: string;
   };
 };

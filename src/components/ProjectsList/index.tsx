@@ -10,24 +10,30 @@ import { RootNavParamList } from '../../types/navigationParams';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { border, WhiteBackground } from '../../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Project } from '../../types';
 
 const ProjectsList = ({
   projects,
   onViewPress,
 }: {
-  projects: number;
-  onViewPress: () => void;
+  projects: Project[];
+  onViewPress: (item: Project) => void;
 }) => {
   return (
     <View style={{ flex: 1, gap: 10 }}>
       <TheText
         style={{ fontWeight: 'bold', fontSize: 20 }}
-        text={`Existing Projects (${projects})`}
+        text={`Existing Projects (${projects.length})`}
       />
       <FlatList
-        data={Array(projects)}
-        renderItem={({ index }) => (
-          <ProjectCard key={index} onViewPress={onViewPress} />
+        data={projects}
+        ItemSeparatorComponent={() => <GapView />}
+        renderItem={({ item, index }) => (
+          <ProjectCard
+            key={index}
+            projectInfo={item}
+            onViewPress={() => onViewPress(item)}
+          />
         )}
         ListFooterComponent={<GapView length={useSafeAreaInsets().bottom} />}
         showsVerticalScrollIndicator={false}
@@ -36,8 +42,15 @@ const ProjectsList = ({
   );
 };
 
-const ProjectCard = ({ onViewPress }: { onViewPress: () => void }) => {
-  const decreaseProjects = useProjectStore().decreaseProjects;
+const ProjectCard = ({
+  projectInfo,
+  onViewPress,
+}: {
+  projectInfo: Project;
+  onViewPress: () => void;
+}) => {
+  const removeProj = useProjectStore().removeProject;
+  const { id, qouteNumber, name, address, techName, date } = projectInfo;
 
   const navigation =
     useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
@@ -47,20 +60,24 @@ const ProjectCard = ({ onViewPress }: { onViewPress: () => void }) => {
       <View style={{ gap: 10 }}>
         <View style={styles.rowContainer}>
           <View style={styles.qouteNoCont}>
-            <TheText text="qwf21312" size={12} style={{ fontWeight: 'bold' }} />
+            <TheText
+              text={qouteNumber}
+              size={12}
+              style={{ fontWeight: 'bold' }}
+            />
           </View>
-          <TheText text="asd" size={16} style={{ fontWeight: 'bold' }} />
+          <TheText text={name} size={16} style={{ fontWeight: 'bold' }} />
         </View>
         <View style={styles.rowContainer}>
           <Location width={16} height={16} />
-          <TheText text="123 Asdwr,ewrwe" />
+          <TheText text={address} />
         </View>
         <View style={styles.rowContainer}>
           <Person width={16} height={16} />
-          <TheText text="asdasd" />
+          <TheText text={techName} />
           <GapView mode="horizontal" length={10} />
           <Calendar width={16} height={16} />
-          <TheText text="7/17/2025" />
+          <TheText text={date} />
         </View>
       </View>
       <View style={{ justifyContent: 'space-around' }}>
@@ -70,7 +87,7 @@ const ProjectCard = ({ onViewPress }: { onViewPress: () => void }) => {
           onPress={onViewPress}
         />
         <TheButton
-          onPress={() => decreaseProjects()}
+          onPress={() => removeProj(id)}
           btnColor="#EF4443"
           style={{ padding: 5 }}
           btnTitle="Delete"
