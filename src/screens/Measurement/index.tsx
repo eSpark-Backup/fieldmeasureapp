@@ -67,7 +67,7 @@ import Animated, {
   useSharedValue,
   withDecay,
 } from 'react-native-reanimated';
-import { Measure, Project } from '../../types';
+import { Coords, Measure, Project } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { showToast } from '../../utils/showToast';
 
@@ -100,6 +100,47 @@ const Measurement = () => {
   const [RectanlgeT, setRectanlgeT] = useState(false);
   const [CornerT, setCornerT] = useState(false);
 
+  const initialX = [width / 2 / 2, width / 2 / 2];
+  const initialY = [height / 3.5, height / 2];
+
+  const initialRX = [
+    width / 2 / 3,
+    width / 2 / 3,
+    width / 1.2 / 2,
+    width / 1.2 / 2,
+  ];
+  const initialRY = [height / 3.5, height / 2, height / 2, height / 3.5];
+
+  const initialCX = [
+    width / 2 / 3,
+    width / 2 / 3,
+    width / 2 / 1.6,
+    width / 2 / 1.2,
+    width / 2 / 1.2,
+    width / 2 / 1.6,
+  ];
+
+  const initialCY = [
+    height / 3.5,
+    height / 2,
+    height / 2,
+    height / 2,
+    height / 3.5,
+    height / 3.5,
+  ];
+
+  const [TapeC, setTapeC] = useState<Coords>({ x: initialX, y: initialY });
+  const [LaserC, setLaserC] = useState<Coords>({ x: initialX, y: initialY });
+  const [RakeC, setRakeC] = useState<Coords>({ x: initialX, y: initialY });
+  const [RectanlgeC, setRectanlgeC] = useState<Coords>({
+    x: initialRX,
+    y: initialRY,
+  });
+  const [CornerC, setCornerC] = useState<Coords>({
+    x: initialCX,
+    y: initialCY,
+  });
+
   const [scaleVal, setScaleVal] = useState(1);
 
   const ref = useRef<ViewShot>(null);
@@ -111,11 +152,48 @@ const Measurement = () => {
 
   const prevTranslationY = useSharedValue(0);
 
+  const countTrueStates = () => {
+    const states = [TapeT, LaserT, RakeT, RectanlgeT, CornerT];
+    return states.filter(Boolean).length;
+  };
+
+  const setStatesFromMeasure = (measure: Measure) => {
+    setTapeT(!!measure.toolsData?.tape);
+    setLaserT(!!measure.toolsData?.laser);
+    setRakeT(!!measure.toolsData?.rake);
+    setRectanlgeT(!!measure.toolsData?.rectangle);
+    setCornerT(!!measure.toolsData?.corner);
+  };
+
+  const setStatesFromCoords = (measure: Measure) => {
+    const mapping: Record<string, (value: any) => void> = {
+      tape: setTapeC,
+      laser: setLaserC,
+      rake: setRakeC,
+      rectangle: setRectanlgeC,
+      corner: setCornerC,
+    };
+
+    Object.entries(mapping).forEach(([tool, setter]) => {
+      const coords = measure.toolsData?.[tool]?.coords;
+      if (coords != null) {
+        // checks for both null and undefined
+        setter(coords);
+      }
+    });
+  };
+
   // 🧠 On mount, prefill if editing
   useEffect(() => {
+    console.log('existingMeasure', existingMeasure);
     if (existingMeasure) {
+      console.log('existingMeasure', existingMeasure.toolsData);
+
       setTempMeasure(existingMeasure.details);
       setLocation(existingMeasure.location || '');
+      setSelectedPhoto(existingMeasure.photo || '');
+      setStatesFromMeasure(existingMeasure);
+      setStatesFromCoords(existingMeasure);
     } else {
       clearTempMeasure();
     }
@@ -145,10 +223,49 @@ const Measurement = () => {
       return;
     }
 
+    const toolsData: Record<string, { coords: any; status: boolean }> = {};
+
+    if (TapeT) {
+      toolsData.tape = {
+        coords: TapeC, // put your coords value here
+        status: TapeT,
+      };
+    }
+
+    if (LaserT) {
+      toolsData.laser = {
+        coords: LaserC,
+        status: LaserT,
+      };
+    }
+
+    if (RakeT) {
+      toolsData.rake = {
+        coords: RakeC,
+        status: RakeT,
+      };
+    }
+
+    if (RectanlgeT) {
+      toolsData.rectangle = {
+        coords: RectanlgeC,
+        status: RectanlgeT,
+      };
+    }
+
+    if (CornerT) {
+      toolsData.corner = {
+        coords: CornerC,
+        status: CornerT,
+      };
+    }
+
     const newMeasure: Measure = {
       id: existingMeasure?.id || uuid.v4().toString(),
       location,
       details: tempMeasure,
+      photo: selectedPhoto,
+      toolsData,
       timestamp: Date.now(),
     };
 
@@ -341,7 +458,7 @@ const Measurement = () => {
         )}
         {LaserT && (
           <MeasureCard
-            onDelete={() => setTapeT(false)}
+            onDelete={() => setLaserT(false)}
             type={'Laser'}
             style={{ zIndex: 1000 }}
             color="#FBBF24"
@@ -349,7 +466,7 @@ const Measurement = () => {
         )}
         {RakeT && (
           <MeasureCard
-            onDelete={() => setTapeT(false)}
+            onDelete={() => setRakeT(false)}
             type={'Rake'}
             style={{ zIndex: 1000 }}
             color="#BB86FC"
@@ -357,7 +474,7 @@ const Measurement = () => {
         )}
         {RectanlgeT && (
           <MeasureCard
-            onDelete={() => setTapeT(false)}
+            onDelete={() => setRectanlgeT(false)}
             type={'Rectangle'}
             style={{ zIndex: 1000 }}
             color="#86b9fcff"
@@ -365,7 +482,7 @@ const Measurement = () => {
         )}
         {CornerT && (
           <MeasureCard
-            onDelete={() => setTapeT(false)}
+            onDelete={() => setCornerT(false)}
             type={'Corner'}
             style={{ zIndex: 1000 }}
             color="#ca5056ff"
@@ -479,11 +596,66 @@ const Measurement = () => {
                   width="100%"
                   style={{ position: 'absolute' }}
                 >
-                  {TapeT && <TapeTool scaleValue={scaleVal} />}
-                  {LaserT && <LaserTool />}
-                  {RakeT && <RakeTool />}
-                  {RectanlgeT && <RectangleTool />}
-                  {CornerT && <CornerTool />}
+                  {TapeT && (
+                    <TapeTool
+                      scaleValue={scaleVal}
+                      getCoords={(xArr, yArr) => {
+                        const cData = { x: xArr, y: yArr };
+                        setTapeC(cData);
+                        console.log('X:', xArr, 'Y:', yArr);
+                      }}
+                      xCoords={TapeC.x}
+                      yCoords={TapeC.y}
+                    />
+                  )}
+                  {LaserT && (
+                    <LaserTool
+                      scaleValue={scaleVal}
+                      getCoords={(xArr, yArr) => {
+                        const cData = { x: xArr, y: yArr };
+                        setLaserC(cData);
+                        console.log('X:', xArr, 'Y:', yArr);
+                      }}
+                      xCoords={LaserC.x}
+                      yCoords={LaserC.y}
+                    />
+                  )}
+                  {RakeT && (
+                    <RakeTool
+                      scaleValue={scaleVal}
+                      getCoords={(xArr, yArr) => {
+                        const cData = { x: xArr, y: yArr };
+                        setRakeC(cData);
+                        console.log('X:', xArr, 'Y:', yArr);
+                      }}
+                      xCoords={RakeC.x}
+                      yCoords={RakeC.y}
+                    />
+                  )}
+                  {RectanlgeT && (
+                    <RectangleTool
+                      scaleValue={scaleVal}
+                      getCoords={(xArr, yArr) => {
+                        const cData = { x: xArr, y: yArr };
+                        setRectanlgeC(cData);
+                        console.log('X:', xArr, 'Y:', yArr);
+                      }}
+                      xCoords={RectanlgeC.x}
+                      yCoords={RectanlgeC.y}
+                    />
+                  )}
+                  {CornerT && (
+                    <CornerTool
+                      scaleValue={scaleVal}
+                      getCoords={(xArr, yArr) => {
+                        const cData = { x: xArr, y: yArr };
+                        setCornerC(cData);
+                        console.log('X:', xArr, 'Y:', yArr);
+                      }}
+                      xCoords={CornerC.x}
+                      yCoords={CornerC.y}
+                    />
+                  )}
                 </Svg>
               </Animated.View>
             </GestureDetector>
@@ -539,7 +711,7 @@ const Measurement = () => {
             style={[styles.rowContainer, { justifyContent: 'space-between' }]}
           >
             <TheText
-              text={`Measurements(${selectedTools.length})`}
+              text={`Measurements(${countTrueStates()})`}
               size={23}
               style={{ fontWeight: 'bold', marginVertical: 20 }}
             />

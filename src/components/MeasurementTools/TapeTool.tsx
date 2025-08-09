@@ -4,7 +4,7 @@ import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
-  SharedValue,
+  runOnJS,
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
@@ -13,9 +13,19 @@ import Animated, {
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
-const TapeTool = ({ scaleValue }: { scaleValue: number }) => {
-  const initialX = [width / 2 / 2, width / 2 / 2];
-  const initialY = [height / 3.5, height / 2];
+const TapeTool = ({
+  scaleValue,
+  getCoords,
+  xCoords,
+  yCoords,
+}: {
+  scaleValue: number;
+  getCoords: (xCoords: number[], yCoords: number[]) => void;
+  xCoords: number[];
+  yCoords: number[];
+}) => {
+  const initialX = xCoords;
+  const initialY = yCoords;
 
   const points = initialX.map((x, i) => ({
     x: useSharedValue(x),
@@ -41,6 +51,12 @@ const TapeTool = ({ scaleValue }: { scaleValue: number }) => {
           point.prevY.value + event.translationY / scaleValue,
           1,
           height - 90,
+        );
+      })
+      .onEnd(() => {
+        runOnJS(getCoords)(
+          points.map(p => p.x.value), // X array
+          points.map(p => p.y.value), // Y array
         );
       }),
   );

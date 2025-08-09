@@ -30,7 +30,7 @@ const SignIn = () => {
           validationSchema={SignInSchema}
           onSubmit={values => {
             if (
-              values.email === creds.email &&
+              values.email.toLowerCase() === creds.email &&
               values.password === creds.password
             ) {
               navigation.navigate('Projects', { role: 'admin' });

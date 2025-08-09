@@ -7,11 +7,23 @@ export type toolNames =
   | 'Note'
   | 'RoundUp';
 
+export type Coords = {
+  x: number[]; // You can replace `any` with a more specific type if you know it
+  y: number[]; // You can replace `any` with a more specific type if you know it
+};
+
+export type ToolData = {
+  coords: Coords; // You can replace `any` with a more specific type if you know it
+  status: boolean;
+};
+
 export type Measure = {
   id: string;
   location: any;
   details: any;
   timestamp: number;
+  toolsData: Record<string, ToolData>;
+  photo: string;
 };
 
 export type Project = {
