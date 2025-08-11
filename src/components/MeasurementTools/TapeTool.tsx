@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
-import { Line as SVGLine } from 'react-native-svg';
+import { Line, Line as SVGLine, Text as SVGText } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
@@ -9,9 +9,12 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import TheText from '../TheText';
+import { WhiteBackground } from '../../constants/colors';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
+const AnimatedText = Animated.createAnimatedComponent(SVGText);
 
 const TapeTool = ({
   scaleValue,
@@ -55,8 +58,8 @@ const TapeTool = ({
       })
       .onEnd(() => {
         runOnJS(getCoords)(
-          points.map(p => p.x.value), // X array
-          points.map(p => p.y.value), // Y array
+          points.map(p => p.x.value),
+          points.map(p => p.y.value),
         );
       }),
   );
@@ -69,6 +72,30 @@ const TapeTool = ({
     })),
   );
 
+  const animatedInfo = useAnimatedStyle(() => {
+    // Get mid-point between points
+    const midX = (points[0].x.value + points[1].x.value) / 2;
+    const midY = (points[0].y.value + points[1].y.value) / 2;
+
+    // Calculate rotation in radians → degrees
+    const angleDeg =
+      Math.atan2(
+        points[1].y.value - points[0].y.value,
+        points[1].x.value - points[0].x.value,
+      ) *
+      (180 / Math.PI);
+
+    return {
+      width: 80 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
+      height: 20 * (2 / scaleValue / 2),
+      transform: [
+        { translateX: midX - 30 * (2 / scaleValue / 2) },
+        { translateY: midY - 10 * (2 / scaleValue / 2) },
+        { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
+      ],
+    };
+  });
+
   const animatedLines = [...Array(1)].map((_, i) => {
     return useAnimatedProps(() => ({
       x1: points[i].x.value,
@@ -80,6 +107,14 @@ const TapeTool = ({
 
   return (
     <View style={{ position: 'absolute' }}>
+      <Animated.View style={[styles.box2, animatedInfo]}>
+        <TheText
+          size={14 * (2 / scaleValue / 2)}
+          color={WhiteBackground}
+          text="M1:0"
+        />
+      </Animated.View>
+
       {points.map((_, i) => (
         <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
           <Animated.View style={[styles.box, animatedStyles[i]]} />
@@ -92,7 +127,7 @@ const TapeTool = ({
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke="#1d4ed8"
-          strokeWidth="2"
+          strokeWidth="5"
         />
       ))}
     </View>
@@ -101,8 +136,6 @@ const TapeTool = ({
 
 const styles = StyleSheet.create({
   box: {
-    // height: 20,
-    // width: 20,
     backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,
@@ -113,9 +146,8 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
     position: 'absolute',
-    backgroundColor: '#ff0',
-    borderRadius: 20,
-    borderWidth: 1,
+    backgroundColor: '#1d4ed8',
+    alignItems: 'center',
   },
 });
 

@@ -55,8 +55,8 @@ const RectangleTool = ({
       })
       .onEnd(() => {
         runOnJS(getCoords)(
-          points.map(p => p.x.value), // X array
-          points.map(p => p.y.value), // Y array
+          points.map(p => p.x.value),
+          points.map(p => p.y.value),
         );
       }),
   );
@@ -101,8 +101,6 @@ const RectangleTool = ({
 
 const styles = StyleSheet.create({
   box: {
-    // height: 20,
-    // width: 20,
     backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,

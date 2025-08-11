@@ -42,7 +42,7 @@ const CornerTool = ({
         point.prevY.value = point.y.value;
       })
       .onUpdate(event => {
-        const maxTranslateX = width - 60; // you had 60 before, so keep it
+        const maxTranslateX = width - 60;
         const maxTranslateY = height - 90;
 
         point.x.value = clamp(
@@ -58,8 +58,8 @@ const CornerTool = ({
       })
       .onEnd(() => {
         runOnJS(getCoords)(
-          points.map(p => p.x.value), // X array
-          points.map(p => p.y.value), // Y array
+          points.map(p => p.x.value),
+          points.map(p => p.y.value),
         );
       }),
   );
@@ -96,24 +96,22 @@ const CornerTool = ({
           <Animated.View style={[styles.box, animatedStyles[i]]} />
         </GestureDetector>
       ))}
-
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#c2410c"
-          strokeWidth="1"
+          stroke="#ca5056ff"
+          strokeWidth="5"
         />
       ))}
-
       <AnimatedLine
         x={10 * (2 / scaleValue / 2)}
         y={10 * (2 / scaleValue / 2)}
         animatedProps={animatedLineCenter}
-        stroke="#0c4ac2"
-        strokeWidth="1.5"
+        stroke="#ca5056ff"
+        strokeWidth="5"
       />
     </View>
   );
@@ -121,8 +119,6 @@ const CornerTool = ({
 
 const styles = StyleSheet.create({
   box: {
-    height: 20,
-    width: 20,
     backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,

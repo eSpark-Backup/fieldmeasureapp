@@ -21,3 +21,4 @@ export { default as Upload } from './vectors/upload.svg';
 export { default as Export } from './vectors/export.svg';
 export { default as Plus } from './vectors/plus.svg';
 export { default as Minus } from './vectors/minus.svg';
+export { default as Logout } from './vectors/logout.svg';

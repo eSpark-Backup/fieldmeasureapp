@@ -3,11 +3,9 @@ import {
   View,
   TouchableOpacity,
   StyleSheet,
-  Pressable,
   ScrollView,
   ViewStyle,
   StyleProp,
-  TextInput,
 } from 'react-native';
 
 import TheText from '../TheText';
@@ -15,6 +13,7 @@ import { background, border, lightBackground } from '../../constants/colors';
 
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
+import TheTextInput from '../TheTextInput';
 
 interface DropdownProps {
   data: string[];
@@ -33,6 +32,7 @@ interface DropdownProps {
   setOpenDropdownId: (id: string | null) => void;
   error?: string;
   containerStyle?: ViewStyle;
+  disabled?: boolean;
 }
 
 const TheDropdown: React.FC<DropdownProps> = ({
@@ -41,7 +41,6 @@ const TheDropdown: React.FC<DropdownProps> = ({
   placeholder = 'Select option',
   zIndex = 10,
   style,
-  height = 40,
   title,
   id,
   selected,
@@ -50,8 +49,8 @@ const TheDropdown: React.FC<DropdownProps> = ({
   setOpenDropdownId,
   error,
   containerStyle,
+  disabled,
 }) => {
-  const [show, setShow] = useState(false);
   const [selectedItem, setSelectedItem] = useState(selected ?? '');
 
   useEffect(() => {
@@ -98,40 +97,28 @@ const TheDropdown: React.FC<DropdownProps> = ({
         {title && <TheText style={styles.label} text={title} />}
         {required && <TheText style={styles.required} text=" *" />}
       </View>
-
-      <View style={[style, {}]}>
+      <View style={style}>
         <TouchableOpacity
           activeOpacity={0.8}
+          disabled={disabled}
           onPress={handleToggle}
           style={{ justifyContent: 'center' }}
         >
-          <TextInput
+          <TheTextInput
             value={selectedItem || placeholder}
             style={[styles.inputStyle, style]}
             editable={false}
           />
-          <EntypoIcon
-            name={isOpen ? 'chevron-up' : 'chevron-down'}
-            color={'#66666666'}
-            size={16}
-            style={{ position: 'absolute', right: 15 }}
-          />
+          {disabled ? null : (
+            <EntypoIcon
+              name={isOpen ? 'chevron-up' : 'chevron-down'}
+              color={'#66666666'}
+              size={16}
+              style={{ position: 'absolute', right: 15 }}
+            />
+          )}
         </TouchableOpacity>
-        {/* <Pressable
-          style={[styles.dropdownButton, { borderColor: border }]}
-          onPress={handleToggle}
-        >
-          <TheText
-            text={selectedItem || placeholder}
-            color={selectedItem ? '#000' : '#969696'}
-            size={16}
-          />
-          <EntypoIcon
-            name={isOpen ? 'chevron-up' : 'chevron-down'}
-            color={'#66666666'}
-            size={16}
-          />
-        </Pressable> */}
+
         {error ? (
           <TheText
             color={'red'}
@@ -140,8 +127,6 @@ const TheDropdown: React.FC<DropdownProps> = ({
             size={10}
           />
         ) : null}
-
-        {/* {renderOptions} */}
         {isOpen && (
           <View
             style={[
@@ -158,7 +143,14 @@ const TheDropdown: React.FC<DropdownProps> = ({
               showsVerticalScrollIndicator={false}
               nestedScrollEnabled={true}
             >
-              {renderOptions}
+              {data.length > 0 ? (
+                renderOptions
+              ) : (
+                <TheText
+                  text={'No ' + title + ' available'}
+                  style={{ textAlign: 'center', paddingVertical: 10 }}
+                />
+              )}
             </ScrollView>
           </View>
         )}

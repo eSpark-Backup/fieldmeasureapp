@@ -9,6 +9,8 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import TheText from '../TheText';
+import { WhiteBackground } from '../../constants/colors';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -55,8 +57,8 @@ const RakeTool = ({
       })
       .onEnd(() => {
         runOnJS(getCoords)(
-          points.map(p => p.x.value), // X array
-          points.map(p => p.y.value), // Y array
+          points.map(p => p.x.value),
+          points.map(p => p.y.value),
         );
       }),
   );
@@ -69,6 +71,30 @@ const RakeTool = ({
     })),
   );
 
+  const animatedInfo = useAnimatedStyle(() => {
+    // Get mid-point between points
+    const midX = (points[0].x.value + points[1].x.value) / 2;
+    const midY = (points[0].y.value + points[1].y.value) / 2;
+
+    // Calculate rotation in radians → degrees
+    const angleDeg =
+      Math.atan2(
+        points[1].y.value - points[0].y.value,
+        points[1].x.value - points[0].x.value,
+      ) *
+      (180 / Math.PI);
+
+    return {
+      width: 80 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
+      height: 20 * (2 / scaleValue / 2),
+      transform: [
+        { translateX: midX - 30 * (2 / scaleValue / 2) },
+        { translateY: midY - 10 * (2 / scaleValue / 2) },
+        { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
+      ],
+    };
+  });
+
   const animatedLines = [...Array(1)].map((_, i) => {
     return useAnimatedProps(() => ({
       x1: points[i].x.value,
@@ -80,6 +106,13 @@ const RakeTool = ({
 
   return (
     <View style={{ position: 'absolute' }}>
+      <Animated.View style={[styles.box2, animatedInfo]}>
+        <TheText
+          size={14 * (2 / scaleValue / 2)}
+          color={WhiteBackground}
+          text="M1:0"
+        />
+      </Animated.View>
       {points.map((_, i) => (
         <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
           <Animated.View style={[styles.box, animatedStyles[i]]} />
@@ -102,8 +135,6 @@ const RakeTool = ({
 
 const styles = StyleSheet.create({
   box: {
-    // height: 20,
-    // width: 20,
     backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,
@@ -114,9 +145,8 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
     position: 'absolute',
-    backgroundColor: '#ff0',
-    borderRadius: 20,
-    borderWidth: 1,
+    backgroundColor: '#7e22ce',
+    alignItems: 'center',
   },
 });
 

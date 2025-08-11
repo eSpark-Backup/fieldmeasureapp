@@ -14,11 +14,11 @@ import {
   TheText,
   TheTool,
   TheButton,
-  TheDropdown,
   TheTextInput,
   TheToggle,
   GapView,
   RectangleTool,
+  ToolInput,
 } from '../../components';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import {
@@ -36,6 +36,14 @@ import ViewShot from 'react-native-view-shot';
 import uuid from 'react-native-uuid';
 // import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import FileViewer from 'react-native-file-viewer';
+import Animated, {
+  clamp,
+  runOnJS,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withDecay,
+} from 'react-native-reanimated';
 
 import {
   Camera,
@@ -59,14 +67,6 @@ import { border, primaryColor } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
 import { pdfHTML } from './utils';
-import Animated, {
-  clamp,
-  runOnJS,
-  useAnimatedReaction,
-  useAnimatedStyle,
-  useSharedValue,
-  withDecay,
-} from 'react-native-reanimated';
 import { Coords, Measure, Project } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { showToast } from '../../utils/showToast';
@@ -100,6 +100,12 @@ const Measurement = () => {
   const [RectanlgeT, setRectanlgeT] = useState(false);
   const [CornerT, setCornerT] = useState(false);
 
+  const [TapeH, setTapeH] = useState(true);
+  const [LaserH, setLaserH] = useState(true);
+  const [RakeH, setRakeH] = useState(true);
+  const [RectanlgeH, setRectanlgeH] = useState(true);
+  const [CornerH, setCornerH] = useState(true);
+
   const initialX = [width / 2 / 2, width / 2 / 2];
   const initialY = [height / 3.5, height / 2];
 
@@ -114,10 +120,10 @@ const Measurement = () => {
   const initialCX = [
     width / 2 / 3,
     width / 2 / 3,
-    width / 2 / 1.6,
+    width / 2 / 1.7,
     width / 2 / 1.2,
     width / 2 / 1.2,
-    width / 2 / 1.6,
+    width / 2 / 1.7,
   ];
 
   const initialCY = [
@@ -386,7 +392,8 @@ const Measurement = () => {
   //           <MeasureCard
   //             key={index + tool}
   //             {...commonProps}
-  //             style={{ zIndex: 1000 + selectedTools.length - index }}
+  //             onEyePress={val => setTapeH(val)}
+  //             style={{ zIndex: 100 - index }}
   //             color={primaryColor}
   //           />
   //         );
@@ -395,7 +402,8 @@ const Measurement = () => {
   //           <MeasureCard
   //             key={index + tool}
   //             {...commonProps}
-  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             onEyePress={val => setLaserH(val)}
+  //             style={{ zIndex: 100 - index }}
   //             color="#FBBF24"
   //           />
   //         );
@@ -404,7 +412,8 @@ const Measurement = () => {
   //           <MeasureCard
   //             key={index + tool}
   //             {...commonProps}
-  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             onEyePress={val => setRakeH(val)}
+  //             style={{ zIndex: 100 - index }}
   //             color="#BB86FC"
   //           />
   //         );
@@ -413,7 +422,8 @@ const Measurement = () => {
   //           <MeasureCard
   //             key={index + tool}
   //             {...commonProps}
-  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             onEyePress={val => setRectanlgeH(val)}
+  //             style={{ zIndex: 100 - index }}
   //             color="#86b9fcff"
   //           />
   //         );
@@ -422,19 +432,20 @@ const Measurement = () => {
   //           <MeasureCard
   //             key={index + tool}
   //             {...commonProps}
-  //             style={{ zIndex: 100 + selectedTools.length - index }}
+  //             onEyePress={val => setCornerH(val)}
+  //             style={{ zIndex: 100 - index }}
   //             color="#ca5056ff"
   //           />
   //         );
-  //       case 'Note':
-  //         return (
-  //           <MeasureCard
-  //             key={index + tool}
-  //             {...commonProps}
-  //             style={{ zIndex: 100 + selectedTools.length - index }}
-  //             color="#50cac0ff"
-  //           />
-  //         );
+  //       // case 'Note':
+  //       //   return (
+  //       //     <MeasureCard
+  //       //       key={index + tool}
+  //       //       {...commonProps}
+  //       //       style={{ zIndex: 100 + selectedTools.length - index }}
+  //       //       color="#50cac0ff"
+  //       //     />
+  //       //   );
   //       // case 'RoundUp':
   //       //   bottomSheetRef.current?.snapToIndex(1);
   //       case 'RoundUp':
@@ -450,41 +461,61 @@ const Measurement = () => {
       <View>
         {TapeT && (
           <MeasureCard
-            onDelete={() => setTapeT(false)}
+            onDelete={() => {
+              setTapeT(false);
+              setTapeC({ x: initialX, y: initialY });
+            }}
+            onEyePress={val => setTapeH(val)}
             type={'Tape'}
-            style={{ zIndex: 1000 }}
+            style={{ zIndex: 10 }}
             color={primaryColor}
           />
         )}
         {LaserT && (
           <MeasureCard
-            onDelete={() => setLaserT(false)}
+            onDelete={() => {
+              setLaserT(false);
+              setLaserC({ x: initialX, y: initialY });
+            }}
+            onEyePress={val => setLaserH(val)}
             type={'Laser'}
-            style={{ zIndex: 1000 }}
+            style={{ zIndex: 9 }}
             color="#FBBF24"
           />
         )}
         {RakeT && (
           <MeasureCard
-            onDelete={() => setRakeT(false)}
+            onDelete={() => {
+              setRakeT(false);
+              setRakeC({ x: initialX, y: initialY });
+            }}
+            onEyePress={val => setRakeH(val)}
             type={'Rake'}
-            style={{ zIndex: 1000 }}
+            style={{ zIndex: 8 }}
             color="#BB86FC"
           />
         )}
         {RectanlgeT && (
           <MeasureCard
-            onDelete={() => setRectanlgeT(false)}
+            onDelete={() => {
+              setRectanlgeT(false);
+              setRectanlgeC({ x: initialRX, y: initialRY });
+            }}
+            onEyePress={val => setRectanlgeH(val)}
             type={'Rectangle'}
-            style={{ zIndex: 1000 }}
+            style={{ zIndex: 7 }}
             color="#86b9fcff"
           />
         )}
         {CornerT && (
           <MeasureCard
-            onDelete={() => setCornerT(false)}
+            onDelete={() => {
+              setCornerT(false);
+              setCornerC({ x: initialCX, y: initialCY });
+            }}
+            onEyePress={val => setCornerH(val)}
             type={'Corner'}
-            style={{ zIndex: 1000 }}
+            style={{ zIndex: 6 }}
             color="#ca5056ff"
           />
         )}
@@ -596,7 +627,7 @@ const Measurement = () => {
                   width="100%"
                   style={{ position: 'absolute' }}
                 >
-                  {TapeT && (
+                  {TapeT && TapeH && (
                     <TapeTool
                       scaleValue={scaleVal}
                       getCoords={(xArr, yArr) => {
@@ -608,7 +639,7 @@ const Measurement = () => {
                       yCoords={TapeC.y}
                     />
                   )}
-                  {LaserT && (
+                  {LaserT && LaserH && (
                     <LaserTool
                       scaleValue={scaleVal}
                       getCoords={(xArr, yArr) => {
@@ -620,7 +651,7 @@ const Measurement = () => {
                       yCoords={LaserC.y}
                     />
                   )}
-                  {RakeT && (
+                  {RakeT && RakeH && (
                     <RakeTool
                       scaleValue={scaleVal}
                       getCoords={(xArr, yArr) => {
@@ -632,7 +663,7 @@ const Measurement = () => {
                       yCoords={RakeC.y}
                     />
                   )}
-                  {RectanlgeT && (
+                  {RectanlgeT && RectanlgeH && (
                     <RectangleTool
                       scaleValue={scaleVal}
                       getCoords={(xArr, yArr) => {
@@ -644,7 +675,7 @@ const Measurement = () => {
                       yCoords={RectanlgeC.y}
                     />
                   )}
-                  {CornerT && (
+                  {CornerT && CornerH && (
                     <CornerTool
                       scaleValue={scaleVal}
                       getCoords={(xArr, yArr) => {
@@ -738,91 +769,6 @@ const Measurement = () => {
           <GapView length={useSafeAreaInsets().bottom + 10} />
         </ScrollView>
       </View>
-
-      {/* <BottomSheet
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-        enablePanDownToClose={false}
-        handleIndicatorStyle={styles.handleIndicator}
-        maxDynamicContentSize={650}
-        animateOnMount={true}
-        activeOffsetY={[-5, 5]}
-        failOffsetX={[-5, 5]}
-        simultaneousHandlers={undefined}
-        handleStyle={{
-          borderTopRightRadius: 20,
-          borderTopLeftRadius: 20,
-          borderTopWidth: 1,
-          borderLeftWidth: 1,
-          borderRightWidth: 1,
-          borderColor: '#DCDCDC',
-          paddingBottom: 30,
-        }}
-      >
-        <BottomSheetScrollView
-          showsVerticalScrollIndicator={false}
-          style={styles.scrollView}
-          keyboardShouldPersistTaps={'handled'}
-        >
-          <View style={styles.initialContainer}>
-            <TheTextInput
-              label="Location"
-              placeholder="Kitchen, Bathroom, Living Room"
-              value={location}
-              onChange={setLocation}
-              required
-            />
-          </View>
-          <View style={styles.initialContainer}>
-            <TheButton
-              btnTitle="Upload Photo"
-              icon={<Upload />}
-              titleStyle={{ fontWeight: 'bold' }}
-              onPress={getImage}
-            />
-          </View>
-          <View style={styles.initialContainer}>
-            <TheButton
-              btnTitle="Add Details"
-              onPress={() => {
-                navigation.navigate('AllDetails', {
-                  projectId: '123135',
-                  title: 'John',
-                  address: '132132 adjvdjs',
-                  date: '2024-01-01',
-                  extraInfo: 'Additional info here',
-                });
-              }}
-              titleStyle={{ fontWeight: 'bold' }}
-              btnColor={'#fcac17ff'}
-            />
-          </View>
-          <View
-            style={[styles.rowContainer, { justifyContent: 'space-between' }]}
-          >
-            <TheText
-              text={`Measurements(${selectedTools.length})`}
-              size={23}
-              style={{ fontWeight: 'bold', marginVertical: 20 }}
-            />
-            <View style={styles.rowContainer}>
-              <TheText style={{ fontWeight: '500' }} text="Lock All" />
-              <GapView mode="horizontal" />
-              <TheToggle value={mainLock} onValueChange={setMainLock} large />
-            </View>
-          </View>
-
-          {renderToolContent()}
-          <TheButton
-            btnTitle="Export Report"
-            titleStyle={{ fontWeight: 'bold' }}
-            icon={<Export />}
-            // onPress={handleSaveMeasurements}
-          />
-          <GapView length={useSafeAreaInsets().bottom + 10} />
-        </BottomSheetScrollView>
-      </BottomSheet> */}
     </GestureHandlerRootView>
   );
 };
@@ -845,11 +791,13 @@ function Badge({ color }: { color: string }) {
 function MeasureCard({
   type,
   onDelete,
+  onEyePress,
   color,
   style,
 }: {
   type: string;
   onDelete: () => void;
+  onEyePress: (visible: boolean) => void;
   color?: string;
   style?: ViewStyle;
 }) {
@@ -862,51 +810,37 @@ function MeasureCard({
 
   const renderInputRow = (
     label?: string,
-    isNum?: boolean,
     dropdownId?: string,
     index?: number,
     length?: number,
   ) => {
     return (
-      <View
-        style={[
-          styles.rowContainer,
-          style,
-          {
-            justifyContent: 'flex-start',
-            gap: 15,
-          },
-        ]}
-      >
-        {label && <TheText text={`${label}:`} style={{ width: '18%' }} />}
-        <TheTextInput
-          placeholder="Enter length"
-          value="0"
-          label=""
-          style={{ width: 70 }}
-          isNum={isNum}
-        />
-        <TheText text="in" size={16} />
-        <TheDropdown
-          data={fractionalInches}
-          onSelect={() => {}}
-          placeholder="0"
-          id={dropdownId || ''}
-          isOpen={openDropdownId === dropdownId}
-          setOpenDropdownId={() =>
-            setOpenDropdownId(prev =>
-              prev === dropdownId ? null : dropdownId ?? null,
-            )
-          }
-          style={{
-            width: 70,
-          }}
-        />
-      </View>
+      <ToolInput
+        label={label}
+        data={fractionalInches}
+        onSelect={() => {}}
+        placeholder="0"
+        id={dropdownId || ''}
+        isOpen={openDropdownId === dropdownId}
+        setOpenDropdownId={() =>
+          setOpenDropdownId(prev =>
+            prev === dropdownId ? null : dropdownId ?? null,
+          )
+        }
+        style={{
+          width: 70,
+        }}
+      />
     );
   };
+
+  const onEye = () => {
+    onEyePress(!visible);
+    setVisible(!visible);
+  };
+
   return (
-    <View style={styles.initialContainer}>
+    <View style={[styles.initialContainer, style]}>
       {/* Header */}
       <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
         <View style={[styles.rowContainer, { gap: 5, width: '70%' }]}>
@@ -914,14 +848,15 @@ function MeasureCard({
           <TheText
             text={`${type} Measurement`}
             size={18}
-            style={{ fontWeight: '600' }}
+            numberOfLines={1}
+            style={{ fontWeight: '600', width: '88%' }}
           />
         </View>
         <View style={[styles.rowContainer, { gap: 5 }]}>
           {visible ? (
-            <Eye color="#6B7280" onPress={() => setVisible(false)} />
+            <Eye color="#6B7280" onPress={onEye} />
           ) : (
-            <EyeClosed color="#6B7280" onPress={() => setVisible(true)} />
+            <EyeClosed color="#6B7280" onPress={onEye} />
           )}
           <TheToggle value={lock} onValueChange={setLock} />
           <Trash onPress={onDelete} />
@@ -929,11 +864,11 @@ function MeasureCard({
       </View>
 
       {/* Type-specific Inputs */}
-      {type === 'Tape' && renderInputRow(undefined, false, 'tape')}
+      {type === 'Tape' && renderInputRow(undefined, 'tape')}
 
       {type === 'Rake' && (
         <>
-          {renderInputRow(undefined, false, 'rake')}
+          {renderInputRow(undefined, 'rake')}
           <TheButton
             btnTitle="Distance"
             icon={showDist ? <Minus /> : <Plus />}
@@ -942,31 +877,25 @@ function MeasureCard({
             titleStyle={{ fontWeight: 'bold' }}
             titleColor="black"
           />
-          {showDist && renderInputRow(undefined, false, 'rake-distance')}
+          {showDist && renderInputRow(undefined, 'rake-distance')}
         </>
       )}
 
       {type === 'Laser' && (
         <>
-          {renderInputRow('Slide A', true, 'laser-slide-a')}
-          {renderInputRow('Slide B', true, 'laser-slide-b')}
+          {renderInputRow('Slide A', 'laser-slide-a')}
+          {renderInputRow('Slide B', 'laser-slide-b')}
         </>
       )}
 
       {type === 'Rectangle' &&
         rectangleLabels.map((label, index) =>
-          renderInputRow(label, false, `rectangle-${index}`),
+          renderInputRow(label, `rectangle-${index}`),
         )}
 
       {type === 'Corner' &&
         cornerLabels.map((label, index) =>
-          renderInputRow(
-            label,
-            false,
-            `corner-${index}`,
-            index,
-            cornerLabels.length,
-          ),
+          renderInputRow(label, `corner-${index}`, index, cornerLabels.length),
         )}
       {type === 'Note' && (
         <TheDescriptionBox
