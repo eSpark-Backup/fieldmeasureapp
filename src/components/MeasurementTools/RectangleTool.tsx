@@ -9,6 +9,8 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import TheText from '../TheText';
+import { WhiteBackground } from '../../constants/colors';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -78,8 +80,64 @@ const RectangleTool = ({
     }));
   });
 
+  const animatedInfo = (p1: any, p2: any) =>
+    useAnimatedStyle(() => {
+      // Get mid-point between points
+      const midX = (p1.x.value + p2.x.value) / 2;
+      const midY = (p1.y.value + p2.y.value) / 2;
+
+      // Calculate rotation in radians → degrees
+      const angleDeg =
+        Math.atan2(p2.y.value - p1.y.value, p2.x.value - p1.x.value) *
+        (180 / Math.PI);
+
+      return {
+        width: 80 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
+        height: 20 * (2 / scaleValue / 2),
+        transform: [
+          { translateX: midX - 30 * (2 / scaleValue / 2) },
+          { translateY: midY - 10 * (2 / scaleValue / 2) },
+          { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
+        ],
+      };
+    });
+
+  // Four sides of rectangle
+  const topStyle = animatedInfo(points[0], points[1]);
+  const rightStyle = animatedInfo(points[1], points[2]);
+  const bottomStyle = animatedInfo(points[2], points[3]);
+  const leftStyle = animatedInfo(points[3], points[0]);
+
   return (
     <View style={{ position: 'absolute' }}>
+      <Animated.View style={[styles.box2, topStyle]}>
+        <TheText
+          size={14 * (2 / scaleValue / 2)}
+          color={WhiteBackground}
+          text="M1:0"
+        />
+      </Animated.View>
+      <Animated.View style={[styles.box2, rightStyle]}>
+        <TheText
+          size={14 * (2 / scaleValue / 2)}
+          color={WhiteBackground}
+          text="M1:0"
+        />
+      </Animated.View>
+      <Animated.View style={[styles.box2, bottomStyle]}>
+        <TheText
+          size={14 * (2 / scaleValue / 2)}
+          color={WhiteBackground}
+          text="M1:0"
+        />
+      </Animated.View>
+      <Animated.View style={[styles.box2, leftStyle]}>
+        <TheText
+          size={14 * (2 / scaleValue / 2)}
+          color={WhiteBackground}
+          text="M1:0"
+        />
+      </Animated.View>
       {points.map((_, i) => (
         <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
           <Animated.View style={[styles.box, animatedStyles[i]]} />
@@ -108,12 +166,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   box2: {
-    height: 20,
-    width: 20,
+    // height: 20,
+    // width: 20,
     position: 'absolute',
-    backgroundColor: '#ff0',
-    borderRadius: 20,
-    borderWidth: 1,
+    backgroundColor: '#15803d',
+    alignItems: 'center',
+    // borderRadius: 20,
+    // borderWidth: 1,
   },
 });
 

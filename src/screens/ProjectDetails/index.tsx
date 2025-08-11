@@ -14,6 +14,8 @@ const ProjectDetails = () => {
 
   const { projects } = useProjectStore();
 
+  console.log('projects', projects);
+
   // Get the latest version of the project from Zustand
   const currentProject = projects.find(proj => proj.id === projectId);
 
