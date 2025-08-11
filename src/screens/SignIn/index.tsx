@@ -30,18 +30,21 @@ const SignIn = () => {
           validationSchema={SignInSchema}
           onSubmit={values => {
             if (
-              values.email === creds.email &&
+              values.email.toLowerCase() === creds.email &&
               values.password === creds.password
             ) {
               navigation.navigate('Projects', { role: 'admin' });
             } else {
               const tech = technicians.find(
-                t => t.email === values.email && t.password === values.password,
+                t =>
+                  t.email === values.email.toLowerCase() &&
+                  t.password === values.password,
               );
               if (tech) {
                 navigation.navigate('Projects', {
                   role: 'technician',
                   techId: tech.id,
+                  techName: tech.firstName + ' ' + tech.lastName,
                 });
               } else {
                 Alert.alert('Invalid credentials');

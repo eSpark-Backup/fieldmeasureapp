@@ -3,8 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { TheButton, TheText, TheTextInput } from '../../components';
-import { BuildingLogo } from '../../assets';
+import { GapView, TheButton, TheText, TheTextInput } from '../../components';
+import { Back, BuildingLogo } from '../../assets';
 import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
@@ -26,17 +26,14 @@ const AddTechnician = () => {
       id: uuid.v4().toString(),
       firstName: values.firstName,
       lastName: values.lastName,
-      email: values.email,
+      email: values.email.toLowerCase(),
       password: values.password, // ⚠ In real apps, hash this
     };
 
     addTechnician(newTech);
-    Alert.alert(
-      'Success',
-      'Technician added successfully!',
-      [{ text: 'OK', onPress: () => navigation.goBack() }],
-      { cancelable: false },
-    );
+    Alert.alert('Success', 'Technician added successfully!', [{ text: 'OK' }], {
+      cancelable: false,
+    });
     navigation.navigate('Projects', { role: 'admin' });
   };
 
@@ -46,10 +43,16 @@ const AddTechnician = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.logoContainer}>
-          <BuildingLogo />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Back
+            onPress={() => navigation.navigate('Projects', { role: 'admin' })}
+          />
+          <TheText
+            size={24}
+            style={{ fontWeight: 'bold' }}
+            text="Add Technicians"
+          />
         </View>
-
         <Formik
           initialValues={{
             firstName: '',
@@ -130,16 +133,7 @@ const AddTechnician = () => {
             </View>
           )}
         </Formik>
-
-        <View style={styles.footer}>
-          <TheText text="Go to" style={styles.footerText} />
-          <TheText
-            text=" Projects"
-            onPress={() => navigation.navigate('Projects', { role: 'admin' })}
-            color={primaryColor}
-            style={styles.createAccount}
-          />
-        </View>
+        <GapView length={20} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -149,10 +143,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: background,
-    padding: 20,
+    paddingHorizontal: 20,
   },
   scrollView: {
     flex: 1,
+    // paddingVertical: 10,
   },
   logoContainer: {
     alignItems: 'center',
@@ -160,7 +155,7 @@ const styles = StyleSheet.create({
     paddingTop: '18%',
   },
   formContainer: {
-    paddingVertical: '10%',
+    // paddingVertical: '1%',
     paddingHorizontal: '3%',
     gap: 2,
   },

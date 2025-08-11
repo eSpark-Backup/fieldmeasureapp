@@ -4,19 +4,30 @@ import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
+  runOnJS,
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import TheText from '../TheText';
+import { WhiteBackground } from '../../constants/colors';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
-const RakeTool = () => {
-  const scale = useSharedValue(1);
-
-  const initialX = [width / 2 / 2, width / 2 / 2];
-  const initialY = [height / 3.5, height / 2];
+const RakeTool = ({
+  scaleValue,
+  getCoords,
+  xCoords,
+  yCoords,
+}: {
+  scaleValue: number;
+  getCoords: (xCoords: number[], yCoords: number[]) => void;
+  xCoords: number[];
+  yCoords: number[];
+}) => {
+  const initialX = xCoords;
+  const initialY = yCoords;
 
   const points = initialX.map((x, i) => ({
     x: useSharedValue(x),
@@ -43,18 +54,46 @@ const RakeTool = () => {
           1,
           height - 90,
         );
+      })
+      .onEnd(() => {
+        runOnJS(getCoords)(
+          points.map(p => p.x.value),
+          points.map(p => p.y.value),
+        );
       }),
   );
 
   const animatedStyles = points.map(point =>
     useAnimatedStyle(() => ({
-      transform: [
-        { translateX: point.x.value },
-        { translateY: point.y.value },
-        { scale: scale.value },
-      ],
+      width: 20 * (2 / scaleValue / 2),
+      height: 20 * (2 / scaleValue / 2),
+      transform: [{ translateX: point.x.value }, { translateY: point.y.value }],
     })),
   );
+
+  const animatedInfo = useAnimatedStyle(() => {
+    // Get mid-point between points
+    const midX = (points[0].x.value + points[1].x.value) / 2;
+    const midY = (points[0].y.value + points[1].y.value) / 2;
+
+    // Calculate rotation in radians → degrees
+    const angleDeg =
+      Math.atan2(
+        points[1].y.value - points[0].y.value,
+        points[1].x.value - points[0].x.value,
+      ) *
+      (180 / Math.PI);
+
+    return {
+      width: 80 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
+      height: 20 * (2 / scaleValue / 2),
+      transform: [
+        { translateX: midX - 30 * (2 / scaleValue / 2) },
+        { translateY: midY - 10 * (2 / scaleValue / 2) },
+        { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
+      ],
+    };
+  });
 
   const animatedLines = [...Array(1)].map((_, i) => {
     return useAnimatedProps(() => ({
@@ -67,6 +106,13 @@ const RakeTool = () => {
 
   return (
     <View style={{ position: 'absolute' }}>
+      <Animated.View style={[styles.box2, animatedInfo]}>
+        <TheText
+          size={14 * (2 / scaleValue / 2)}
+          color={WhiteBackground}
+          text="M1:0"
+        />
+      </Animated.View>
       {points.map((_, i) => (
         <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
           <Animated.View style={[styles.box, animatedStyles[i]]} />
@@ -75,8 +121,8 @@ const RakeTool = () => {
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}
-          x={10}
-          y={10}
+          x={10 * (2 / scaleValue / 2)}
+          y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke="#7e22ce"
           strokeWidth="5"
@@ -89,8 +135,6 @@ const RakeTool = () => {
 
 const styles = StyleSheet.create({
   box: {
-    height: 20,
-    width: 20,
     backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,
@@ -101,9 +145,8 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
     position: 'absolute',
-    backgroundColor: '#ff0',
-    borderRadius: 20,
-    borderWidth: 1,
+    backgroundColor: '#7e22ce',
+    alignItems: 'center',
   },
 });
 

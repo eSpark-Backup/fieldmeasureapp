@@ -1,5 +1,5 @@
-import { View, StyleSheet, ScrollView } from 'react-native';
-import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, BackHandler } from 'react-native';
+import React, { useEffect, useState } from 'react';
 
 import {
   GapView,
@@ -10,7 +10,7 @@ import {
   TheText,
   TheTextInput,
 } from '../../components';
-import { RoundPlus, File } from '../../assets';
+import { RoundPlus, File, Logout } from '../../assets';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -35,12 +35,25 @@ type ProjectsProps = NativeStackScreenProps<RootNavParamList, 'Projects'>;
 
 const Projects = () => {
   const navigation = useNavigation<ProjectsProps['navigation']>();
-  const projects = useProjectStore().projects;
+  const technicians = useProjectStore().technicians;
   const addProject = useProjectStore().addProject;
   const [showInputs, setShowInputs] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const route = useRoute<ProjectsProps['route']>(); // typed
   const role = route.params?.role; // <-- get the role
+  const techName = route.params?.techName; // <-- get the role
+  const projects =
+    role == 'technician'
+      ? useProjectStore().projects.filter(item => item.techName == techName)
+      : useProjectStore().projects;
+
+  useEffect(() => {
+    const backHandle = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => true,
+    );
+    return () => backHandle.remove();
+  }, []);
 
   const addProj = (values: Project) => {
     const data: Project = {
@@ -55,6 +68,10 @@ const Projects = () => {
     addProject(data);
   };
 
+  const technicianNames = technicians.map(
+    tech => tech.firstName + ' ' + tech.lastName,
+  );
+
   return (
     <ScrollView
       style={{
@@ -64,16 +81,31 @@ const Projects = () => {
       }}
     >
       <GapView length={useSafeAreaInsets().top} />
-      <TheText
-        size={24}
-        style={{ fontWeight: 'bold' }}
-        text="Field Measurement Projects"
-      />
-      <TheText
-        size={18}
-        style={{ marginVertical: 10 }}
-        text="Select an existing project or create a new one to begin measurements"
-      />
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <View>
+          <TheText
+            size={24}
+            style={{ fontWeight: 'bold' }}
+            text="Field Measurement Projects"
+          />
+          <TheText
+            size={18}
+            style={{ marginVertical: 10 }}
+            text="Select an existing project or create a new one to begin measurements"
+          />
+        </View>
+        <Logout
+          width={30}
+          height={30}
+          onPress={() => navigation.navigate('SignIn')}
+        />
+      </View>
 
       {showInputs ? (
         <Formik
@@ -82,7 +114,7 @@ const Projects = () => {
             qouteNumber: '',
             name: '',
             address: '',
-            techName: '',
+            techName: role == 'technician' ? techName! : '',
             date: new Date().toLocaleDateString('en-GB'),
           }}
           validationSchema={ProjectSchema}
@@ -165,12 +197,13 @@ const Projects = () => {
                 <View style={{ ...styles.rowContainer, gap: 15 }}>
                   <View style={{ flex: 1 }}>
                     <TheDropdown
-                      data={TECHS.data}
+                      data={technicianNames}
                       placeholder={TECHS.placeholder}
                       title={TECHS.title}
+                      disabled={role == 'technician' ? true : false}
                       id={TECHS.id}
                       style={{ flex: 1 }}
-                      // selected={selectedValues[id]}
+                      selected={values.techName}
                       onSelect={({ key, value }) =>
                         handleChange('techName')(value)
                       }
@@ -183,7 +216,6 @@ const Projects = () => {
                           ? errors.techName
                           : ''
                       }
-                      // error={errors[id]}
                     />
                   </View>
                   <TheDatePicker

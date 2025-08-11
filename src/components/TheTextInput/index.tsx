@@ -4,6 +4,7 @@ import {
   TextStyle,
   StyleSheet,
   ViewStyle,
+  StyleProp,
 } from 'react-native';
 import React from 'react';
 import TheText from '../TheText';
@@ -21,11 +22,12 @@ const TheTextInput = ({
   onBlur,
   error,
   isNum,
+  editable,
 }: {
   label?: string;
   value?: string;
   placeholder?: string;
-  style?: TextStyle;
+  style?: StyleProp<TextStyle>;
   containerStyle?: ViewStyle;
   secureTextEntry?: boolean;
   onChange?: (text: string) => void;
@@ -33,19 +35,22 @@ const TheTextInput = ({
   error?: string;
   required?: boolean;
   isNum?: boolean;
+  editable?: boolean;
 }) => {
   return (
     <View style={containerStyle}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingVertical: 5,
-        }}
-      >
-        {label && <TheText style={styles.label} text={label} />}
-        {required && <TheText style={styles.required} text=" *" />}
-      </View>
+      {label && (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginVertical: 5,
+          }}
+        >
+          {label && <TheText style={styles.label} text={label} />}
+          {required && <TheText style={styles.required} text=" *" />}
+        </View>
+      )}
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={'#9E9E9E'}
@@ -56,6 +61,7 @@ const TheTextInput = ({
         onBlur={onBlur}
         keyboardType={isNum ? 'decimal-pad' : 'default'}
         inputMode={isNum ? 'decimal' : 'text'}
+        editable={editable}
       />
       {error ? (
         <TheText

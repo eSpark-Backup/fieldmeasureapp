@@ -5,6 +5,7 @@ import RootNavigation from './src/navigation/RootNavigation';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, View } from 'react-native';
 import { WhiteBackground } from './src/constants/colors';
+import ToastConfig from './src/utils/toastConfig';
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
           backgroundColor={WhiteBackground}
         />
         <RootNavigation />
+        <ToastConfig />
       </NavigationContainer>
     </SafeAreaProvider>
   );

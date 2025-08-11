@@ -6,7 +6,7 @@ export type RootNavParamList = {
   SignIn: undefined;
   SignUp: undefined;
   ForgotPassword: undefined;
-  Projects: { role: Role; techId?: string }; // techId is optional for admin role
+  Projects: { role: Role; techId?: string; techName?: string }; // techId is optional for admin role
   AddTechnician: undefined;
 
   ProjectDetails: {

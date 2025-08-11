@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TextStyle } from 'react-native';
 import { background, border, WhiteBackground } from '../../constants/colors';
 
 const TheDescriptionBox = ({
@@ -7,17 +7,19 @@ const TheDescriptionBox = ({
   placeholder = 'Additional notes and details',
   value,
   onChangeText,
+  textStyle,
 }: {
   label?: string;
   placeholder?: string;
   value?: string;
   onChangeText: (text: string) => void;
+  textStyle?: TextStyle;
 }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
-        style={styles.textarea}
+        style={[styles.textarea, textStyle]}
         multiline
         numberOfLines={6}
         placeholder={placeholder}

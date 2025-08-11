@@ -1,4 +1,10 @@
-import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React from 'react';
 import { Bin, Camera, Location } from '../../assets';
 import TheText from '../TheText';
@@ -40,6 +46,7 @@ const MeasuresList = (project: MeasuresListProps) => {
     <FlatList
       data={project.measures || []}
       keyExtractor={item => item.id}
+      numColumns={2}
       renderItem={({ item }) => (
         <MeasureCard
           measure={item}
@@ -55,6 +62,21 @@ const MeasuresList = (project: MeasuresListProps) => {
             text="Saved Measures"
           />
           <TheButton btnTitle="Add Measure" onPress={handleAddMeasure} />
+        </View>
+      }
+      ListEmptyComponent={
+        <View
+          style={{
+            height: 200,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <TheText
+            size={22}
+            style={{ fontWeight: '500', marginVertical: 10 }}
+            text={'No Saved Measures available.'}
+          />
         </View>
       }
       showsVerticalScrollIndicator={false}
@@ -89,9 +111,21 @@ const MeasureCard = ({ measure, onView, projectId }: MeasureCardProps) => {
           <Bin width={22} height={22} color={'#EF4444'} />
         </TouchableOpacity>
       </View>
-      <View style={styles.imageContainer}>
-        <Camera width={40} height={40} color={'#9CA3AF'} />
-      </View>
+      {measure?.photo ? (
+        <View
+          style={[styles.imageContainer, { backgroundColor: 'transparent' }]}
+        >
+          <Image
+            resizeMode="contain"
+            style={{ flex: 1, width: '100%' }}
+            source={{ uri: measure?.photo }}
+          />
+        </View>
+      ) : (
+        <View style={styles.imageContainer}>
+          <Camera width={40} height={40} color={'#9CA3AF'} />
+        </View>
+      )}
       <TheText text={`Created: 07/8/2025`} />
       <TheText text={`Measurement Type: temp`} />
       <TheButton

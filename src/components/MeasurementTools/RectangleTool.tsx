@@ -4,6 +4,7 @@ import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
+  runOnJS,
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
@@ -12,16 +13,19 @@ import Animated, {
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
-const RectangleTool = () => {
-  const scale = useSharedValue(1);
-
-  const initialX = [
-    width / 2 / 3,
-    width / 2 / 3,
-    width / 1.2 / 2,
-    width / 1.2 / 2,
-  ];
-  const initialY = [height / 3.5, height / 2, height / 2, height / 3.5];
+const RectangleTool = ({
+  scaleValue,
+  getCoords,
+  xCoords,
+  yCoords,
+}: {
+  scaleValue: number;
+  getCoords: (xCoords: number[], yCoords: number[]) => void;
+  xCoords: number[];
+  yCoords: number[];
+}) => {
+  const initialX = xCoords;
+  const initialY = yCoords;
 
   const points = initialX.map((x, i) => ({
     x: useSharedValue(x),
@@ -48,16 +52,20 @@ const RectangleTool = () => {
           1,
           height - 90,
         );
+      })
+      .onEnd(() => {
+        runOnJS(getCoords)(
+          points.map(p => p.x.value),
+          points.map(p => p.y.value),
+        );
       }),
   );
 
   const animatedStyles = points.map(point =>
     useAnimatedStyle(() => ({
-      transform: [
-        { translateX: point.x.value },
-        { translateY: point.y.value },
-        { scale: scale.value },
-      ],
+      width: 20 * (2 / scaleValue / 2),
+      height: 20 * (2 / scaleValue / 2),
+      transform: [{ translateX: point.x.value }, { translateY: point.y.value }],
     })),
   );
 
@@ -80,8 +88,8 @@ const RectangleTool = () => {
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}
-          x={10}
-          y={10}
+          x={10 * (2 / scaleValue / 2)}
+          y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke="#15803d"
           strokeWidth="5"
@@ -93,8 +101,6 @@ const RectangleTool = () => {
 
 const styles = StyleSheet.create({
   box: {
-    height: 20,
-    width: 20,
     backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,

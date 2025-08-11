@@ -8,15 +8,21 @@ const TheText = ({
   style,
   size,
   onPress,
+  numberOfLines,
 }: {
   text: string;
   color?: ColorValue;
   style?: TextStyle;
   size?: number;
   onPress?: () => void;
+  numberOfLines?: number;
 }) => {
   return (
-    <Text style={[style, { fontSize: size, color }]} onPress={onPress}>
+    <Text
+      style={[style, { fontSize: size, color }]}
+      numberOfLines={numberOfLines}
+      onPress={onPress}
+    >
       {text}
     </Text>
   );
