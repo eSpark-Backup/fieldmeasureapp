@@ -1,5 +1,10 @@
 import { View, StyleSheet, ScrollView, BackHandler } from 'react-native';
 import React, { useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import uuid from 'react-native-uuid';
+import { Formik } from 'formik';
 
 import {
   GapView,
@@ -12,7 +17,6 @@ import {
 } from '../../components';
 import { RoundPlus, File, Logout } from '../../assets';
 import { useProjectStore } from '../../store/ProjectsStore';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   background,
   border,
@@ -20,12 +24,9 @@ import {
   primaryColor,
   WhiteBackground,
 } from '../../constants/colors';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import { TECHS } from '../../constants';
 import { Project } from '../../types';
-import { Formik } from 'formik';
 import {
   ProjectSchema,
   SignInSchema,
@@ -110,7 +111,7 @@ const Projects = () => {
       {showInputs ? (
         <Formik
           initialValues={{
-            id: projects.length + 1,
+            id: uuid.v4().toString(),
             qouteNumber: '',
             name: '',
             address: '',

@@ -6,6 +6,7 @@ import {
   ViewStyle,
   TextStyle,
   ColorValue,
+  StyleProp,
 } from 'react-native';
 import React, { JSX } from 'react';
 import TheText from '../TheText';
@@ -22,7 +23,7 @@ const TheButton = ({
 }: {
   btnTitle: string;
   icon?: JSX.Element;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   btnColor?: ColorValue;
   titleColor?: ColorValue;
   titleStyle?: TextStyle;

@@ -26,6 +26,7 @@ interface DropdownProps {
   bgColor?: string;
   id: string;
   selected?: string | null;
+  dInches?: string | null;
   isOpen: boolean;
   setOpenDropdownId: (id: string | null) => void;
   error?: string;
@@ -41,11 +42,13 @@ const ToolInput: React.FC<DropdownProps> = ({
   style,
   id,
   selected,
+  dInches,
   isOpen,
   setOpenDropdownId,
   error,
   containerStyle,
 }) => {
+  const [inches, setInches] = useState(dInches ?? '');
   const [selectedItem, setSelectedItem] = useState(selected ?? '');
 
   useEffect(() => {
@@ -106,7 +109,12 @@ const ToolInput: React.FC<DropdownProps> = ({
           gap: 15,
         }}
       >
-        <TheTextInput placeholder="0" style={{ width: 70 }} isNum={true} />
+        <TheTextInput
+          placeholder={inches || '0'}
+          style={{ width: 70 }}
+          isNum={true}
+          onChange={e => setInches(e)}
+        />
         <TheText text="in" size={16} />
         <View style={[style, {}]}>
           <TouchableOpacity

@@ -5,7 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, StyleSheet, Image, Dimensions, ViewStyle } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Image,
+  Dimensions,
+  ViewStyle,
+  FlatList,
+} from 'react-native';
 import {
   CornerTool,
   LaserTool,
@@ -307,9 +314,15 @@ const Measurement = () => {
 
   const panGesture = Gesture.Pan()
     .onStart(e => {
+      if (scale.value < 1.2) {
+        return;
+      }
       prevTranslationY.value = translateY.value;
     })
     .onUpdate(e => {
+      if (scale.value < 1.2) {
+        return;
+      }
       translateY.value = clamp(
         prevTranslationY.value + e.translationY,
         -height / 2,
@@ -317,6 +330,9 @@ const Measurement = () => {
       );
     })
     .onEnd(e => {
+      if (scale.value < 1.2) {
+        return;
+      }
       translateY.value = withDecay({
         velocity: e.velocityY,
         clamp: [-height / 2, height / 2],
@@ -695,13 +711,27 @@ const Measurement = () => {
 
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <View style={styles.tools}>
-            {TOOLS.map((item, index) => (
+            <FlatList
+              data={TOOLS}
+              numColumns={3}
+              contentContainerStyle={{ gap: 10 }}
+              ItemSeparatorComponent={() => <GapView mode="horizontal" />}
+              renderItem={({ item, index }) => (
+                <TheTool
+                  key={index}
+                  toolName={item}
+                  onPress={() => handleToolPress(item)}
+                  style={{ marginHorizontal: 5 }}
+                />
+              )}
+            />
+            {/* {TOOLS.map((item, index) => (
               <TheTool
                 key={index}
                 toolName={item}
                 onPress={() => handleToolPress(item)}
               />
-            ))}
+            ))} */}
           </View>
           <View style={styles.initialContainer}>
             <TheTextInput
@@ -743,7 +773,7 @@ const Measurement = () => {
           >
             <TheText
               text={`Measurements(${countTrueStates()})`}
-              size={23}
+              size={20}
               style={{ fontWeight: 'bold', marginVertical: 20 }}
             />
             <View style={styles.rowContainer}>
@@ -827,9 +857,7 @@ function MeasureCard({
             prev === dropdownId ? null : dropdownId ?? null,
           )
         }
-        style={{
-          width: 70,
-        }}
+        style={{ width: 70 }}
       />
     );
   };
