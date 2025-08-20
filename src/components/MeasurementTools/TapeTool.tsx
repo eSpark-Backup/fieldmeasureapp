@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
+import { TapeItem } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -21,11 +22,13 @@ const TapeTool = ({
   getCoords,
   xCoords,
   yCoords,
+  data,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
+  data: { value: string; fraction: string };
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -86,7 +89,7 @@ const TapeTool = ({
       (180 / Math.PI);
 
     return {
-      width: 80 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
+      width: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
       height: 20 * (2 / scaleValue / 2),
       transform: [
         { translateX: midX - 30 * (2 / scaleValue / 2) },
@@ -105,13 +108,25 @@ const TapeTool = ({
     }));
   });
 
+  const inches = () => {
+    const inches = data.value ? data.value : '0';
+    const fraction = data.fraction ? data.fraction : '0';
+    if (inches != '0' && fraction != '0') {
+      return inches + '-' + fraction + `"`;
+    } else if (inches != '0' && fraction == '0') {
+      return inches + `"`;
+    } else {
+      return `0"`;
+    }
+  };
+
   return (
     <View style={{ position: 'absolute' }}>
       <Animated.View style={[styles.box2, animatedInfo]}>
         <TheText
           size={14 * (2 / scaleValue / 2)}
           color={WhiteBackground}
-          text="M1:0"
+          text={`M1: ${inches()}`}
         />
       </Animated.View>
 
@@ -143,8 +158,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   box2: {
-    height: 20,
-    width: 20,
+    // height: 20,
+    // width: 20,
     position: 'absolute',
     backgroundColor: '#1d4ed8',
     alignItems: 'center',

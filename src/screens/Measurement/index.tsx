@@ -74,9 +74,10 @@ import { border, primaryColor } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import TheDescriptionBox from '../../components/TheDescriptionBox';
 import { pdfHTML } from './utils';
-import { Coords, Measure, Project } from '../../types';
+import { Coords, Measure, Project, Tool, ToolsList } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { showToast } from '../../utils/showToast';
+import ToolsForm from '../../components/ToolsForm';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -145,6 +146,10 @@ const Measurement = () => {
   const [TapeC, setTapeC] = useState<Coords>({ x: initialX, y: initialY });
   const [LaserC, setLaserC] = useState<Coords>({ x: initialX, y: initialY });
   const [RakeC, setRakeC] = useState<Coords>({ x: initialX, y: initialY });
+  const [RakeDistC, setRakeDistC] = useState<Coords>({
+    x: [initialX[0], initialX[1] / 0.8],
+    y: [initialY[0], initialY[1] / 0.8],
+  });
   const [RectanlgeC, setRectanlgeC] = useState<Coords>({
     x: initialRX,
     y: initialRY,
@@ -472,10 +477,145 @@ const Measurement = () => {
   //   });
   // };
 
+  // const tooled = [
+  //   {
+  //     id: 'tape1',
+  //     type: 'Tape',
+  //     data: { value: '', fraction: '' },
+  //     locked: false,
+  //     hidden: false,
+  //   },
+  //   {
+  //     id: 'laser1',
+  //     type: 'Laser',
+  //     data: {
+  //       SlideA: { value: '', fraction: '' },
+  //       SlideB: { value: '', fraction: '' },
+  //     },
+  //     locked: false,
+  //     hidden: false,
+  //   },
+  //   {
+  //     id: 'rake1',
+  //     type: 'Rake',
+  //     data: {
+  //       value: '',
+  //       fraction: '',
+  //       distance: { value: '', fraction: '' },
+  //     },
+  //     locked: false,
+  //     hidden: false,
+  //   },
+  //   {
+  //     id: 'rect1',
+  //     type: 'Rectangle',
+  //     data: {
+  //       TopA: { value: '', fraction: '' },
+  //       TopB: { value: '', fraction: '' },
+  //       RightA: { value: '', fraction: '' },
+  //       RightB: { value: '', fraction: '' },
+  //       BotA: { value: '', fraction: '' },
+  //       BotB: { value: '', fraction: '' },
+  //       LeftA: { value: '', fraction: '' },
+  //       LeftB: { value: '', fraction: '' },
+  //     },
+  //     locked: false,
+  //     hidden: false,
+  //   },
+  //   {
+  //     id: 'corner1',
+  //     type: 'Corner',
+  //     data: {
+  //       TopLA: { value: '', fraction: '' },
+  //       TopLB: { value: '', fraction: '' },
+  //       TopRA: { value: '', fraction: '' },
+  //       TopRB: { value: '', fraction: '' },
+  //       RightA: { value: '', fraction: '' },
+  //       RightB: { value: '', fraction: '' },
+  //       CenterA: { value: '', fraction: '' },
+  //       CenterB: { value: '', fraction: '' },
+  //       LeftA: { value: '', fraction: '' },
+  //       LeftB: { value: '', fraction: '' },
+  //       BotLA: { value: '', fraction: '' },
+  //       BotLB: { value: '', fraction: '' },
+  //       BotRA: { value: '', fraction: '' },
+  //       BotRB: { value: '', fraction: '' },
+  //     },
+  //     locked: false,
+  //     hidden: false,
+  //   },
+  //   {
+  //     id: 'note1',
+  //     type: 'Note',
+  //     data: {
+  //       value: '',
+  //     },
+  //     locked: false,
+  //     hidden: false,
+  //   },
+  // ]
+
+  const [tools, setTools] = useState<ToolsList>([
+    // {
+    //   id: 'tape1',
+    //   type: 'Tape',
+    //   data: { value: '', fraction: '' },
+    //   locked: false,
+    //   hidden: false,
+    // },
+    // {
+    //   id: 'laser1',
+    //   type: 'Laser',
+    //   data: {
+    //     SlideA: { value: '', fraction: '' },
+    //     SlideB: { value: '', fraction: '' },
+    //   },
+    //   locked: false,
+    //   hidden: false,
+    // },
+    // {
+    //   id: 'rake1',
+    //   type: 'Rake',
+    //   data: {
+    //     value: '',
+    //     fraction: '',
+    //     distance: { value: '', fraction: '' },
+    //   },
+    //   showDist: false,
+    //   locked: false,
+    //   hidden: false,
+    // },
+    {
+      id: 'rect1',
+      type: 'Rectangle',
+      data: {
+        TopA: { value: '', fraction: '' },
+        TopB: { value: '', fraction: '' },
+        RightA: { value: '', fraction: '' },
+        RightB: { value: '', fraction: '' },
+        BotA: { value: '', fraction: '' },
+        BotB: { value: '', fraction: '' },
+        LeftA: { value: '', fraction: '' },
+        LeftB: { value: '', fraction: '' },
+      },
+      locked: false,
+      hidden: false,
+    },
+    // {
+    //   id: 'note1',
+    //   type: 'Note',
+    //   data: { value: '' },
+    //   locked: false,
+    //   hidden: false,
+    // },
+  ]);
+
+  console.log('tools', tools);
+
   const renderToolContent = () => {
     return (
       <View>
-        {TapeT && (
+        {/* {TapeT && (
           <MeasureCard
             onDelete={() => {
               setTapeT(false);
@@ -534,7 +674,8 @@ const Measurement = () => {
             style={{ zIndex: 6 }}
             color="#ca5056ff"
           />
-        )}
+        )} */}
+        <ToolsForm tools={tools} onChange={setTools} />
       </View>
     );
   };
@@ -561,6 +702,99 @@ const Measurement = () => {
       //   exportReport();
       default:
         return null;
+    }
+  };
+
+  const renderTools = (tool: Tool) => {
+    if (tool.hidden) return null;
+    switch (tool.type) {
+      case 'Tape': {
+        return (
+          <TapeTool
+            key={tool.id}
+            scaleValue={scaleVal}
+            getCoords={(xArr, yArr) => {
+              const cData = { x: xArr, y: yArr };
+              setTapeC(cData);
+              console.log('X:', xArr, 'Y:', yArr);
+            }}
+            xCoords={TapeC.x}
+            yCoords={TapeC.y}
+            data={tool.data}
+          />
+        );
+      }
+      case 'Laser': {
+        return (
+          <LaserTool
+            key={tool.id}
+            scaleValue={scaleVal}
+            getCoords={(xArr, yArr) => {
+              const cData = { x: xArr, y: yArr };
+              setLaserC(cData);
+              console.log('X:', xArr, 'Y:', yArr);
+            }}
+            xCoords={LaserC.x}
+            yCoords={LaserC.y}
+            data={tool.data}
+          />
+        );
+      }
+      case 'Rake': {
+        return (
+          <RakeTool
+            key={tool.id}
+            scaleValue={scaleVal}
+            getCoords={(xArr, yArr) => {
+              const cData = { x: xArr, y: yArr };
+              setRakeC(cData);
+              console.log('X:', xArr, 'Y:', yArr);
+            }}
+            getCoordsDist={(xArr, yArr) => {
+              const cData = { x: xArr, y: yArr };
+              setRakeDistC(cData);
+              console.log('X:', xArr, 'Y:', yArr);
+            }}
+            xCoords={RakeC.x}
+            yCoords={RakeC.y}
+            xCoordsDist={RakeDistC.x}
+            yCoordsDist={RakeDistC.y}
+            showDist={tool.showDist}
+            data={tool.data}
+          />
+        );
+      }
+      case 'Rectangle': {
+        return (
+          <RectangleTool
+            key={tool.id}
+            scaleValue={scaleVal}
+            getCoords={(xArr, yArr) => {
+              const cData = { x: xArr, y: yArr };
+              setRectanlgeC(cData);
+              console.log('X:', xArr, 'Y:', yArr);
+            }}
+            xCoords={RectanlgeC.x}
+            yCoords={RectanlgeC.y}
+            data={tool.data}
+          />
+        );
+      }
+      case 'Corner': {
+        return (
+          <CornerTool
+            key={tool.id}
+            scaleValue={scaleVal}
+            getCoords={(xArr, yArr) => {
+              const cData = { x: xArr, y: yArr };
+              setCornerC(cData);
+              console.log('X:', xArr, 'Y:', yArr);
+            }}
+            xCoords={CornerC.x}
+            yCoords={CornerC.y}
+          />
+        );
+      }
     }
   };
 
@@ -643,7 +877,8 @@ const Measurement = () => {
                   width="100%"
                   style={{ position: 'absolute' }}
                 >
-                  {TapeT && TapeH && (
+                  {tools.map(tool => renderTools(tool))}
+                  {/* {TapeT && TapeH && (
                     <TapeTool
                       scaleValue={scaleVal}
                       getCoords={(xArr, yArr) => {
@@ -702,7 +937,7 @@ const Measurement = () => {
                       xCoords={CornerC.x}
                       yCoords={CornerC.y}
                     />
-                  )}
+                  )} */}
                 </Svg>
               </Animated.View>
             </GestureDetector>
@@ -789,13 +1024,13 @@ const Measurement = () => {
             icon={<Export />}
             // onPress={handleSaveMeasurements}
           /> */}
-          <TheButton
+          {/* <TheButton
             btnTitle="Save"
             titleStyle={{ fontWeight: 'bold' }}
             // icon={<Export />}
             onPress={handleSaveMeasurements}
             style={{ marginTop: 10 }}
-          />
+          /> */}
           <GapView length={useSafeAreaInsets().bottom + 10} />
         </ScrollView>
       </View>
@@ -818,7 +1053,7 @@ function Badge({ color }: { color: string }) {
   );
 }
 
-function MeasureCard({
+export function MeasureCard({
   type,
   onDelete,
   onEyePress,
@@ -838,25 +1073,25 @@ function MeasureCard({
 
   const [description, setDescription] = useState('');
 
-  const renderInputRow = (
-    label?: string,
-    dropdownId?: string,
-    index?: number,
-    length?: number,
-  ) => {
+  const RenderInputRow = ({
+    label,
+    dropdownId,
+    index,
+    length,
+    onChange,
+  }: {
+    label?: string;
+    dropdownId?: string;
+    index?: number;
+    length?: number;
+    onChange: ({ key, value }: { key: string; value: string }) => void;
+  }) => {
     return (
       <ToolInput
         label={label}
-        data={fractionalInches}
-        onSelect={() => {}}
+        onSelect={onChange}
         placeholder="0"
         id={dropdownId || ''}
-        isOpen={openDropdownId === dropdownId}
-        setOpenDropdownId={() =>
-          setOpenDropdownId(prev =>
-            prev === dropdownId ? null : dropdownId ?? null,
-          )
-        }
         style={{ width: 70 }}
       />
     );
@@ -892,11 +1127,21 @@ function MeasureCard({
       </View>
 
       {/* Type-specific Inputs */}
-      {type === 'Tape' && renderInputRow(undefined, 'tape')}
+      {type === 'Tape' && (
+        <RenderInputRow
+          dropdownId="tape"
+          onChange={({ key, value }) => console.log('key', key, 'value', value)}
+        />
+      )}
 
       {type === 'Rake' && (
         <>
-          {renderInputRow(undefined, 'rake')}
+          <RenderInputRow
+            dropdownId="rake"
+            onChange={({ key, value }) =>
+              console.log('key', key, 'value', value)
+            }
+          />
           <TheButton
             btnTitle="Distance"
             icon={showDist ? <Minus /> : <Plus />}
@@ -905,26 +1150,59 @@ function MeasureCard({
             titleStyle={{ fontWeight: 'bold' }}
             titleColor="black"
           />
-          {showDist && renderInputRow(undefined, 'rake-distance')}
+          {showDist && (
+            <RenderInputRow
+              dropdownId="rake-distance"
+              onChange={({ key, value }) =>
+                console.log('key', key, 'value', value)
+              }
+            />
+          )}
         </>
       )}
 
       {type === 'Laser' && (
         <>
-          {renderInputRow('Slide A', 'laser-slide-a')}
-          {renderInputRow('Slide B', 'laser-slide-b')}
+          <RenderInputRow
+            label="Slide A"
+            dropdownId="laser-slide-a"
+            onChange={({ key, value }) =>
+              console.log('key', key, 'value', value)
+            }
+          />
+          <RenderInputRow
+            label="Slide B"
+            dropdownId="laser-slide-b"
+            onChange={({ key, value }) =>
+              console.log('key', key, 'value', value)
+            }
+          />
         </>
       )}
 
       {type === 'Rectangle' &&
-        rectangleLabels.map((label, index) =>
-          renderInputRow(label, `rectangle-${index}`),
-        )}
+        rectangleLabels.map((label, index) => (
+          <RenderInputRow
+            label={label}
+            dropdownId={`rectangle-${index}`}
+            onChange={({ key, value }) =>
+              console.log('key', key, 'value', value)
+            }
+          />
+        ))}
 
       {type === 'Corner' &&
-        cornerLabels.map((label, index) =>
-          renderInputRow(label, `corner-${index}`, index, cornerLabels.length),
-        )}
+        cornerLabels.map((label, index) => (
+          <RenderInputRow
+            label={label}
+            dropdownId={`corner-${index}`}
+            index={index}
+            length={cornerLabels.length}
+            onChange={({ key, value }) =>
+              console.log('key', key, 'value', value)
+            }
+          />
+        ))}
       {type === 'Note' && (
         <TheDescriptionBox
           placeholder="Enter your note text here"

@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
+import { MeasurementPair } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -20,11 +21,16 @@ const LaserTool = ({
   getCoords,
   xCoords,
   yCoords,
+  data,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
+  data: {
+    SlideA: MeasurementPair;
+    SlideB: MeasurementPair;
+  };
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -189,6 +195,92 @@ const LaserTool = ({
     }));
   });
 
+  const inchesA = () => {
+    const inches = data.SlideA.value ? data.SlideA.value : '0';
+    const fraction = data.SlideA.fraction ? data.SlideA.fraction : '0';
+    if (inches != '0' && fraction != '0') {
+      return inches + '-' + fraction + `"`;
+    } else if (inches != '0' && fraction == '0') {
+      return inches + `"`;
+    } else {
+      return `0"`;
+    }
+  };
+
+  const inchesB = () => {
+    const inches = data.SlideB.value ? data.SlideB.value : '0';
+    const fraction = data.SlideB.fraction ? data.SlideB.fraction : '0';
+    if (inches != '0' && fraction != '0') {
+      return inches + '-' + fraction + `"`;
+    } else if (inches != '0' && fraction == '0') {
+      return inches + `"`;
+    } else {
+      return `0"`;
+    }
+  };
+
+  const inchesAB = () => {
+    const inchesAB = Number(data.SlideA.value) + Number(data.SlideB.value);
+    const fractionAB =
+      fractionToNumber(data.SlideA.fraction) +
+      fractionToNumber(data.SlideB.fraction);
+    if (inchesAB != 0 && fractionAB != 0 && fractionAB == 1) {
+      return inchesAB + fractionAB + `"`;
+    } else if (inchesAB != 0 && fractionAB != 0 && fractionAB > 1) {
+      return (
+        inchesAB +
+        Math.floor(fractionAB) +
+        '-' +
+        numberToFraction(fractionAB - 1) +
+        `"`
+      );
+    } else if (inchesAB != 0 && fractionAB != 0) {
+      return inchesAB + '-' + numberToFraction(fractionAB) + `"`;
+    } else if (inchesAB != 0 && fractionAB == 0) {
+      return inchesAB + `"`;
+    } else {
+      return `0"`;
+    }
+  };
+
+  function fractionToNumber(fraction: string): number {
+    if (!fraction) return 0;
+
+    const parts = fraction.split('/');
+    if (parts.length !== 2) return parseFloat(fraction); // agar simple number ho jaise "2"
+
+    const numerator = parseFloat(parts[0]);
+    const denominator = parseFloat(parts[1]);
+
+    if (isNaN(numerator) || isNaN(denominator) || denominator === 0) return 0;
+
+    return numerator / denominator;
+  }
+
+  function numberToFraction(num: number): string {
+    if (Number.isInteger(num)) return `${num}/1`;
+
+    const tolerance = 1.0e-6; // accuracy level
+    let h1 = 1,
+      h2 = 0,
+      k1 = 0,
+      k2 = 1;
+    let b = num;
+
+    do {
+      const a = Math.floor(b);
+      let aux = h1;
+      h1 = a * h1 + h2;
+      h2 = aux;
+      aux = k1;
+      k1 = a * k1 + k2;
+      k2 = aux;
+      b = 1 / (b - a);
+    } while (Math.abs(num - h1 / k1) > num * tolerance);
+
+    return `${h1}/${k1}`;
+  }
+
   return (
     <View style={{ position: 'absolute' }}>
       {/* <Animated.View style={[styles.box2, animatedInfoLeft]}>
@@ -216,7 +308,22 @@ const LaserTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="M1:0"
+              text={`LB: ${inchesB()}`}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#b91c1c',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+              position: 'absolute',
+              top: '100%',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`L1: ${inchesAB()}`}
             />
           </View>
           <View
@@ -229,20 +336,7 @@ const LaserTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="M1:0"
-            />
-          </View>
-          <View
-            style={{
-              backgroundColor: '#b91c1c',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text="M1:0"
+              text={`LA: ${inchesA()}`}
             />
           </View>
         </View>
