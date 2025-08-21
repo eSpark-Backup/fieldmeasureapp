@@ -3,6 +3,7 @@ export { default as LaserTool } from './MeasurementTools/LaserTool';
 export { default as RakeTool } from './MeasurementTools/RakeTool';
 export { default as RectangleTool } from './MeasurementTools/RectangleTool';
 export { default as CornerTool } from './MeasurementTools/CornerTool';
+export { default as NoteTool } from './MeasurementTools/NoteTool';
 export { default as TheButton } from './TheButton';
 export { default as TheText } from './TheText';
 export { default as TheTextInput } from './TheTextInput';

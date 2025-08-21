@@ -12,6 +12,7 @@ import Animated, {
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
 import { MeasurementPair } from '../../types';
+import { formatInches, formatInchesSum } from './utils';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -22,6 +23,7 @@ const RectangleTool = ({
   xCoords,
   yCoords,
   data,
+  locked,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -31,6 +33,7 @@ const RectangleTool = ({
     'TopA' | 'TopB' | 'RightA' | 'RightB' | 'BotA' | 'BotB' | 'LeftA' | 'LeftB',
     MeasurementPair
   >;
+  locked?: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -94,7 +97,7 @@ const RectangleTool = ({
       const length = Math.sqrt(dx * dx + dy * dy); // distance between points
       let angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-      // ✅ Normalize angle so text is never upside-down
+      // Normalize angle so text is never upside-down
       if (angle > 90 || angle < -90) {
         angle += 180;
       }
@@ -141,7 +144,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="A:0"
+              text={`A: ${formatInches(data.LeftA)}`}
             />
           </View>
           <View
@@ -154,7 +157,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="0-0"
+              text={`${formatInchesSum(data.LeftA, data.LeftB)}`}
             />
           </View>
           <View
@@ -167,7 +170,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="B:0"
+              text={`B: ${formatInches(data.LeftA)}`}
             />
           </View>
         </View>
@@ -190,7 +193,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="A:0"
+              text={`A: ${formatInches(data.BotA)}`}
             />
           </View>
           <View
@@ -203,7 +206,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="0-0"
+              text={formatInchesSum(data.BotA, data.BotB)}
             />
           </View>
           <View
@@ -216,7 +219,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="B:0"
+              text={`B: ${formatInches(data.BotB)}`}
             />
           </View>
         </View>
@@ -239,7 +242,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="A:0"
+              text={`A: ${formatInches(data.RightA)}`}
             />
           </View>
           <View
@@ -252,7 +255,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="0-0"
+              text={formatInchesSum(data.RightA, data.RightB)}
             />
           </View>
           <View
@@ -265,7 +268,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="B:0"
+              text={`B: ${formatInches(data.RightB)}`}
             />
           </View>
         </View>
@@ -288,7 +291,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="A:0"
+              text={`A: ${formatInches(data.TopA)}`}
             />
           </View>
           <View
@@ -301,7 +304,7 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="0-0"
+              text={formatInchesSum(data.TopA, data.TopB)}
             />
           </View>
           <View
@@ -314,16 +317,18 @@ const RectangleTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="B:0"
+              text={`B: ${formatInches(data.TopB)}`}
             />
           </View>
         </View>
       </Animated.View>
-      {points.map((_, i) => (
-        <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
-          <Animated.View style={[styles.box, animatedStyles[i]]} />
-        </GestureDetector>
-      ))}
+      {!locked
+        ? points.map((_, i) => (
+            <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
+              <Animated.View style={[styles.box, animatedStyles[i]]} />
+            </GestureDetector>
+          ))
+        : null}
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}

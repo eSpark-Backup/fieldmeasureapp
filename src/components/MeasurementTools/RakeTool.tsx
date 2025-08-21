@@ -26,6 +26,7 @@ const RakeTool = ({
   yCoordsDist,
   data,
   showDist,
+  locked,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -40,6 +41,7 @@ const RakeTool = ({
     distance: MeasurementPair;
   };
   showDist: boolean;
+  locked?: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -250,11 +252,13 @@ const RakeTool = ({
           text={`R1: ${inches()}`}
         />
       </Animated.View>
-      {points.map((_, i) => (
-        <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
-          <Animated.View style={[styles.box, animatedStyles[i]]} />
-        </GestureDetector>
-      ))}
+      {!locked
+        ? points.map((_, i) => (
+            <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
+              <Animated.View style={[styles.box, animatedStyles[i]]} />
+            </GestureDetector>
+          ))
+        : null}
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}
@@ -275,17 +279,19 @@ const RakeTool = ({
               text={`RD1: ${inchesDist()}`}
             />
           </Animated.View>
-          {pointsDist.map((_, i) => (
-            <GestureDetector key={`pan-${i}`} gesture={panGesturesDist[i]}>
-              <Animated.View
-                style={[
-                  styles.box,
-                  { backgroundColor: i == 1 ? '#8B5DF6' : '#fff' },
-                  animatedStylesDist[i],
-                ]}
-              />
-            </GestureDetector>
-          ))}
+          {!locked
+            ? pointsDist.map((_, i) => (
+                <GestureDetector key={`pan-${i}`} gesture={panGesturesDist[i]}>
+                  <Animated.View
+                    style={[
+                      styles.box,
+                      { backgroundColor: i == 1 ? '#8B5DF6' : '#fff' },
+                      animatedStylesDist[i],
+                    ]}
+                  />
+                </GestureDetector>
+              ))
+            : null}
         </>
       )}
       {animatedLinesDist.map((props, i) => (

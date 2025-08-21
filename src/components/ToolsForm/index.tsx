@@ -100,21 +100,53 @@ export default function ToolsForm({
     setItems(prev =>
       prev.map(it => {
         if (it.id !== id) return it;
-        const clone: any = { ...it, showDist: it };
-        clone.showDist = state;
-        return clone;
+        return {
+          ...it,
+          showDist: state,
+        };
       }),
     );
   };
 
-  const renderItem = ({ item }: { item: Tool }) => {
-    if (item.hidden) return null;
+  const updateToggle = (id: string, state: boolean) => {
+    setItems(prev =>
+      prev.map(it => {
+        if (it.id !== id) return it;
+        return {
+          ...it,
+          locked: state,
+        };
+      }),
+    );
+  };
 
+  const updateEye = (id: string, state: boolean) => {
+    setItems(prev =>
+      prev.map(it => {
+        if (it.id !== id) return it;
+        return {
+          ...it,
+          hidden: state,
+        };
+      }),
+    );
+  };
+
+  const deleteItem = (id: string) => {
+    setItems(prev => prev.filter(it => it.id !== id));
+  };
+
+  const renderItem = ({ item }: { item: Tool }) => {
     switch (item.type) {
       case 'Tape': {
         const p = item.data as TapeItem['data'];
         return (
-          <Card item={item}>
+          <Card
+            item={item}
+            onDelete={() => deleteItem(item.id)}
+            onEye={() => updateEye(item.id, !item.hidden)}
+            onToggle={() => updateToggle(item.id, !item.locked)}
+          >
             <ToolInput
               id={'tape'}
               pair={{ value: p.value, fraction: p.fraction }}
@@ -129,7 +161,12 @@ export default function ToolsForm({
       case 'Laser': {
         const p = item.data as LaserItem['data'];
         return (
-          <Card item={item}>
+          <Card
+            item={item}
+            onDelete={() => deleteItem(item.id)}
+            onEye={() => updateEye(item.id, !item.hidden)}
+            onToggle={() => updateToggle(item.id, !item.locked)}
+          >
             <ToolInput
               id={'laser'}
               label="Slide A"
@@ -155,7 +192,12 @@ export default function ToolsForm({
         const p = item.data as RakeItem['data'];
         const rake = item as RakeItem;
         return (
-          <Card item={item}>
+          <Card
+            item={item}
+            onDelete={() => deleteItem(item.id)}
+            onEye={() => updateEye(item.id, !item.hidden)}
+            onToggle={() => updateToggle(item.id, !item.locked)}
+          >
             <ToolInput
               id={'rake'}
               pair={{ value: p.value, fraction: p.fraction }}
@@ -206,7 +248,12 @@ export default function ToolsForm({
           'LeftB',
         ] as const;
         return (
-          <Card item={item}>
+          <Card
+            item={item}
+            onDelete={() => deleteItem(item.id)}
+            onEye={() => updateEye(item.id, !item.hidden)}
+            onToggle={() => updateToggle(item.id, !item.locked)}
+          >
             {keys.map((k, index) => (
               <ToolInput
                 id={`rectangle-${index}`}
@@ -240,7 +287,12 @@ export default function ToolsForm({
           'BotRB',
         ] as const;
         return (
-          <Card item={item}>
+          <Card
+            item={item}
+            onDelete={() => deleteItem(item.id)}
+            onEye={() => updateEye(item.id, !item.hidden)}
+            onToggle={() => updateToggle(item.id, !item.locked)}
+          >
             {keys.map((k, index) => (
               <ToolInput
                 id={`corner-${index}`}
@@ -257,11 +309,18 @@ export default function ToolsForm({
       }
       case 'Note': {
         return (
-          <TheDescriptionBox
-            placeholder="Enter your note text here"
-            value={(item as NoteItem).data.value}
-            onChangeText={t => updateSingle(item.id, t, 'value')}
-          />
+          <Card
+            item={item}
+            onDelete={() => deleteItem(item.id)}
+            onEye={() => updateEye(item.id, !item.hidden)}
+            onToggle={() => updateToggle(item.id, !item.locked)}
+          >
+            <TheDescriptionBox
+              placeholder="Enter your note text here"
+              value={(item as NoteItem).data.value}
+              onChangeText={t => updateSingle(item.id, t, 'value')}
+            />
+          </Card>
         );
       }
     }
@@ -299,13 +358,13 @@ export default function ToolsForm({
             );
           }}
         /> */}
-      <TheButton
+      {/* <TheButton
         btnTitle="Save"
         titleStyle={{ fontWeight: 'bold' }}
         // icon={<Export />}
         onPress={() => console.log('hello')}
         style={{ marginTop: 10 }}
-      />
+      /> */}
     </View>
   );
 }
@@ -313,17 +372,16 @@ export default function ToolsForm({
 const Card = ({
   item,
   style,
-  onValueChange,
   children,
+  onDelete,
+  onToggle,
+  onEye,
 }: {
   item: Tool;
+  onToggle: () => void;
+  onDelete: () => void;
+  onEye: () => void;
   style?: ViewStyle;
-  onValueChange?: (
-    id: string,
-    field: string | undefined,
-    value: string,
-    fraction: string,
-  ) => void;
   children?: React.ReactNode;
 }) => {
   return (
@@ -333,7 +391,7 @@ const Card = ({
         <View style={[styles.rowContainer, { gap: 5, width: '70%' }]}>
           {/* <Badge color={color || '#FBBF24'} /> */}
           <TheText
-            text={`${item.type} Measurement`}
+            text={item.type == 'Note' ? item.type : `${item.type} Measurement`}
             size={18}
             numberOfLines={1}
             style={{ fontWeight: '600', width: '88%' }}
@@ -341,12 +399,12 @@ const Card = ({
         </View>
         <View style={[styles.rowContainer, { gap: 5 }]}>
           {item.hidden ? (
-            <EyeClosed color="#6B7280" />
+            <EyeClosed color="#6B7280" onPress={onEye} />
           ) : (
-            <Eye color="#6B7280" />
+            <Eye color="#6B7280" onPress={onEye} />
           )}
-          <TheToggle value={item.locked} />
-          {/* <Trash onPress={onDelete} /> */}
+          <TheToggle value={item.locked} onValueChange={onToggle} />
+          <Trash onPress={onDelete} />
         </View>
       </View>
 
@@ -419,7 +477,7 @@ const Card = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    paddingVertical: 20,
   },
   inputWrapper: {
     marginBottom: 12,

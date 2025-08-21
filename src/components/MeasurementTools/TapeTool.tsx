@@ -23,12 +23,14 @@ const TapeTool = ({
   xCoords,
   yCoords,
   data,
+  locked,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
   data: { value: string; fraction: string };
+  locked?: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -130,11 +132,13 @@ const TapeTool = ({
         />
       </Animated.View>
 
-      {points.map((_, i) => (
-        <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
-          <Animated.View style={[styles.box, animatedStyles[i]]} />
-        </GestureDetector>
-      ))}
+      {!locked
+        ? points.map((_, i) => (
+            <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
+              <Animated.View style={[styles.box, animatedStyles[i]]} />
+            </GestureDetector>
+          ))
+        : null}
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}

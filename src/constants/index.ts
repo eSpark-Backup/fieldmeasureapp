@@ -145,8 +145,8 @@ export const TOOLS: toolNames[] = [
   'Rectangle',
   'Corner',
   'Note',
-  // 'RoundUp',
 ];
+
 export const cornerLabels = [
   'Top L A',
   'Top R A',

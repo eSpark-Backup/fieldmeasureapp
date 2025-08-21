@@ -4,8 +4,7 @@ export type toolNames =
   | 'Rake'
   | 'Rectangle'
   | 'Corner'
-  | 'Note'
-  | 'RoundUp';
+  | 'Note';
 
 export type Coords = {
   x: number[]; // You can replace `any` with a more specific type if you know it
@@ -22,7 +21,7 @@ export type Measure = {
   location: any;
   details: any;
   timestamp: number;
-  toolsData: Record<string, ToolData>;
+  toolsData: Tool[];
   photo: string;
 };
 
@@ -40,8 +39,10 @@ export type MeasurementPair = { value: string; fraction: string };
 
 export type BaseItem = {
   id: string;
-  locked: boolean;
-  hidden: boolean;
+  xCoords: number[];
+  yCoords: number[];
+  locked?: boolean;
+  hidden?: boolean;
 };
 
 export type TapeItem = BaseItem & {
@@ -64,6 +65,8 @@ export type RakeItem = BaseItem & {
     fraction: string;
     distance: MeasurementPair;
   };
+  xCoordsDist: number[];
+  yCoordsDist: number[];
   showDist: boolean;
 };
 
