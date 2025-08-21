@@ -5,10 +5,12 @@ import {
   StyleSheet,
   ViewStyle,
   StyleProp,
+  TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import TheText from '../TheText';
 import { border } from '../../constants/colors';
+import { PEye, PEyeClosed } from '../../assets';
 
 const TheTextInput = ({
   label,
@@ -16,7 +18,7 @@ const TheTextInput = ({
   placeholder,
   style,
   containerStyle,
-  secureTextEntry,
+  secureTextEntry = false,
   required,
   onChange,
   onBlur,
@@ -37,6 +39,8 @@ const TheTextInput = ({
   isNum?: boolean;
   editable?: boolean;
 }) => {
+  const [hidePassword, setHidePassword] = useState(secureTextEntry);
+
   return (
     <View style={containerStyle}>
       {label && (
@@ -51,18 +55,28 @@ const TheTextInput = ({
           {required && <TheText style={styles.required} text=" *" />}
         </View>
       )}
-      <TextInput
-        placeholder={placeholder}
-        placeholderTextColor={'#9E9E9E'}
-        value={value}
-        style={[styles.inputStyle, style]}
-        onChangeText={onChange}
-        secureTextEntry={secureTextEntry}
-        onBlur={onBlur}
-        keyboardType={isNum ? 'decimal-pad' : 'default'}
-        inputMode={isNum ? 'decimal' : 'text'}
-        editable={editable}
-      />
+      <View>
+        <TextInput
+          placeholder={placeholder}
+          placeholderTextColor={'#9E9E9E'}
+          value={value}
+          style={[styles.inputStyle, style]}
+          onChangeText={onChange}
+          secureTextEntry={hidePassword}
+          onBlur={onBlur}
+          keyboardType={isNum ? 'decimal-pad' : 'default'}
+          inputMode={isNum ? 'decimal' : 'text'}
+          editable={editable}
+        />
+        {secureTextEntry && (
+          <TouchableOpacity
+            onPress={() => setHidePassword(!hidePassword)}
+            style={{ position: 'absolute', right: '2%', top: '25%' }}
+          >
+            {hidePassword ? <PEyeClosed /> : <PEye />}
+          </TouchableOpacity>
+        )}
+      </View>
       {error ? (
         <TheText
           text={error}

@@ -153,7 +153,7 @@ const ToolInput: React.FC<DropdownProps> = ({
               <ScrollView
                 style={{
                   backgroundColor: background,
-                  maxHeight: 150,
+                  maxHeight: 100,
                 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}

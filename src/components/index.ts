@@ -15,3 +15,4 @@ export { default as TheDropdown } from './TheDropdown';
 export { default as TheTool } from './TheTool';
 export { default as TheToggle } from './TheToggle';
 export { default as ToolInput } from './ToolInput';
+export { default as TechCard } from './TechCard';

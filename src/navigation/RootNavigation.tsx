@@ -12,6 +12,7 @@ import Measurement from '../screens/Measurement';
 
 import { RootNavParamList } from '../types/navigationParams';
 import AddTechnician from '../screens/AddTechnician';
+import TechniciansList from '../screens/TechniciansList';
 
 const Stack = createNativeStackNavigator<RootNavParamList>();
 
@@ -29,6 +30,7 @@ const RootNavigation = () => {
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="Projects" component={Projects} />
       <Stack.Screen name="AddTechnician" component={AddTechnician} />
+      <Stack.Screen name="TechniciansList" component={TechniciansList} />
       <Stack.Screen
         name="ProjectDetails"
         component={ProjectDetails}

@@ -100,7 +100,7 @@ const SignIn = () => {
           )}
         </Formik>
       </View>
-      <View style={styles.footer}>
+      {/* <View style={styles.footer}>
         <TheText text="New to Skyline? " style={styles.footerText} />
         <TheText
           text="Create Account"
@@ -108,7 +108,7 @@ const SignIn = () => {
           onPress={() => navigation.navigate('SignUp')}
           style={styles.createAccount}
         />
-      </View>
+      </View> */}
       <GapView length={useSafeAreaInsets().bottom} />
     </ScrollView>
   );

@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { GapView, TheButton, TheText, TheTextInput } from '../../components';
-import { Back, BuildingLogo } from '../../assets';
+import { Back, BuildingLogo, Eye } from '../../assets';
 import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
@@ -45,6 +45,8 @@ const AddTechnician = () => {
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Back
+            width={25}
+            height={25}
             onPress={() => navigation.navigate('Projects', { role: 'admin' })}
           />
           <TheText
@@ -147,7 +149,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    // paddingVertical: 10,
+    paddingTop: 10,
   },
   logoContainer: {
     alignItems: 'center',

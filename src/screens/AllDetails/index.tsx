@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import {
   GapView,
   TheButton,
@@ -18,6 +18,12 @@ import { useProjectStore } from '../../store/ProjectsStore';
 const generateInitialValues = () =>
   Object.fromEntries(DROPDOWNS.map(drop => [drop.id, drop.selected || '']));
 
+const initialInputs = {
+  curbHeight: '10',
+  doorWidth: '10',
+  doorHeight: '10',
+};
+
 const AllDetails = () => {
   const [selectedValues, setSelectedValues] = useState(
     () => tempMeasure?.selectedValues || generateInitialValues(),
@@ -25,13 +31,13 @@ const AllDetails = () => {
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const [inputs, setInputs] = useState<{ [key: string]: string }>({
-    curbHeight: '10',
-    doorWidth: '10',
-    doorHeight: '10',
-  });
+  const [inputs, setInputs] = useState<{ [key: string]: string }>(
+    initialInputs,
+  );
   const navigation = useNavigation();
   const { setTempMeasure, tempMeasure } = useProjectStore();
+
+  const skipPromptRef = useRef(false);
 
   const handleSelect = useCallback((key: string, value: string) => {
     setSelectedValues((prev: any) => ({ ...prev, [key]: value }));
@@ -42,6 +48,90 @@ const AllDetails = () => {
     setInputs(prev => ({ ...prev, [field]: value }));
     setErrors(prev => ({ ...prev, [field]: '' }));
   }, []);
+
+  const stateRef = useRef({
+    selectedValues,
+    inputs,
+    description,
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      selectedValues,
+      inputs,
+      description,
+    };
+  }, [selectedValues, inputs, description]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', e => {
+      if (skipPromptRef.current) {
+        // ✅ reset so it doesn’t skip next time
+        skipPromptRef.current = false;
+        return;
+      }
+
+      const { selectedValues, inputs, description } = stateRef.current;
+
+      if (
+        !tempMeasure &&
+        JSON.stringify(selectedValues) ==
+          JSON.stringify(generateInitialValues()) &&
+        inputs == initialInputs &&
+        description == ''
+      ) {
+        navigation.dispatch(e.data.action);
+        return;
+      } else if (
+        tempMeasure &&
+        JSON.stringify(selectedValues) ==
+          JSON.stringify(tempMeasure.selectedValues) &&
+        inputs == tempMeasure.inputs &&
+        description == tempMeasure.description
+      ) {
+        navigation.dispatch(e.data.action);
+        return;
+      }
+
+      e.preventDefault();
+      Alert.alert(
+        'Save Changes?',
+        'Would you like to save your measurements before leaving?',
+        [
+          {
+            text: "Don't Save",
+            style: 'destructive',
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+          {
+            text: 'Save',
+            style: 'default',
+            onPress: () => {
+              const saved = handleSubmit();
+              if (saved) {
+                navigation.dispatch(e.data.action);
+              } else {
+                skipPromptRef.current = false;
+              }
+            },
+          },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, selectedValues]);
+
+  const handleSaveAndGoBack = () => {
+    skipPromptRef.current = true;
+    const saved = handleSubmit();
+    if (saved) {
+      navigation.goBack();
+    } else {
+      skipPromptRef.current = false;
+    }
+  };
 
   const handleSubmit = useCallback(() => {
     const newErrors: { [key: string]: string } = {};
@@ -68,9 +158,11 @@ const AllDetails = () => {
       };
 
       setTempMeasure(tempData);
-      navigation.goBack(); // 👈 Go back to MeasurementScreen
+      return true;
+      // navigation.goBack(); // 👈 Go back to MeasurementScreen
     } else {
       console.log('Validation Errors:', newErrors);
+      return false;
     }
   }, [selectedValues, inputs, description, navigation, setTempMeasure]);
 
@@ -146,7 +238,7 @@ const AllDetails = () => {
           onChange={date => {}}
         />
         <GapView length={25} mode="vertical" />
-        <TheButton btnTitle="Done" onPress={handleSubmit} />
+        <TheButton btnTitle="Done" onPress={handleSaveAndGoBack} />
         <GapView length={useSafeAreaInsets().bottom} mode="vertical" />
       </ScrollView>
     </View>

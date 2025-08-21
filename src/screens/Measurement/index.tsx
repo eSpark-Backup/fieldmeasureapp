@@ -74,7 +74,6 @@ const Measurement = () => {
   const [location, setLocation] = useState('');
   const [mainLock, setMainLock] = useState(false);
   const [tools, setTools] = useState<ToolsList>([]);
-  const [unsaved, setUnsaved] = React.useState(true);
 
   const [scaleVal, setScaleVal] = useState(1);
 
@@ -101,30 +100,70 @@ const Measurement = () => {
     }
   }, [existingMeasure]);
 
+  const stateRef = useRef({
+    tools,
+    location,
+    tempMeasure,
+    selectedPhoto,
+    existingMeasure,
+  });
+  const skipPromptRef = useRef(false);
+
+  useEffect(() => {
+    stateRef.current = {
+      tools,
+      location,
+      tempMeasure,
+      selectedPhoto,
+      existingMeasure,
+    };
+  }, [tools, location, tempMeasure, selectedPhoto, existingMeasure]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', e => {
+      if (skipPromptRef.current) {
+        // ✅ reset so it doesn’t skip next time
+        skipPromptRef.current = false;
+        return;
+      }
+      const { tools, location, tempMeasure, selectedPhoto, existingMeasure } =
+        stateRef.current;
       const sanitized = tools.map(({ locked, hidden, ...rest }) => rest);
+
       const exist: Measure = {
         id: existingMeasure?.id ?? '',
         location,
         details: tempMeasure,
         photo: selectedPhoto ?? '',
         toolsData: sanitized,
-        timestamp: Date.now(),
+        timestamp: existingMeasure?.timestamp ?? Date.now(),
       };
+
+      const clean = (obj: Measure) => {
+        const { timestamp, ...rest } = obj;
+        return rest;
+      };
+
+      // console.log('existingMeasure', existingMeasure);
+      // console.log('exist', exist);
 
       if (
         existingMeasure != undefined &&
-        JSON.stringify(existingMeasure) !== JSON.stringify(exist)
+        JSON.stringify(clean(existingMeasure)) == JSON.stringify(clean(exist))
       ) {
-        // If nothing to save, don't do anything
+        navigation.dispatch(e.data.action);
+        return;
+      } else if (
+        location == '' &&
+        !tempMeasure &&
+        !selectedPhoto &&
+        sanitized.length == 0
+      ) {
         navigation.dispatch(e.data.action);
         return;
       }
 
-      // Prevent default behavior of leaving the screen
       e.preventDefault();
-
       Alert.alert(
         'Save Changes?',
         'Would you like to save your measurements before leaving?',
@@ -138,9 +177,9 @@ const Measurement = () => {
             text: 'Save',
             style: 'default',
             onPress: () => {
-              // ✅ Call your save function here
-              handleSaveMeasurements();
-              // Then continue navigation
+              handleSaveMeasurements(() => {
+                navigation.dispatch(e.data.action);
+              });
             },
           },
           { text: 'Cancel', style: 'cancel' },
@@ -149,77 +188,86 @@ const Measurement = () => {
     });
 
     return unsubscribe;
-  }, [navigation, unsaved]);
+  }, [navigation]);
 
-  // ✅ Save logic handles both create + update
-  const handleSaveMeasurements = () => {
-    console.log('yaha aya', tempMeasure);
+  function hasEmptyOrZero(tools: Tool[]): boolean {
+    const check = (obj: any): boolean => {
+      if (obj && typeof obj === 'object') {
+        return Object.values(obj).some(v => check(v));
+      }
+      return obj === '' || obj === '0';
+    };
+
+    return tools.some(tool => check(tool.data));
+  }
+
+  const handleSaveMeasurements = (onSuccess?: () => void) => {
+    const { tools, location, tempMeasure, selectedPhoto, existingMeasure } =
+      stateRef.current;
 
     if (!projectId) {
       console.warn('No valid project ID.');
-      return;
+      skipPromptRef.current = false;
+      return false;
     }
 
     if (!location) {
       showToast('Location is required.');
-      return;
+      skipPromptRef.current = false;
+      return false;
     }
 
     if (!selectedPhoto) {
       showToast('Please select photo first.');
-      return;
+      skipPromptRef.current = false;
+      return false;
     }
 
     if (tempMeasure == null) {
       showToast('Add measure details data to save.');
-      return;
+      skipPromptRef.current = false;
+      return false;
     }
+
     const sanitized = tools.map(({ locked, hidden, ...rest }) => rest);
 
-    const toolsData = sanitized;
+    if (hasEmptyOrZero(sanitized)) {
+      Alert.alert('Missing information', 'Are you sure you want to save?', [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: () => {
+            console.log('❌ Save canceled');
+            skipPromptRef.current = false; // reset here
+          },
+        },
+        {
+          text: 'Save Anyway',
+          style: 'destructive',
+          onPress: () => {
+            saveMeasure(sanitized);
+            onSuccess?.();
+          },
+        },
+      ]);
+      return false; // initial return doesn’t matter anymore
+    }
 
-    // const toolsData: Record<string, { coords: any; status: boolean }> = {};
+    saveMeasure(sanitized);
+    onSuccess?.();
+    return true;
+  };
 
-    // if (TapeT) {
-    //   toolsData.tape = {
-    //     coords: TapeC, // put your coords value here
-    //     status: TapeT,
-    //   };
-    // }
-
-    // if (LaserT) {
-    //   toolsData.laser = {
-    //     coords: LaserC,
-    //     status: LaserT,
-    //   };
-    // }
-
-    // if (RakeT) {
-    //   toolsData.rake = {
-    //     coords: RakeC,
-    //     status: RakeT,
-    //   };
-    // }
-
-    // if (RectanlgeT) {
-    //   toolsData.rectangle = {
-    //     coords: RectanlgeC,
-    //     status: RectanlgeT,
-    //   };
-    // }
-
-    // if (CornerT) {
-    //   toolsData.corner = {
-    //     coords: CornerC,
-    //     status: CornerT,
-    //   };
-    // }
+  // ✅ Extracted save logic (so it can be reused for both normal + override save)
+  function saveMeasure(toolsData: any[]) {
+    const { location, tempMeasure, selectedPhoto, existingMeasure } =
+      stateRef.current;
 
     const newMeasure: Measure = {
       id: existingMeasure?.id || uuid.v4().toString(),
       location,
       details: tempMeasure,
-      photo: selectedPhoto,
+      photo: selectedPhoto ?? '',
       toolsData,
       timestamp: Date.now(),
     };
@@ -234,9 +282,14 @@ const Measurement = () => {
       .projects.find(p => p.id === projectId);
     console.log('📦 Updated Project:', updated);
 
-    setUnsaved(false);
+    return true;
+  }
 
-    navigation.goBack(); // optional: return after save
+  const handleSaveAndGoBack = () => {
+    skipPromptRef.current = true;
+    handleSaveMeasurements(() => {
+      navigation.goBack();
+    });
   };
 
   useAnimatedReaction(
@@ -526,7 +579,7 @@ const Measurement = () => {
         style={{
           flex: 1,
           flexDirection: 'row',
-          paddingHorizontal: 20,
+          marginRight: 10,
           marginTop: bottomInset,
           marginBottom: bottomInset,
           backgroundColor: '#F9FAFB',
@@ -659,7 +712,7 @@ const Measurement = () => {
               size={20}
               style={{ fontWeight: 'bold', marginVertical: 20 }}
             />
-            <View style={styles.rowContainer}>
+            <View style={{ paddingHorizontal: 10 }}>
               <TheText style={{ fontWeight: '500' }} text="Lock All" />
               <GapView mode="horizontal" />
               <TheToggle
@@ -683,7 +736,7 @@ const Measurement = () => {
             btnTitle="Save"
             titleStyle={{ fontWeight: 'bold' }}
             // icon={<Export />}
-            onPress={handleSaveMeasurements}
+            onPress={handleSaveAndGoBack}
             style={{ marginTop: 10 }}
           />
           <GapView length={useSafeAreaInsets().bottom + 10} />
