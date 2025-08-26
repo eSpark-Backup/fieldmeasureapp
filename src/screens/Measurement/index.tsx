@@ -94,7 +94,7 @@ const Measurement = () => {
     useProjectStore();
   const topInset = useSafeAreaInsets().top;
   const bottomInset = useSafeAreaInsets().bottom;
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>('https://i.pinimg.com/736x/a7/09/1c/a7091c6f019f2e6838e867acc8d1361c.jpg');
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [mainLock, setMainLock] = useState(false);
@@ -113,34 +113,15 @@ const Measurement = () => {
   const [RectanlgeH, setRectanlgeH] = useState(true);
   const [CornerH, setCornerH] = useState(true);
 
-  const initialX = [width / 2 / 2, width / 2 / 2];
-  const initialY = [height / 3.5, height / 2];
+  // Normalized initial coordinates (relative to image container, 0-1)
+  const initialX = [0.3, 0.7];
+  const initialY = [0.3, 0.7];
 
-  const initialRX = [
-    width / 2 / 3,
-    width / 2 / 3,
-    width / 1.2 / 2,
-    width / 1.2 / 2,
-  ];
-  const initialRY = [height / 3.5, height / 2, height / 2, height / 3.5];
+  const initialRX = [0.2, 0.2, 0.8, 0.8];
+  const initialRY = [0.2, 0.8, 0.8, 0.2];
 
-  const initialCX = [
-    width / 2 / 3,
-    width / 2 / 3,
-    width / 2 / 1.7,
-    width / 2 / 1.2,
-    width / 2 / 1.2,
-    width / 2 / 1.7,
-  ];
-
-  const initialCY = [
-    height / 3.5,
-    height / 2,
-    height / 2,
-    height / 2,
-    height / 3.5,
-    height / 3.5,
-  ];
+  const initialCX = [0.2, 0.2, 0.5, 0.8, 0.8, 0.5];
+  const initialCY = [0.2, 0.8, 0.8, 0.8, 0.2, 0.2];
 
   const [TapeC, setTapeC] = useState<Coords>({ x: initialX, y: initialY });
   const [LaserC, setLaserC] = useState<Coords>({ x: initialX, y: initialY });
@@ -153,6 +134,9 @@ const Measurement = () => {
     x: initialCX,
     y: initialCY,
   });
+
+  // Store measured image container size
+  const [imageLayout, setImageLayout] = useState<{ width: number; height: number } | null>(null);
 
   const [scaleVal, setScaleVal] = useState(1);
 
@@ -178,6 +162,7 @@ const Measurement = () => {
     setCornerT(!!measure.toolsData?.corner);
   };
 
+  // Ensure loaded coords are normalized (0-1)
   const setStatesFromCoords = (measure: Measure) => {
     const mapping: Record<string, (value: any) => void> = {
       tape: setTapeC,
@@ -186,12 +171,18 @@ const Measurement = () => {
       rectangle: setRectanlgeC,
       corner: setCornerC,
     };
-
     Object.entries(mapping).forEach(([tool, setter]) => {
       const coords = measure.toolsData?.[tool]?.coords;
       if (coords != null) {
-        // checks for both null and undefined
-        setter(coords);
+        // If values are > 1, treat as pixel and convert to normalized (for backward compatibility)
+        if (imageLayout && coords.x.every((v: number) => v > 1)) {
+          setter({
+            x: coords.x.map((v: number) => v / imageLayout.width),
+            y: coords.y.map((v: number) => v / imageLayout.height),
+          });
+        } else {
+          setter(coords);
+        }
       }
     });
   };
@@ -204,13 +195,150 @@ const Measurement = () => {
 
       setTempMeasure(existingMeasure.details);
       setLocation(existingMeasure.location || '');
-      setSelectedPhoto(existingMeasure.photo || '');
+      // setSelectedPhoto(existingMeasure.photo || '');
       setStatesFromMeasure(existingMeasure);
       setStatesFromCoords(existingMeasure);
     } else {
       clearTempMeasure();
     }
   }, [existingMeasure]);
+
+  console.log("existingMeasure", existingMeasure);
+  
+  // Utility: Collect all tool data for saving
+  const collectAllToolsData = () => {
+    const toolsData: Record<string, { coords: any; status: boolean }> = {};
+    if (TapeT) {
+      toolsData.tape = {
+        coords: TapeC,
+        status: TapeT,
+      };
+    }
+    if (LaserT) {
+      toolsData.laser = {
+        coords: LaserC,
+        status: LaserT,
+      };
+    }
+    if (RakeT) {
+      toolsData.rake = {
+        coords: RakeC,
+        status: RakeT,
+      };
+    }
+    if (RectanlgeT) {
+      toolsData.rectangle = {
+        coords: RectanlgeC,
+        status: RectanlgeT,
+      };
+    }
+    if (CornerT) {
+      toolsData.corner = {
+        coords: CornerC,
+        status: CornerT,
+      };
+    }
+    return toolsData;
+  };
+
+ let toolData = {
+    "tape": {
+        "coords": {
+            "x": [
+                0.6722084367245656,
+                0.6689826302729528
+            ],
+            "y": [
+                0.6513362693050193,
+                0.9088674891409266
+            ]
+        },
+        "status": true
+    },
+    "laser": {
+        "coords": {
+            "x": [
+                0.811473397758995,
+                0.8096645762251861
+            ],
+            "y": [
+                0.9622647200772201,
+                0.0015444015444015444
+            ]
+        },
+        "status": true
+    },
+    "rake": {
+        "coords": {
+            "x": [
+                0.43027295285359796,
+                0.6627791563275434
+            ],
+            "y": [
+                0.4193118062258687,
+                0.4073328909266408
+            ]
+        },
+        "status": true
+    },
+    "rectangle": {
+        "coords": {
+            "x": [
+                0.2589330024813896,
+                0.26301978326612907,
+                0.42663083514267996,
+                0.4347753179280398
+            ],
+            "y": [
+                0.6005044944498069,
+                0.854031430984556,
+                0.8115754705598456,
+                0.5853462837837838
+            ]
+        },
+        "status": true
+    },
+    "corner": {
+        "coords": {
+            "x": [
+                0.18759305210918117,
+                0.1968982630272953,
+                0.42245657568238215,
+                0.6599129575062036,
+                0.6626542387174319,
+                0.43263415012406947
+            ],
+            "y": [
+                0.1024734555984556,
+                0.4054287825772201,
+                0.4236682553088803,
+                0.40941949203667954,
+                0.08801580598455598,
+                0.16987361245173746
+            ]
+        },
+        "status": true
+    }
+}
+   useEffect(() => {
+    restoreAllToolsFromData(toolData);
+  }, [])
+  
+
+  // Utility: Restore all tool states and coordinates from saved data
+  const restoreAllToolsFromData = (toolsData: Record<string, { coords: any; status: boolean }>) => {
+    setTapeT(!!toolsData.tape?.status);
+    setLaserT(!!toolsData.laser?.status);
+    setRakeT(!!toolsData.rake?.status);
+    setRectanlgeT(!!toolsData.rectangle?.status);
+    setCornerT(!!toolsData.corner?.status);
+
+    if (toolsData.tape?.coords) setTapeC(toolsData.tape.coords);
+    if (toolsData.laser?.coords) setLaserC(toolsData.laser.coords);
+    if (toolsData.rake?.coords) setRakeC(toolsData.rake.coords);
+    if (toolsData.rectangle?.coords) setRectanlgeC(toolsData.rectangle.coords);
+    if (toolsData.corner?.coords) setCornerC(toolsData.corner.coords);
+  };
 
   // ✅ Save logic handles both create + update
   const handleSaveMeasurements = () => {
@@ -231,47 +359,12 @@ const Measurement = () => {
       return;
     }
 
-    if (tempMeasure == null) {
-      showToast('Add measure details data to save.');
-      return;
-    }
+    // if (tempMeasure == null) {
+    //   showToast('Add measure details data to save.');
+    //   return;
+    // }
 
-    const toolsData: Record<string, { coords: any; status: boolean }> = {};
-
-    if (TapeT) {
-      toolsData.tape = {
-        coords: TapeC, // put your coords value here
-        status: TapeT,
-      };
-    }
-
-    if (LaserT) {
-      toolsData.laser = {
-        coords: LaserC,
-        status: LaserT,
-      };
-    }
-
-    if (RakeT) {
-      toolsData.rake = {
-        coords: RakeC,
-        status: RakeT,
-      };
-    }
-
-    if (RectanlgeT) {
-      toolsData.rectangle = {
-        coords: RectanlgeC,
-        status: RectanlgeT,
-      };
-    }
-
-    if (CornerT) {
-      toolsData.corner = {
-        coords: CornerC,
-        status: CornerT,
-      };
-    }
+    const toolsData = collectAllToolsData();
 
     const newMeasure: Measure = {
       id: existingMeasure?.id || uuid.v4().toString(),
@@ -282,6 +375,7 @@ const Measurement = () => {
       timestamp: Date.now(),
     };
 
+    console.log(JSON.stringify({projectId, newMeasure}))
     addMeasureToProject(projectId, newMeasure);
     clearTempMeasure();
 
@@ -621,7 +715,6 @@ const Measurement = () => {
           <ViewShot
             ref={ref}
             style={{
-              // flex: 1,
               width: '65%',
               marginVertical: 10,
               justifyContent: 'center',
@@ -633,77 +726,106 @@ const Measurement = () => {
           >
             <GestureDetector gesture={composedGesture}>
               <Animated.View style={[{ flex: 1 }, boxAnimatedStyles]}>
-                <Image
-                  resizeMode="contain"
+                <View
                   style={{ flex: 1 }}
-                  source={{ uri: selectedPhoto }}
-                />
-                <Svg
-                  height="100%"
-                  width="100%"
-                  style={{ position: 'absolute' }}
+                  // onLayout={event => {
+                  //   const { width, height } = event.nativeEvent.layout;
+                  //   setImageLayout({ width, height });
+                  // }}
                 >
-                  {TapeT && TapeH && (
-                    <TapeTool
-                      scaleValue={scaleVal}
-                      getCoords={(xArr, yArr) => {
-                        const cData = { x: xArr, y: yArr };
-                        setTapeC(cData);
-                        console.log('X:', xArr, 'Y:', yArr);
-                      }}
-                      xCoords={TapeC.x}
-                      yCoords={TapeC.y}
-                    />
-                  )}
-                  {LaserT && LaserH && (
-                    <LaserTool
-                      scaleValue={scaleVal}
-                      getCoords={(xArr, yArr) => {
-                        const cData = { x: xArr, y: yArr };
-                        setLaserC(cData);
-                        console.log('X:', xArr, 'Y:', yArr);
-                      }}
-                      xCoords={LaserC.x}
-                      yCoords={LaserC.y}
-                    />
-                  )}
-                  {RakeT && RakeH && (
-                    <RakeTool
-                      scaleValue={scaleVal}
-                      getCoords={(xArr, yArr) => {
-                        const cData = { x: xArr, y: yArr };
-                        setRakeC(cData);
-                        console.log('X:', xArr, 'Y:', yArr);
-                      }}
-                      xCoords={RakeC.x}
-                      yCoords={RakeC.y}
-                    />
-                  )}
-                  {RectanlgeT && RectanlgeH && (
-                    <RectangleTool
-                      scaleValue={scaleVal}
-                      getCoords={(xArr, yArr) => {
-                        const cData = { x: xArr, y: yArr };
-                        setRectanlgeC(cData);
-                        console.log('X:', xArr, 'Y:', yArr);
-                      }}
-                      xCoords={RectanlgeC.x}
-                      yCoords={RectanlgeC.y}
-                    />
-                  )}
-                  {CornerT && CornerH && (
-                    <CornerTool
-                      scaleValue={scaleVal}
-                      getCoords={(xArr, yArr) => {
-                        const cData = { x: xArr, y: yArr };
-                        setCornerC(cData);
-                        console.log('X:', xArr, 'Y:', yArr);
-                      }}
-                      xCoords={CornerC.x}
-                      yCoords={CornerC.y}
-                    />
-                  )}
-                </Svg>
+                  <Image
+                    resizeMode="contain"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      // width: 250,
+                      // height: 250,
+                      position: 'absolute',
+                      alignSelf: 'center',
+                      // backgroundColor: 'blue'
+                    }}
+                    source={{ uri: selectedPhoto }}
+                    onLayout={event => {
+                      const { width, height } = event.nativeEvent.layout;
+                      setImageLayout({ width, height });
+                    }}
+                  />
+                  <Svg
+                    height="100%"
+                    width="100%"
+                    // height={250}
+                    // width={250}
+                    style={
+                      {
+                        // position: 'absolute',
+                        // backgroundColor: 'red',
+                        //  alignSelf: 'center'
+                      }
+                    }
+                  >
+                    {TapeT && TapeH && imageLayout && (
+                      <TapeTool
+                        scaleValue={scaleVal}
+                        getCoords={(xArr, yArr) => {
+                          // Convert pixel coords to normalized
+                          const normX = xArr.map(x => x / imageLayout.width);
+                          const normY = yArr.map(y => y / imageLayout.height);
+                          setTapeC({ x: normX, y: normY });
+                        }}
+                        xCoords={TapeC.x.map(x => x * imageLayout.width)}
+                        yCoords={TapeC.y.map(y => y * imageLayout.height)}
+                      />
+                    )}
+                    {LaserT && LaserH && imageLayout && (
+                      <LaserTool
+                        scaleValue={scaleVal}
+                        getCoords={(xArr, yArr) => {
+                          const normX = xArr.map(x => x / imageLayout.width);
+                          const normY = yArr.map(y => y / imageLayout.height);
+                          setLaserC({ x: normX, y: normY });
+                        }}
+                        xCoords={LaserC.x.map(x => x * imageLayout.width)}
+                        yCoords={LaserC.y.map(y => y * imageLayout.height)}
+                      />
+                    )}
+                    {RakeT && RakeH && imageLayout && (
+                      <RakeTool
+                        scaleValue={scaleVal}
+                        getCoords={(xArr, yArr) => {
+                          const normX = xArr.map(x => x / imageLayout.width);
+                          const normY = yArr.map(y => y / imageLayout.height);
+                          setRakeC({ x: normX, y: normY });
+                        }}
+                        xCoords={RakeC.x.map(x => x * imageLayout.width)}
+                        yCoords={RakeC.y.map(y => y * imageLayout.height)}
+                      />
+                    )}
+                    {RectanlgeT && RectanlgeH && imageLayout && (
+                      <RectangleTool
+                        scaleValue={scaleVal}
+                        getCoords={(xArr, yArr) => {
+                          const normX = xArr.map(x => x / imageLayout.width);
+                          const normY = yArr.map(y => y / imageLayout.height);
+                          setRectanlgeC({ x: normX, y: normY });
+                        }}
+                        xCoords={RectanlgeC.x.map(x => x * imageLayout.width)}
+                        yCoords={RectanlgeC.y.map(y => y * imageLayout.height)}
+                      />
+                    )}
+                    {CornerT && CornerH && imageLayout && (
+                      <CornerTool
+                        scaleValue={scaleVal}
+                        getCoords={(xArr, yArr) => {
+                          const normX = xArr.map(x => x / imageLayout.width);
+                          const normY = yArr.map(y => y / imageLayout.height);
+                          setCornerC({ x: normX, y: normY });
+                        }}
+                        xCoords={CornerC.x.map(x => x * imageLayout.width)}
+                        yCoords={CornerC.y.map(y => y * imageLayout.height)}
+                      />
+                    )}
+                  </Svg>
+                </View>
               </Animated.View>
             </GestureDetector>
           </ViewShot>
@@ -995,3 +1117,4 @@ const styles = StyleSheet.create({
 });
 
 export default Measurement;
+
