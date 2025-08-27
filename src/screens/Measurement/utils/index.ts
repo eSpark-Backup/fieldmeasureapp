@@ -70,14 +70,20 @@ export const pdfHTML = (uri: string) => {
   </table>`;
 };
 
-export const createNewTool = (type: Tool['type']): Tool => {
+export const createNewTool = (
+  type: Tool['type'],
+  width: number,
+  height: number,
+): Tool => {
   const baseId = `${type.toLowerCase()}${uuid.v4()}`;
 
   const initialNX = [width / 2 / 2];
   const initialNY = [height / 3.5];
 
-  const initialX = [width / 2 / 2, width / 2 / 2];
-  const initialY = [height / 3.5, height / 2];
+  const initialX = [5, 5];
+  const initialY = [5, 50];
+
+  console.log('initialX', initialX);
 
   const initialRX = [
     width / 2 / 3,

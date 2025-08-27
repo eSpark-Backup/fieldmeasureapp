@@ -71,7 +71,12 @@ const TheTextInput = ({
         {secureTextEntry && (
           <TouchableOpacity
             onPress={() => setHidePassword(!hidePassword)}
-            style={{ position: 'absolute', right: '2%', top: '25%' }}
+            hitSlop={20}
+            style={{
+              position: 'absolute',
+              right: '2%',
+              top: '25%',
+            }}
           >
             {hidePassword ? <PEyeClosed /> : <PEye />}
           </TouchableOpacity>

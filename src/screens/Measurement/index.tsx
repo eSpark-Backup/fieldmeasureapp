@@ -6,6 +6,7 @@ import {
   Dimensions,
   FlatList,
   Alert,
+  ScrollView,
 } from 'react-native';
 import {
   CornerTool,
@@ -26,7 +27,6 @@ import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-  ScrollView,
 } from 'react-native-gesture-handler';
 import Svg from 'react-native-svg';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -85,6 +85,47 @@ const Measurement = () => {
   const translateY = useSharedValue(0);
 
   const prevTranslationY = useSharedValue(0);
+
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (selectedPhoto) {
+      Image.getSize(selectedPhoto, (w, h) => {
+        setImageSize({ width: w, height: h });
+      });
+    }
+  }, [selectedPhoto]);
+
+  const getDisplayedSize = () => {
+    if (containerSize.width === 0 || containerSize.height === 0)
+      return { width: 0, height: 0, offsetX: 0, offsetY: 0 };
+
+    const imageAspect = imageSize.width / imageSize.height;
+    const containerAspect = containerSize.width / containerSize.height;
+
+    if (imageAspect > containerAspect) {
+      // limited by width
+      const width = containerSize.width;
+      const height = containerSize.width / imageAspect;
+      return {
+        width,
+        height,
+        offsetX: 0,
+        offsetY: (containerSize.height - height) / 2, // vertical centering
+      };
+    } else {
+      // limited by height
+      const height = containerSize.height;
+      const width = containerSize.height * imageAspect;
+      return {
+        width,
+        height,
+        offsetX: (containerSize.width - width) / 2, // horizontal centering
+        offsetY: 0,
+      };
+    }
+  };
 
   // 🧠 On mount, prefill if editing
   useEffect(() => {
@@ -380,7 +421,11 @@ const Measurement = () => {
       showToast('Please select photo first.');
       return;
     }
-    const newTool = createNewTool(type);
+    const newTool = createNewTool(
+      type,
+      displayedSize.width,
+      displayedSize.height,
+    );
     setTools(prev => [...prev, newTool]);
   };
 
@@ -440,8 +485,49 @@ const Measurement = () => {
     );
   };
 
+  // converting from displayed pixel coords → percentage coords
+  const toPercentCoords = (
+    xArr: number[],
+    yArr: number[],
+    displayedSize: any,
+  ) => {
+    const percentX = xArr.map(
+      x => ((x - displayedSize.offsetX) / displayedSize.width) * 100,
+    );
+    const percentY = yArr.map(
+      y => ((y - displayedSize.offsetY) / displayedSize.height) * 100,
+    );
+    return { x: percentX, y: percentY };
+  };
+
+  // percentage coords → pixel coords for render
+  const toPixelCoords = (
+    xPercent: number[],
+    yPercent: number[],
+    displayedSize: any,
+  ) => {
+    const xCoords = xPercent.map(
+      x => displayedSize.offsetX + (x / 100) * displayedSize.width,
+    );
+    const yCoords = yPercent.map(
+      y => displayedSize.offsetY + (y / 100) * displayedSize.height,
+    );
+    return { x: xCoords, y: yCoords };
+  };
+
   const renderTools = (tool: Tool) => {
     if (tool.hidden) return null;
+
+    // Convert percentage → pixels for rendering
+    const { x: xCoords, y: yCoords } = toPixelCoords(
+      tool.xCoords,
+      tool.yCoords,
+      displayedSize,
+    );
+
+    console.log('xCoords', xCoords);
+    console.log('yCoords', yCoords);
+
     switch (tool.type) {
       case 'Tape': {
         return (
@@ -449,12 +535,12 @@ const Measurement = () => {
             key={tool.id}
             scaleValue={scaleVal}
             getCoords={(xArr, yArr) => {
-              const cData = { x: xArr, y: yArr };
-              updateCoords(tool.id, cData.x, cData.y);
-              console.log('X:', xArr, 'Y:', yArr);
+              const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
+              updateCoords(tool.id, x, y); // 🔹 store as percentage
+              console.log('Now at %:', x, y);
             }}
-            xCoords={tool.xCoords}
-            yCoords={tool.yCoords}
+            xCoords={xCoords}
+            yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
           />
@@ -466,12 +552,12 @@ const Measurement = () => {
             key={tool.id}
             scaleValue={scaleVal}
             getCoords={(xArr, yArr) => {
-              const cData = { x: xArr, y: yArr };
-              updateCoords(tool.id, cData.x, cData.y);
-              console.log('X:', xArr, 'Y:', yArr);
+              const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
+              updateCoords(tool.id, x, y); // 🔹 store as percentage
+              console.log('Now at %:', x, y);
             }}
-            xCoords={tool.xCoords}
-            yCoords={tool.yCoords}
+            xCoords={xCoords}
+            yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
           />
@@ -573,10 +659,15 @@ const Measurement = () => {
     // alert(file.filePath);
   };
 
+  const displayedSize = getDisplayedSize();
+
+  console.log('displayedSize', displayedSize);
+
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: 'white' }}>
-      <View
-        style={{
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
           flex: 1,
           flexDirection: 'row',
           marginRight: 10,
@@ -627,8 +718,19 @@ const Measurement = () => {
               <Animated.View style={[{ flex: 1 }, boxAnimatedStyles]}>
                 <Image
                   resizeMode="contain"
-                  style={{ flex: 1 }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'absolute',
+                    alignSelf: 'center',
+                  }}
                   source={{ uri: selectedPhoto }}
+                  onLayout={event => {
+                    const { width, height } = event.nativeEvent.layout;
+                    setContainerSize({ width, height });
+                    console.log('width', width);
+                    console.log('height', height);
+                  }}
                 />
                 <Svg
                   height="100%"
@@ -661,13 +763,6 @@ const Measurement = () => {
                 />
               )}
             />
-            {/* {TOOLS.map((item, index) => (
-              <TheTool
-                key={index}
-                toolName={item}
-                onPress={() => handleToolPress(item)}
-              />
-            ))} */}
           </View>
           <View style={styles.initialContainer}>
             <TheTextInput
@@ -741,7 +836,7 @@ const Measurement = () => {
           />
           <GapView length={useSafeAreaInsets().bottom + 10} />
         </ScrollView>
-      </View>
+      </ScrollView>
     </GestureHandlerRootView>
   );
 };
@@ -760,167 +855,6 @@ function Badge({ color }: { color: string }) {
     />
   );
 }
-
-// export function MeasureCard({
-//   type,
-//   onDelete,
-//   onEyePress,
-//   color,
-//   style,
-// }: {
-//   type: string;
-//   onDelete: () => void;
-//   onEyePress: (visible: boolean) => void;
-//   color?: string;
-//   style?: ViewStyle;
-// }) {
-//   const [visible, setVisible] = useState(true);
-//   const [lock, setLock] = useState(false);
-//   const [showDist, setShowDist] = useState(false);
-//   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-
-//   const [description, setDescription] = useState('');
-
-//   const RenderInputRow = ({
-//     label,
-//     dropdownId,
-//     index,
-//     length,
-//     onChange,
-//   }: {
-//     label?: string;
-//     dropdownId?: string;
-//     index?: number;
-//     length?: number;
-//     onChange: ({ key, value }: { key: string; value: string }) => void;
-//   }) => {
-//     return (
-//       <ToolInput
-//         label={label}
-//         onSelect={onChange}
-//         placeholder="0"
-//         id={dropdownId || ''}
-//         style={{ width: 70 }}
-//       />
-//     );
-//   };
-
-//   const onEye = () => {
-//     onEyePress(!visible);
-//     setVisible(!visible);
-//   };
-
-//   return (
-//     <View style={[styles.initialContainer, style]}>
-//       {/* Header */}
-//       <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
-//         <View style={[styles.rowContainer, { gap: 5, width: '70%' }]}>
-//           <Badge color={color || '#FBBF24'} />
-//           <TheText
-//             text={`${type} Measurement`}
-//             size={18}
-//             numberOfLines={1}
-//             style={{ fontWeight: '600', width: '88%' }}
-//           />
-//         </View>
-//         <View style={[styles.rowContainer, { gap: 5 }]}>
-//           {visible ? (
-//             <Eye color="#6B7280" onPress={onEye} />
-//           ) : (
-//             <EyeClosed color="#6B7280" onPress={onEye} />
-//           )}
-//           <TheToggle value={lock} onValueChange={setLock} />
-//           <Trash onPress={onDelete} />
-//         </View>
-//       </View>
-
-//       {/* Type-specific Inputs */}
-//       {type === 'Tape' && (
-//         <RenderInputRow
-//           dropdownId="tape"
-//           onChange={({ key, value }) => console.log('key', key, 'value', value)}
-//         />
-//       )}
-
-//       {type === 'Rake' && (
-//         <>
-//           <RenderInputRow
-//             dropdownId="rake"
-//             onChange={({ key, value }) =>
-//               console.log('key', key, 'value', value)
-//             }
-//           />
-//           <TheButton
-//             btnTitle="Distance"
-//             icon={showDist ? <Minus /> : <Plus />}
-//             onPress={() => setShowDist(!showDist)}
-//             btnColor={showDist ? '#fbeefdff' : border}
-//             titleStyle={{ fontWeight: 'bold' }}
-//             titleColor="black"
-//           />
-//           {showDist && (
-//             <RenderInputRow
-//               dropdownId="rake-distance"
-//               onChange={({ key, value }) =>
-//                 console.log('key', key, 'value', value)
-//               }
-//             />
-//           )}
-//         </>
-//       )}
-
-//       {type === 'Laser' && (
-//         <>
-//           <RenderInputRow
-//             label="Slide A"
-//             dropdownId="laser-slide-a"
-//             onChange={({ key, value }) =>
-//               console.log('key', key, 'value', value)
-//             }
-//           />
-//           <RenderInputRow
-//             label="Slide B"
-//             dropdownId="laser-slide-b"
-//             onChange={({ key, value }) =>
-//               console.log('key', key, 'value', value)
-//             }
-//           />
-//         </>
-//       )}
-
-//       {type === 'Rectangle' &&
-//         rectangleLabels.map((label, index) => (
-//           <RenderInputRow
-//             label={label}
-//             dropdownId={`rectangle-${index}`}
-//             onChange={({ key, value }) =>
-//               console.log('key', key, 'value', value)
-//             }
-//           />
-//         ))}
-
-//       {type === 'Corner' &&
-//         cornerLabels.map((label, index) => (
-//           <RenderInputRow
-//             label={label}
-//             dropdownId={`corner-${index}`}
-//             index={index}
-//             length={cornerLabels.length}
-//             onChange={({ key, value }) =>
-//               console.log('key', key, 'value', value)
-//             }
-//           />
-//         ))}
-//       {type === 'Note' && (
-//         <TheDescriptionBox
-//           placeholder="Enter your note text here"
-//           value={description}
-//           onChangeText={setDescription}
-//         />
-//       )}
-//     </View>
-//   );
-// }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },

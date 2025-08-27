@@ -35,12 +35,26 @@ const TapeTool = ({
   const initialX = xCoords;
   const initialY = yCoords;
 
+  console.log('initialX', xCoords);
+  console.log('initialY', yCoords);
+
   const points = initialX.map((x, i) => ({
     x: useSharedValue(x),
     y: useSharedValue(initialY[i]),
     prevX: useSharedValue(x),
     prevY: useSharedValue(initialY[i]),
   }));
+
+  React.useEffect(() => {
+    xCoords.forEach((x, i) => {
+      points[i].x.value = x;
+      points[i].prevX.value = x;
+    });
+    yCoords.forEach((y, i) => {
+      points[i].y.value = y;
+      points[i].prevY.value = y;
+    });
+  }, [xCoords, yCoords]);
 
   const panGestures = points.map((point, index) =>
     Gesture.Pan()

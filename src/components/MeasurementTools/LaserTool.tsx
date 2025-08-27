@@ -45,6 +45,17 @@ const LaserTool = ({
     prevY: useSharedValue(initialY[i]),
   }));
 
+  React.useEffect(() => {
+    initialX.forEach((x, i) => {
+      points[i].x.value = x;
+      points[i].prevX.value = x;
+    });
+    initialY.forEach((y, i) => {
+      points[i].y.value = y;
+      points[i].prevY.value = y;
+    });
+  }, [initialX, initialY]);
+
   const panGestures = points.map((point, index) =>
     Gesture.Pan()
       .minDistance(1)
