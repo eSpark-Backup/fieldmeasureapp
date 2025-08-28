@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import ProjectDetails from '../screens/ProjectDetails';
@@ -13,17 +13,39 @@ import Measurement from '../screens/Measurement';
 import { RootNavParamList } from '../types/navigationParams';
 import AddTechnician from '../screens/AddTechnician';
 import TechniciansList from '../screens/TechniciansList';
+import { useUserStore } from '../store/UserStore';
+import { ActivityIndicator, View } from 'react-native';
+import { background, primaryColor } from '../constants/colors';
 
 const Stack = createNativeStackNavigator<RootNavParamList>();
 
-const RootNavigation = () => {
+const AppNavigator = () => {
+  // const { user, hasHydrated } = useUserStore();
+
+  // console.log('hasHydrated', hasHydrated);
+
+  // if (!hasHydrated) {
+  //   return (
+  //     <View
+  //       style={{
+  //         flex: 1,
+  //         alignItems: 'center',
+  //         justifyContent: 'center',
+  //         backgroundColor: background,
+  //       }}
+  //     >
+  //       <ActivityIndicator size={'large'} color={primaryColor} />
+  //     </View>
+  //   );
+  // }
+
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
         animation: 'none',
       }}
-      // initialRouteName="Projects"
+      // initialRouteName={user ? 'Projects' : 'SignIn'}
     >
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="SignUp" component={SignUp} />
@@ -34,9 +56,9 @@ const RootNavigation = () => {
       <Stack.Screen
         name="ProjectDetails"
         component={ProjectDetails}
-        options={{
+        options={({ navigation, route }) => ({
           headerShown: true,
-          header: ({ navigation, route }) => {
+          header: () => {
             const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['ProjectDetails'];
             return (
@@ -50,14 +72,14 @@ const RootNavigation = () => {
               />
             );
           },
-        }}
+        })}
       />
       <Stack.Screen
         name="Measurement"
         component={Measurement}
-        options={{
+        options={({ navigation, route }) => ({
           headerShown: true,
-          header: ({ navigation, route }) => {
+          header: () => {
             const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['Measurement'];
             return (
@@ -71,14 +93,14 @@ const RootNavigation = () => {
               />
             );
           },
-        }}
+        })}
       />
       <Stack.Screen
         name="AllDetails"
         component={AllDetails}
-        options={{
+        options={({ navigation, route }) => ({
           headerShown: true,
-          header: ({ navigation, route }) => {
+          header: () => {
             const { qouteNumber, name, address, techName, date } =
               route.params as RootNavParamList['AllDetails'];
             return (
@@ -92,10 +114,14 @@ const RootNavigation = () => {
               />
             );
           },
-        }}
+        })}
       />
     </Stack.Navigator>
   );
+};
+
+const RootNavigation = () => {
+  return <AppNavigator />;
 };
 
 export default RootNavigation;

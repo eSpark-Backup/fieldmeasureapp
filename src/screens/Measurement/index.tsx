@@ -8,6 +8,28 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import Svg from 'react-native-svg';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ViewShot from 'react-native-view-shot';
+import uuid from 'react-native-uuid';
+import Animated, {
+  clamp,
+  runOnJS,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withDecay,
+  withTiming,
+} from 'react-native-reanimated';
+
 import {
   CornerTool,
   LaserTool,
@@ -22,27 +44,7 @@ import {
   RectangleTool,
   NoteTool,
 } from '../../components';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
-import Svg from 'react-native-svg';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ViewShot from 'react-native-view-shot';
-import uuid from 'react-native-uuid';
 // import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import Animated, {
-  clamp,
-  runOnJS,
-  useAnimatedReaction,
-  useAnimatedStyle,
-  useSharedValue,
-  withDecay,
-} from 'react-native-reanimated';
 
 import { Camera, RoundPlus, Upload } from '../../assets';
 
@@ -335,8 +337,18 @@ const Measurement = () => {
 
   useAnimatedReaction(
     () => scale.value,
-    newScale => {
+    (newScale, prevScale) => {
+      // update React state
       runOnJS(setScaleVal)(newScale);
+
+      // reset pan position when scale returns to 1
+      if (
+        prevScale &&
+        Math.abs(newScale - 1) < 0.01 &&
+        Math.abs(prevScale - 1) >= 0.01
+      ) {
+        translateY.value = withTiming(0, { duration: 200 });
+      }
     },
   );
 
@@ -485,7 +497,6 @@ const Measurement = () => {
     );
   };
 
-  // converting from displayed pixel coords → percentage coords
   const toPercentCoords = (
     xArr: number[],
     yArr: number[],
@@ -500,16 +511,15 @@ const Measurement = () => {
     return { x: percentX, y: percentY };
   };
 
-  // percentage coords → pixel coords for render
   const toPixelCoords = (
     xPercent: number[],
     yPercent: number[],
     displayedSize: any,
   ) => {
-    const xCoords = xPercent.map(
+    const xCoords = xPercent?.map(
       x => displayedSize.offsetX + (x / 100) * displayedSize.width,
     );
-    const yCoords = yPercent.map(
+    const yCoords = yPercent?.map(
       y => displayedSize.offsetY + (y / 100) * displayedSize.height,
     );
     return { x: xCoords, y: yCoords };
@@ -525,8 +535,11 @@ const Measurement = () => {
       displayedSize,
     );
 
-    console.log('xCoords', xCoords);
-    console.log('yCoords', yCoords);
+    const { x: xCoordsDist, y: yCoordsDist } = toPixelCoords(
+      tool.type == 'Rake' && tool.showDist ? tool?.xCoordsDist : [0, 0],
+      tool.type == 'Rake' && tool.showDist ? tool?.yCoordsDist : [0, 0],
+      displayedSize,
+    );
 
     switch (tool.type) {
       case 'Tape': {
@@ -536,7 +549,7 @@ const Measurement = () => {
             scaleValue={scaleVal}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
-              updateCoords(tool.id, x, y); // 🔹 store as percentage
+              updateCoords(tool.id, x, y);
               console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
@@ -553,7 +566,7 @@ const Measurement = () => {
             scaleValue={scaleVal}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
-              updateCoords(tool.id, x, y); // 🔹 store as percentage
+              updateCoords(tool.id, x, y);
               console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
@@ -569,19 +582,19 @@ const Measurement = () => {
             key={tool.id}
             scaleValue={scaleVal}
             getCoords={(xArr, yArr) => {
-              const cData = { x: xArr, y: yArr };
-              updateCoords(tool.id, cData.x, cData.y);
-              console.log('X:', xArr, 'Y:', yArr);
+              const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
+              updateCoords(tool.id, x, y);
+              console.log('Now at %:', x, y);
             }}
             getCoordsDist={(xArr, yArr) => {
-              const cData = { x: xArr, y: yArr };
-              updateDistCoords(tool.id, cData.x, cData.y);
-              console.log('X:', xArr, 'Y:', yArr);
+              const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
+              updateCoords(tool.id, x, y);
+              console.log('Now at %:', x, y);
             }}
-            xCoords={tool.xCoords}
-            yCoords={tool.yCoords}
-            xCoordsDist={tool.xCoordsDist}
-            yCoordsDist={tool.yCoordsDist}
+            xCoords={xCoords}
+            yCoords={yCoords}
+            xCoordsDist={xCoordsDist}
+            yCoordsDist={yCoordsDist}
             showDist={tool.showDist}
             data={tool.data}
             locked={tool.locked}
@@ -594,12 +607,12 @@ const Measurement = () => {
             key={tool.id}
             scaleValue={scaleVal}
             getCoords={(xArr, yArr) => {
-              const cData = { x: xArr, y: yArr };
-              updateCoords(tool.id, cData.x, cData.y);
-              console.log('X:', xArr, 'Y:', yArr);
+              const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
+              updateCoords(tool.id, x, y);
+              console.log('Now at %:', x, y);
             }}
-            xCoords={tool.xCoords}
-            yCoords={tool.yCoords}
+            xCoords={xCoords}
+            yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
           />
@@ -611,12 +624,12 @@ const Measurement = () => {
             key={tool.id}
             scaleValue={scaleVal}
             getCoords={(xArr, yArr) => {
-              const cData = { x: xArr, y: yArr };
-              updateCoords(tool.id, cData.x, cData.y);
-              console.log('X:', xArr, 'Y:', yArr);
+              const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
+              updateCoords(tool.id, x, y);
+              console.log('Now at %:', x, y);
             }}
-            xCoords={tool.xCoords}
-            yCoords={tool.yCoords}
+            xCoords={xCoords}
+            yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
           />
@@ -628,12 +641,12 @@ const Measurement = () => {
             key={tool.id}
             scaleValue={scaleVal}
             getCoords={(xArr, yArr) => {
-              const cData = { x: xArr, y: yArr };
-              updateCoords(tool.id, cData.x, cData.y);
-              console.log('X:', xArr, 'Y:', yArr);
+              const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
+              updateCoords(tool.id, x, y);
+              console.log('Now at %:', x, y);
             }}
-            xCoords={tool.xCoords}
-            yCoords={tool.yCoords}
+            xCoords={xCoords}
+            yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
           />
@@ -660,8 +673,6 @@ const Measurement = () => {
   };
 
   const displayedSize = getDisplayedSize();
-
-  console.log('displayedSize', displayedSize);
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -732,11 +743,7 @@ const Measurement = () => {
                     console.log('height', height);
                   }}
                 />
-                <Svg
-                  height="100%"
-                  width="100%"
-                  style={{ position: 'absolute' }}
-                >
+                <Svg height="100" width="100%" style={{ position: 'absolute' }}>
                   {tools.map(tool => renderTools(tool))}
                 </Svg>
               </Animated.View>

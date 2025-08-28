@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
-import { Line, Line as SVGLine, Text as SVGText } from 'react-native-svg';
+import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
@@ -9,13 +9,12 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
-import { TapeItem } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
-const AnimatedText = Animated.createAnimatedComponent(SVGText);
 
 const TapeTool = ({
   scaleValue,
@@ -45,16 +44,16 @@ const TapeTool = ({
     prevY: useSharedValue(initialY[i]),
   }));
 
-  React.useEffect(() => {
-    xCoords.forEach((x, i) => {
+  useEffect(() => {
+    initialX.forEach((x, i) => {
       points[i].x.value = x;
       points[i].prevX.value = x;
     });
-    yCoords.forEach((y, i) => {
+    initialY.forEach((y, i) => {
       points[i].y.value = y;
       points[i].prevY.value = y;
     });
-  }, [xCoords, yCoords]);
+  }, [initialX, initialY]);
 
   const panGestures = points.map((point, index) =>
     Gesture.Pan()

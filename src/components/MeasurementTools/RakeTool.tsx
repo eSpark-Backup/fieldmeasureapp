@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -9,8 +9,9 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+
 import TheText from '../TheText';
-import { background, WhiteBackground } from '../../constants/colors';
+import { WhiteBackground } from '../../constants/colors';
 import { MeasurementPair } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
@@ -56,12 +57,34 @@ const RakeTool = ({
     prevY: useSharedValue(initialY[i]),
   }));
 
+  useEffect(() => {
+    initialX.forEach((x, i) => {
+      points[i].x.value = x;
+      points[i].prevX.value = x;
+    });
+    initialY.forEach((y, i) => {
+      points[i].y.value = y;
+      points[i].prevY.value = y;
+    });
+  }, [initialX, initialY]);
+
   const pointsDist = initialDistX.map((x, i) => ({
     x: useSharedValue(x),
     y: useSharedValue(initialDistY[i]),
     prevX: useSharedValue(x),
     prevY: useSharedValue(initialDistY[i]),
   }));
+
+  useEffect(() => {
+    initialDistX.forEach((x, i) => {
+      pointsDist[i].x.value = x;
+      pointsDist[i].prevX.value = x;
+    });
+    initialDistY.forEach((y, i) => {
+      pointsDist[i].y.value = y;
+      pointsDist[i].prevY.value = y;
+    });
+  }, [initialDistX, initialDistY]);
 
   const panGestures = points.map((point, index) =>
     Gesture.Pan()

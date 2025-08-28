@@ -14,12 +14,14 @@ import { Formik } from 'formik';
 import { SignInSchema } from '../../constants/validations/schema';
 import { creds } from '../../constants';
 import { useProjectStore } from '../../store/ProjectsStore';
+import { useUserStore } from '../../store/UserStore';
 
 type SignInProps = NativeStackScreenProps<RootNavParamList, 'SignIn'>;
 
 const SignIn = () => {
   const navigation = useNavigation<SignInProps['navigation']>();
   const technicians = useProjectStore(state => state.technicians);
+  const { saveUser } = useUserStore();
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
@@ -34,6 +36,7 @@ const SignIn = () => {
               values.password === creds.password
             ) {
               navigation.navigate('Projects', { role: 'admin' });
+              saveUser({ email: values.email.toLowerCase(), role: 'admin' });
             } else {
               const tech = technicians.find(
                 t =>
@@ -45,6 +48,10 @@ const SignIn = () => {
                   role: 'technician',
                   techId: tech.id,
                   techName: tech.firstName + ' ' + tech.lastName,
+                });
+                saveUser({
+                  email: values.email.toLowerCase(),
+                  role: 'technician',
                 });
               } else {
                 Alert.alert('Invalid credentials');

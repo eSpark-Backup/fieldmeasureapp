@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
 
@@ -36,6 +37,17 @@ const NoteTool = ({
     prevX: useSharedValue(x),
     prevY: useSharedValue(initialY[i]),
   }));
+
+  useEffect(() => {
+    initialX.forEach((x, i) => {
+      points[i].x.value = x;
+      points[i].prevX.value = x;
+    });
+    initialY.forEach((y, i) => {
+      points[i].y.value = y;
+      points[i].prevY.value = y;
+    });
+  }, [initialX, initialY]);
 
   const panGestures = points.map((point, index) =>
     Gesture.Pan()

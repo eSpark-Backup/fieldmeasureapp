@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -9,6 +9,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
 import { MeasurementPair } from '../../types';
@@ -45,7 +46,7 @@ const LaserTool = ({
     prevY: useSharedValue(initialY[i]),
   }));
 
-  React.useEffect(() => {
+  useEffect(() => {
     initialX.forEach((x, i) => {
       points[i].x.value = x;
       points[i].prevX.value = x;

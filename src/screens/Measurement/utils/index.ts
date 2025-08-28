@@ -77,21 +77,16 @@ export const createNewTool = (
 ): Tool => {
   const baseId = `${type.toLowerCase()}${uuid.v4()}`;
 
-  const initialNX = [width / 2 / 2];
-  const initialNY = [height / 3.5];
+  const initialNX = [5];
+  const initialNY = [5];
 
   const initialX = [5, 5];
   const initialY = [5, 50];
 
   console.log('initialX', initialX);
 
-  const initialRX = [
-    width / 2 / 3,
-    width / 2 / 3,
-    width / 1.2 / 2,
-    width / 1.2 / 2,
-  ];
-  const initialRY = [height / 3.5, height / 2, height / 2, height / 3.5];
+  const initialRX = [5, 5, 80, 80];
+  const initialRY = [5, 50, 50, 5];
 
   const initialCX = [
     width / 2 / 3,
