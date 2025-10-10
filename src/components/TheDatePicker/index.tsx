@@ -1,90 +1,96 @@
+import React, { useState } from 'react';
 import {
   View,
   TextInput,
-  TextStyle,
   StyleSheet,
-  ViewStyle,
   TouchableOpacity,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
-import React, { useState } from 'react';
-import TheText from '../TheText';
 import DatePicker from 'react-native-modal-datetime-picker';
+import TheText from '../TheText';
 import { border } from '../../constants/colors';
 
-const TheTextInput = ({
+interface TheDatePickerProps {
+  label?: string;
+  required?: boolean;
+  value?: string | Date | null;
+  onChange?: (date: Date) => void;
+  containerStyle?: ViewStyle;
+  inputStyle?: TextStyle;
+  error?: string;
+}
+
+const TheDatePicker: React.FC<TheDatePickerProps> = ({
   label,
-  containerStyle,
-  style,
   required,
   value,
   onChange,
+  containerStyle,
+  inputStyle,
   error,
-}: {
-  label: string;
-  containerStyle?: TextStyle;
-  style?: TextStyle;
-  required?: boolean;
-  value: string;
-  onChange?: (date: Date) => void;
-  error?: string;
 }) => {
   const [showPicker, setShowPicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return '';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toDateString();
+  };
 
   return (
     <View style={containerStyle}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingVertical: 5,
-        }}
-      >
-        {label && <TheText style={styles.label} text={label} />}
-        {required && <TheText style={styles.required} text=" *" />}
-      </View>
+      {(label || required) && (
+        <View style={styles.labelRow}>
+          {label && <TheText style={styles.label} text={label} />}
+          {required && <TheText style={styles.required} text=" *" />}
+        </View>
+      )}
+
       <TouchableOpacity activeOpacity={0.8} onPress={() => setShowPicker(true)}>
         <TextInput
-          value={value}
-          style={[styles.inputStyle, style]}
+          value={formatDate(value ?? null)}
+          style={[styles.inputStyle, inputStyle]}
           editable={false}
+          placeholder="Select date"
+          placeholderTextColor="#888"
         />
       </TouchableOpacity>
+
       <DatePicker
         isVisible={showPicker}
         mode="date"
         onConfirm={date => {
           setShowPicker(false);
-          setSelectedDate(date);
           onChange?.(date);
         }}
         onCancel={() => setShowPicker(false)}
       />
+
       {error ? (
-        <TheText
-          text={error}
-          color={'red'}
-          style={styles.errorText}
-          size={10}
-        />
+        <TheText text={error} color="red" style={styles.errorText} size={10} />
       ) : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+  },
+  label: { fontWeight: '500', fontSize: 16 },
+  required: { fontSize: 16, color: 'red' },
   inputStyle: {
     fontSize: 16,
     color: '#000',
     paddingHorizontal: 15,
+    paddingVertical: 10,
     backgroundColor: '#F5F5F5',
     borderColor: border,
     borderWidth: 1,
     borderRadius: 5,
-  },
-  label: { fontWeight: '500', fontSize: 16 },
-  required: {
-    fontSize: 16,
   },
   errorText: {
     paddingTop: 4,
@@ -92,4 +98,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TheTextInput;
+export default TheDatePicker;

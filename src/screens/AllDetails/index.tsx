@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   GapView,
   TheButton,
@@ -28,14 +28,18 @@ const AllDetails = () => {
   const [selectedValues, setSelectedValues] = useState(
     () => tempMeasure?.selectedValues || generateInitialValues(),
   );
+  const { setTempMeasure, tempMeasure } = useProjectStore();
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [inputs, setInputs] = useState<{ [key: string]: string }>(
     initialInputs,
   );
+  const [datePromised, setDatePromised] = useState<Date | null>(
+    tempMeasure.datePromised ? new Date(tempMeasure.datePromised) : null,
+  );
+
   const navigation = useNavigation();
-  const { setTempMeasure, tempMeasure } = useProjectStore();
 
   const skipPromptRef = useRef(false);
 
@@ -87,37 +91,45 @@ const AllDetails = () => {
         JSON.stringify(selectedValues) ==
           JSON.stringify(tempMeasure.selectedValues) &&
         inputs == tempMeasure.inputs &&
-        description == tempMeasure.description
+        description == tempMeasure.description &&
+        datePromised == tempMeasure.datePromised
       ) {
         navigation.dispatch(e.data.action);
         return;
       }
 
       e.preventDefault();
-      Alert.alert(
-        'Save Changes?',
-        'Would you like to save your measurements before leaving?',
-        [
-          {
-            text: "Don't Save",
-            style: 'destructive',
-            onPress: () => navigation.dispatch(e.data.action),
-          },
-          {
-            text: 'Save',
-            style: 'default',
-            onPress: () => {
-              const saved = handleSubmit();
-              if (saved) {
-                navigation.dispatch(e.data.action);
-              } else {
-                skipPromptRef.current = false;
-              }
-            },
-          },
-          { text: 'Cancel', style: 'cancel' },
-        ],
-      );
+      const saved = handleSubmit();
+      if (saved) {
+        navigation.dispatch(e.data.action);
+      } else {
+        skipPromptRef.current = false;
+      }
+      // fix: Clicking Back button should auto-save without confirmation.
+      // Alert.alert(
+      //   'Save Changes?',
+      //   'Would you like to save your measurements before leaving?',
+      //   [
+      //     {
+      //       text: "Don't Save",
+      //       style: 'destructive',
+      //       onPress: () => navigation.dispatch(e.data.action),
+      //     },
+      //     {
+      //       text: 'Save',
+      //       style: 'default',
+      //       onPress: () => {
+      //         const saved = handleSubmit();
+      //         if (saved) {
+      //           navigation.dispatch(e.data.action);
+      //         } else {
+      //           skipPromptRef.current = false;
+      //         }
+      //       },
+      //     },
+      //     { text: 'Cancel', style: 'cancel' },
+      //   ],
+      // );
     });
 
     return unsubscribe;
@@ -133,12 +145,20 @@ const AllDetails = () => {
     }
   };
 
+  useEffect(() => {
+    if (datePromised instanceof Date && !isNaN(datePromised.getTime())) {
+      console.log('🗓️ Date promised updated:', datePromised.toISOString());
+    } else {
+      console.log('⚠️ Invalid or empty datePromised:', datePromised);
+    }
+  }, [datePromised]);
+
   const handleSubmit = useCallback(() => {
     const newErrors: { [key: string]: string } = {};
-
-    DROPDOWNS.forEach(({ id, title }) => {
-      if (!selectedValues[id]) newErrors[id] = `${title} is required`;
-    });
+    // fix: non-mandatory screen
+    // DROPDOWNS.forEach(({ id, title }) => {
+    //   if (!selectedValues[id]) newErrors[id] = `${title} is required`;
+    // });
 
     INPUT_FIELDS.forEach(({ field, label }) => {
       const value = inputs[field];
@@ -148,13 +168,13 @@ const AllDetails = () => {
     });
 
     setErrors(newErrors);
-
     if (!Object.keys(newErrors).length) {
       const tempData = {
         selectedValues,
         inputs,
         description,
-        timestamp: Date.now(), // optional, can help with sorting
+        datePromised: datePromised ? datePromised.toISOString() : null,
+        timestamp: Date.now(),
       };
 
       setTempMeasure(tempData);
@@ -164,7 +184,14 @@ const AllDetails = () => {
       console.log('Validation Errors:', newErrors);
       return false;
     }
-  }, [selectedValues, inputs, description, navigation, setTempMeasure]);
+  }, [
+    selectedValues,
+    inputs,
+    description,
+    navigation,
+    datePromised,
+    setTempMeasure,
+  ]);
 
   useEffect(() => {
     if (tempMeasure) {
@@ -180,6 +207,11 @@ const AllDetails = () => {
 
       if (tempMeasure.description) {
         setDescription(tempMeasure.description);
+      }
+
+      if (tempMeasure.datePromised) {
+        setDatePromised(new Date(tempMeasure.datePromised));
+        console.log(tempMeasure.datePromised.toString());
       }
     }
   }, []);
@@ -232,11 +264,10 @@ const AllDetails = () => {
         ))}
         <TheDatePicker
           label="Date promised"
-          style={{ color: '#000' }}
-          value={''}
-          containerStyle={{}}
-          onChange={date => {}}
+          value={datePromised}
+          onChange={date => setDatePromised(date)}
         />
+
         <GapView length={25} mode="vertical" />
         <TheButton btnTitle="Done" onPress={handleSaveAndGoBack} />
         <GapView length={useSafeAreaInsets().bottom} mode="vertical" />

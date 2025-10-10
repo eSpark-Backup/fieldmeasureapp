@@ -9,6 +9,11 @@ export interface Technician {
   lastName: string;
   email: string;
   password: string; // plain text for now, but should be hashed in production
+  permissions: {
+    delete: boolean;
+    modify: boolean;
+    create: boolean;
+  };
 }
 
 interface ProjectStoreTypes {

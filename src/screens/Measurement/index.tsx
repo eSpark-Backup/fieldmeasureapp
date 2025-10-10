@@ -207,27 +207,30 @@ const Measurement = () => {
       }
 
       e.preventDefault();
-      Alert.alert(
-        'Save Changes?',
-        'Would you like to save your measurements before leaving?',
-        [
-          {
-            text: "Don't Save",
-            style: 'destructive',
-            onPress: () => navigation.dispatch(e.data.action),
-          },
-          {
-            text: 'Save',
-            style: 'default',
-            onPress: () => {
-              handleSaveMeasurements(() => {
-                navigation.dispatch(e.data.action);
-              });
-            },
-          },
-          { text: 'Cancel', style: 'cancel' },
-        ],
-      );
+      handleSaveMeasurements(() => {
+        navigation.dispatch(e.data.action);
+      });
+      // Alert.alert(
+      //   'Save Changes?',
+      //   'Would you like to save your measurements before leaving?',
+      //   [
+      //     {
+      //       text: "Don't Save",
+      //       style: 'destructive',
+      //       onPress: () => navigation.dispatch(e.data.action),
+      //     },
+      //     {
+      //       text: 'Save',
+      //       style: 'default',
+      //       onPress: () => {
+      //         handleSaveMeasurements(() => {
+      //           navigation.dispatch(e.data.action);
+      //         });
+      //       },
+      //     },
+      //     { text: 'Cancel', style: 'cancel' },
+      //   ],
+      // );
     });
 
     return unsubscribe;
@@ -266,11 +269,11 @@ const Measurement = () => {
       return false;
     }
 
-    if (tempMeasure == null) {
-      showToast('Add measure details data to save.');
-      skipPromptRef.current = false;
-      return false;
-    }
+    // if (tempMeasure == null) {
+    //   showToast('Add measure details data to save.');
+    //   skipPromptRef.current = false;
+    //   return false;
+    // }
 
     const sanitized = tools.map(({ locked, hidden, ...rest }) => rest);
 
