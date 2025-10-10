@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import React from 'react';
 
 import { MeasuresList, TheText } from '../../components';
@@ -8,9 +8,11 @@ import { RootNavParamList } from '../../types/navigationParams';
 import { Project } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 
+type ProjectsProps = NativeStackScreenProps<RootNavParamList, 'ProjectDetails'>;
+
 const ProjectDetails = () => {
-  const route = useRoute<NativeStackScreenProps<RootNavParamList>['route']>();
-  const { id: projectId } = route.params as Project;
+  const route = useRoute<ProjectsProps['route']>();
+  const { id: projectId, role, techName } = route.params;
 
   const { projects } = useProjectStore();
 
@@ -29,7 +31,7 @@ const ProjectDetails = () => {
 
   return (
     <View style={styles.mainContainer}>
-      <MeasuresList {...currentProject} />
+      <MeasuresList project={currentProject} role={role} techName={techName} />
     </View>
   );
 };

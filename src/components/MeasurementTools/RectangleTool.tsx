@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -9,8 +9,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
+import { MeasurementPair } from '../../types';
+import { formatInches, formatInchesSum } from './utils';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -20,11 +23,18 @@ const RectangleTool = ({
   getCoords,
   xCoords,
   yCoords,
+  data,
+  locked,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
+  data: Record<
+    'TopA' | 'TopB' | 'RightA' | 'RightB' | 'BotA' | 'BotB' | 'LeftA' | 'LeftB',
+    MeasurementPair
+  >;
+  locked?: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -35,6 +45,17 @@ const RectangleTool = ({
     prevX: useSharedValue(x),
     prevY: useSharedValue(initialY[i]),
   }));
+
+  useEffect(() => {
+    initialX.forEach((x, i) => {
+      points[i].x.value = x;
+      points[i].prevX.value = x;
+    });
+    initialY.forEach((y, i) => {
+      points[i].y.value = y;
+      points[i].prevY.value = y;
+    });
+  }, [initialX, initialY]);
 
   const panGestures = points.map((point, index) =>
     Gesture.Pan()
@@ -80,69 +101,246 @@ const RectangleTool = ({
     }));
   });
 
-  const animatedInfo = (p1: any, p2: any) =>
-    useAnimatedStyle(() => {
-      // Get mid-point between points
+  const animatedInfo = (p1: any, p2: any) => {
+    return useAnimatedStyle(() => {
+      const dx = p2.x.value - p1.x.value;
+      const dy = p2.y.value - p1.y.value;
+
+      const length = Math.sqrt(dx * dx + dy * dy); // distance between points
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+      // Normalize angle so text is never upside-down
+      if (angle > 90 || angle < -90) {
+        angle += 180;
+      }
+
       const midX = (p1.x.value + p2.x.value) / 2;
       const midY = (p1.y.value + p2.y.value) / 2;
 
-      // Calculate rotation in radians → degrees
-      const angleDeg =
-        Math.atan2(p2.y.value - p1.y.value, p2.x.value - p1.x.value) *
-        (180 / Math.PI);
-
       return {
-        width: 80 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-        height: 20 * (2 / scaleValue / 2),
+        width: length,
+        height: 20 / scaleValue, // keep same scale effect
+        position: 'absolute',
         transform: [
-          { translateX: midX - 30 * (2 / scaleValue / 2) },
-          { translateY: midY - 10 * (2 / scaleValue / 2) },
-          { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
+          { translateX: midX - length / 2 }, // center horizontally
+          { translateY: midY - 20 / scaleValue / 2 }, // center vertically
+          { rotate: `${angle}deg` },
         ],
       };
     });
+  };
 
   // Four sides of rectangle
-  const topStyle = animatedInfo(points[0], points[1]);
-  const rightStyle = animatedInfo(points[1], points[2]);
-  const bottomStyle = animatedInfo(points[2], points[3]);
-  const leftStyle = animatedInfo(points[3], points[0]);
+  const leftStyle = animatedInfo(points[0], points[1]);
+  const bottomStyle = animatedInfo(points[1], points[2]);
+  const rightStyle = animatedInfo(points[2], points[3]);
+  const topStyle = animatedInfo(points[3], points[0]);
 
   return (
     <View style={{ position: 'absolute' }}>
-      <Animated.View style={[styles.box2, topStyle]}>
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text="M1:0"
-        />
-      </Animated.View>
-      <Animated.View style={[styles.box2, rightStyle]}>
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text="M1:0"
-        />
+      <Animated.View style={[styles.box2, leftStyle]}>
+        <View
+          style={{
+            flexDirection: 'row-reverse',
+            justifyContent: 'space-around',
+            width: '100%',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`A: ${formatInches(data.LeftA)}`}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`${formatInchesSum(data.LeftA, data.LeftB)}`}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`B: ${formatInches(data.LeftA)}`}
+            />
+          </View>
+        </View>
       </Animated.View>
       <Animated.View style={[styles.box2, bottomStyle]}>
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text="M1:0"
-        />
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            width: '100%',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`A: ${formatInches(data.BotA)}`}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={formatInchesSum(data.BotA, data.BotB)}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`B: ${formatInches(data.BotB)}`}
+            />
+          </View>
+        </View>
       </Animated.View>
-      <Animated.View style={[styles.box2, leftStyle]}>
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text="M1:0"
-        />
+      <Animated.View style={[styles.box2, rightStyle]}>
+        <View
+          style={{
+            flexDirection: 'row-reverse',
+            justifyContent: 'space-around',
+            width: '100%',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`A: ${formatInches(data.RightA)}`}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={formatInchesSum(data.RightA, data.RightB)}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`B: ${formatInches(data.RightB)}`}
+            />
+          </View>
+        </View>
       </Animated.View>
-      {points.map((_, i) => (
-        <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
-          <Animated.View style={[styles.box, animatedStyles[i]]} />
-        </GestureDetector>
-      ))}
+      <Animated.View style={[styles.box2, topStyle]}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            width: '100%',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`A: ${formatInches(data.TopA)}`}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={formatInchesSum(data.TopA, data.TopB)}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#15803d',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`B: ${formatInches(data.TopB)}`}
+            />
+          </View>
+        </View>
+      </Animated.View>
+      {!locked
+        ? points.map((_, i) => (
+            <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
+              <Animated.View style={[styles.box, animatedStyles[i]]} />
+            </GestureDetector>
+          ))
+        : null}
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}
@@ -169,7 +367,7 @@ const styles = StyleSheet.create({
     // height: 20,
     // width: 20,
     position: 'absolute',
-    backgroundColor: '#15803d',
+    // backgroundColor: '#15803d',
     alignItems: 'center',
     // borderRadius: 20,
     // borderWidth: 1,

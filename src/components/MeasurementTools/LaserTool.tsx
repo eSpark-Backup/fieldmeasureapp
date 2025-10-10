@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -9,8 +9,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
+import { MeasurementPair } from '../../types';
+import { formatInches, formatInchesSum } from './utils';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -20,11 +23,18 @@ const LaserTool = ({
   getCoords,
   xCoords,
   yCoords,
+  data,
+  locked,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
+  data: {
+    SlideA: MeasurementPair;
+    SlideB: MeasurementPair;
+  };
+  locked?: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -35,6 +45,17 @@ const LaserTool = ({
     prevX: useSharedValue(x),
     prevY: useSharedValue(initialY[i]),
   }));
+
+  useEffect(() => {
+    initialX.forEach((x, i) => {
+      points[i].x.value = x;
+      points[i].prevX.value = x;
+    });
+    initialY.forEach((y, i) => {
+      points[i].y.value = y;
+      points[i].prevY.value = y;
+    });
+  }, [initialX, initialY]);
 
   const panGestures = points.map((point, index) =>
     Gesture.Pan()
@@ -71,55 +92,6 @@ const LaserTool = ({
     })),
   );
 
-  const animatedInfoLeft = useAnimatedStyle(() => {
-    // Get mid-point between points
-    const midX =
-      (points[0].x.value + points[0].x.value + points[1].x.value) / 4;
-    const midY = (points[0].y.value + points[1].y.value) / 2;
-
-    // Calculate rotation in radians → degrees
-    const angleDeg =
-      Math.atan2(
-        points[1].y.value - points[0].y.value,
-        points[1].x.value - points[0].x.value,
-      ) *
-      (180 / Math.PI);
-
-    return {
-      width: 80 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-      height: 20 * (2 / scaleValue / 2),
-      transform: [
-        { translateX: midX - 30 * (2 / scaleValue / 2) },
-        { translateY: midY - 10 * (2 / scaleValue / 2) },
-        { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
-      ],
-    };
-  });
-
-  // const animatedInfoCenter = useAnimatedStyle(() => {
-  //   // Get mid-point between points
-  //   const midX = (points[0].x.value + points[1].x.value) / 2;
-  //   const midY = (points[0].y.value + points[1].y.value) / 2;
-
-  //   // Calculate rotation in radians → degrees
-  //   const angleDeg =
-  //     Math.atan2(
-  //       points[1].y.value - points[0].y.value,
-  //       points[1].x.value - points[0].x.value,
-  //     ) *
-  //     (180 / Math.PI);
-
-  //   return {
-  //     width: 80 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-  //     height: 20 * (2 / scaleValue / 2),
-  //     transform: [
-  //       { translateX: midX - 30 * (2 / scaleValue / 2) },
-  //       { translateY: midY - 10 * (2 / scaleValue / 2) },
-  //       { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
-  //     ],
-  //   };
-  // });
-
   const animatedInfoCenter = useAnimatedStyle(() => {
     const dx = points[1].x.value - points[0].x.value;
     const dy = points[1].y.value - points[0].y.value;
@@ -142,44 +114,6 @@ const LaserTool = ({
     };
   });
 
-  const animatedInfoRight = useAnimatedStyle(() => {
-    const p0x = points[0].x.value;
-    const p0y = points[0].y.value;
-    const p1x = points[1].x.value;
-    const p1y = points[1].y.value;
-
-    // Midpoint between points
-    const midX = (p0x + p1x) / 2;
-    const midY = (p0y + p1y) / 2;
-
-    // Direction vector from p0 → p1
-    const dx = p1x - p0x;
-    const dy = p1y - p0y;
-
-    // Normalize direction vector
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / length;
-    const uy = dy / length;
-
-    // Shift along the line's direction (positive = toward point 1)
-    const offsetAlongLine = 40; // adjust this value to set gap
-    const shiftedX = midX + ux * offsetAlongLine;
-    const shiftedY = midY + uy * offsetAlongLine;
-
-    // Rotation in degrees
-    const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
-
-    return {
-      width: 80 * (2 / scaleValue / 2),
-      height: 20 * (2 / scaleValue / 2),
-      transform: [
-        { translateX: shiftedX - 30 * (2 / scaleValue / 2) },
-        { translateY: shiftedY - 10 * (2 / scaleValue / 2) },
-        { rotate: `${angleDeg}deg` },
-      ],
-    };
-  });
-
   const animatedLines = [...Array(1)].map((_, i) => {
     return useAnimatedProps(() => ({
       x1: points[i].x.value,
@@ -191,13 +125,6 @@ const LaserTool = ({
 
   return (
     <View style={{ position: 'absolute' }}>
-      {/* <Animated.View style={[styles.box2, animatedInfoLeft]}>
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text="M1:0"
-        />
-      </Animated.View> */}
       <Animated.View style={[styles.box2, animatedInfoCenter]}>
         <View
           style={{
@@ -216,7 +143,22 @@ const LaserTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="M1:0"
+              text={`LB: ${formatInches(data.SlideB)}`}
+            />
+          </View>
+          <View
+            style={{
+              backgroundColor: '#b91c1c',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+              position: 'absolute',
+              top: '100%',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`L1: ${formatInchesSum(data.SlideA, data.SlideB)}`}
             />
           </View>
           <View
@@ -229,20 +171,7 @@ const LaserTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text="M1:0"
-            />
-          </View>
-          <View
-            style={{
-              backgroundColor: '#b91c1c',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text="M1:0"
+              text={`LA: ${formatInches(data.SlideA)}`}
             />
           </View>
         </View>
@@ -254,11 +183,13 @@ const LaserTool = ({
           text="M1:0"
         />
       </Animated.View> */}
-      {points.map((_, i) => (
-        <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
-          <Animated.View style={[styles.box, animatedStyles[i]]} />
-        </GestureDetector>
-      ))}
+      {!locked
+        ? points.map((_, i) => (
+            <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
+              <Animated.View style={[styles.box, animatedStyles[i]]} />
+            </GestureDetector>
+          ))
+        : null}
       {animatedLines.map((props, i) => (
         <AnimatedLine
           key={`line-${i}`}

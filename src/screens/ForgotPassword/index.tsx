@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TheButton, TheText, TheTextInput } from '../../components';
 import { BuildingLogo } from '../../assets';
@@ -25,57 +25,59 @@ const ForgotPassword = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.logoContainer}>
-        <BuildingLogo />
-      </View>
+      <ScrollView>
+        <View style={styles.logoContainer}>
+          <BuildingLogo />
+        </View>
 
-      <Formik
-        initialValues={{ email: '' }}
-        validationSchema={ForgotPasswordSchema}
-        onSubmit={handleForgotPassword}
-      >
-        {({
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          values,
-          errors,
-          touched,
-        }) => (
-          <View style={styles.formContainer}>
-            <TheText
-              text="Please enter the address associated with your account"
-              style={styles.headerText}
-              size={18}
-            />
+        <Formik
+          initialValues={{ email: '' }}
+          validationSchema={ForgotPasswordSchema}
+          onSubmit={handleForgotPassword}
+        >
+          {({
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            values,
+            errors,
+            touched,
+          }) => (
+            <View style={styles.formContainer}>
+              <TheText
+                text="Please enter the address associated with your account"
+                style={styles.headerText}
+                size={18}
+              />
 
-            <TheTextInput
-              label="Email"
-              placeholder="abd@gmail.com"
-              value={values.email}
-              onChange={handleChange('email')}
-              onBlur={handleBlur('email')}
-              error={touched.email && errors.email ? errors.email : ''}
-            />
+              <TheTextInput
+                label="Email"
+                placeholder="abd@gmail.com"
+                value={values.email}
+                onChange={handleChange('email')}
+                onBlur={handleBlur('email')}
+                error={touched.email && errors.email ? errors.email : ''}
+              />
 
-            <TheButton
-              btnTitle="Submit"
-              onPress={handleSubmit}
-              style={styles.loginButton}
-            />
-          </View>
-        )}
-      </Formik>
+              <TheButton
+                btnTitle="Submit"
+                onPress={handleSubmit}
+                style={styles.loginButton}
+              />
+            </View>
+          )}
+        </Formik>
 
-      <View style={styles.footer}>
-        <TheText text="New to Skyline? " style={styles.footerText} />
-        <TheText
-          text="Create Account"
-          onPress={() => navigation.navigate('SignUp')}
-          style={styles.createAccount}
-          color={primaryColor}
-        />
-      </View>
+        <View style={styles.footer}>
+          <TheText text="New to Skyline? " style={styles.footerText} />
+          <TheText
+            text="Create Account"
+            onPress={() => navigation.navigate('SignUp')}
+            style={styles.createAccount}
+            color={primaryColor}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -89,8 +91,8 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: '18%',
-    paddingBottom: '20%',
+    // paddingTop: '18%',
+    // paddingBottom: '20%',
   },
   formContainer: {
     paddingVertical: '10%',
