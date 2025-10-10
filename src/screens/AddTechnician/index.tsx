@@ -28,8 +28,12 @@ const AddTechnician = () => {
       lastName: values.lastName,
       email: values.email.toLowerCase(),
       password: values.password, // ⚠ In real apps, hash this
+      permissions: {
+        delete: true,
+        modify: true,
+        create: true,
+      },
     };
-
     addTechnician(newTech);
     Alert.alert('Success', 'Technician added successfully!', [{ text: 'OK' }], {
       cancelable: false,

@@ -1,4 +1,11 @@
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 import React, { useState } from 'react';
 import { Technician, useProjectStore } from '../../store/ProjectsStore';
 import { background, border, lightBackground } from '../../constants/colors';
@@ -38,6 +45,7 @@ const TechniciansList = () => {
       lastName: values.lastName,
       email: values.email.toLowerCase(),
       password: values.password, // ⚠ In real apps, hash this
+      permissions: values.permissions,
     };
 
     editTechnician(newTech);
@@ -97,6 +105,7 @@ const TechniciansList = () => {
               setSelectedTech(item);
             }}
             onDelete={() => removeTechnician(item.id)}
+            key={item.id}
           />
         ))
       ) : !showEdit ? (
@@ -123,6 +132,11 @@ const TechniciansList = () => {
             email: selectedTech?.email,
             password: selectedTech?.password,
             confirmPassword: selectedTech?.password,
+            permissions: selectedTech?.permissions || {
+              delete: false,
+              modify: false,
+              create: false,
+            },
           }}
           validationSchema={SignUpSchema}
           onSubmit={handleEditTechnician}
@@ -134,6 +148,7 @@ const TechniciansList = () => {
             values,
             errors,
             touched,
+            setFieldValue,
           }) => (
             <View style={styles.formContainer}>
               <TheTextInput
@@ -188,6 +203,52 @@ const TechniciansList = () => {
                     : ''
                 }
               />
+              <View style={styles.permissionsContainer}>
+                <TheText
+                  size={18}
+                  style={{ fontWeight: '600', marginBottom: 10 }}
+                  text="Permissions"
+                />
+
+                <View style={styles.permissionRow}>
+                  <TheText size={16} text="Delete" />
+                  <Switch
+                    value={values.permissions?.delete || false}
+                    onValueChange={val => {
+                      setFieldValue('permissions', {
+                        ...values.permissions,
+                        delete: val,
+                      });
+                    }}
+                  />
+                </View>
+
+                <View style={styles.permissionRow}>
+                  <TheText size={16} text="Modify" />
+                  <Switch
+                    value={values.permissions?.modify || false}
+                    onValueChange={val => {
+                      setFieldValue('permissions', {
+                        ...values.permissions,
+                        modify: val,
+                      });
+                    }}
+                  />
+                </View>
+
+                <View style={styles.permissionRow}>
+                  <TheText size={16} text="Create" />
+                  <Switch
+                    value={values.permissions?.create || false}
+                    onValueChange={val => {
+                      setFieldValue('permissions', {
+                        ...values.permissions,
+                        create: val,
+                      });
+                    }}
+                  />
+                </View>
+              </View>
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
               >
@@ -231,5 +292,19 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: 'center',
     marginTop: 32,
+  },
+  permissionsContainer: {
+    marginTop: 20,
+    backgroundColor: lightBackground,
+    borderRadius: 10,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: border,
+  },
+  permissionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
 });
