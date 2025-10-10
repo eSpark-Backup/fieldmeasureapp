@@ -137,7 +137,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
             <ScrollView
               style={{
                 backgroundColor: background,
-                maxHeight: 150,
+                maxHeight: 120,
               }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}

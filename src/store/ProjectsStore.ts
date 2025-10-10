@@ -3,7 +3,7 @@ import { Measure, Project } from '../types';
 import { persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface Technician {
+export interface Technician {
   id: string;
   firstName: string;
   lastName: string;
@@ -17,6 +17,7 @@ interface ProjectStoreTypes {
   technicians: Technician[];
 
   addProject: (project: Project) => void;
+  editProject: (project: Project) => void;
   removeProject: (id: number) => void;
   setTempMeasure: (data: any) => void;
   clearTempMeasure: () => void;
@@ -24,6 +25,7 @@ interface ProjectStoreTypes {
   removeMeasureFromProject: (projectId: number, measureId: string) => void;
 
   addTechnician: (tech: Technician) => void;
+  editTechnician: (tech: Technician) => void;
   removeTechnician: (id: string) => void;
 }
 
@@ -40,6 +42,13 @@ export const useProjectStore = create<ProjectStoreTypes>()(
       removeProject: (id: number) =>
         set(state => ({
           projects: state.projects.filter(p => p.id !== id),
+        })),
+
+      editProject: (updatedProj: Project) =>
+        set(state => ({
+          projects: state.projects.map(t =>
+            t.id === updatedProj.id ? { ...t, ...updatedProj } : t,
+          ),
         })),
 
       setTempMeasure: data => set(() => ({ tempMeasure: data })),
@@ -86,10 +95,15 @@ export const useProjectStore = create<ProjectStoreTypes>()(
         set(state => ({
           technicians: [...state.technicians, tech],
         })),
-
       removeTechnician: id =>
         set(state => ({
           technicians: state.technicians.filter(t => t.id !== id),
+        })),
+      editTechnician: (updatedTech: Technician) =>
+        set(state => ({
+          technicians: state.technicians.map(t =>
+            t.id === updatedTech.id ? { ...t, ...updatedTech } : t,
+          ),
         })),
     }),
     {

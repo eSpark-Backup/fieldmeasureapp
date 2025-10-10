@@ -14,80 +14,74 @@ import { background, border, lightBackground } from '../../constants/colors';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import TheTextInput from '../TheTextInput';
+import { fractionalInches } from '../../constants';
+import { MeasurementPair } from '../../types';
 
 interface DropdownProps {
-  data: string[];
   label?: string;
   placeholder?: string;
   zIndex?: number;
-  onSelect: ({ key, value }: { key: string; value: string }) => void;
+  onSelect?: ({ key, value }: { key: string; value: string }) => void;
+  onChange: (pair: MeasurementPair) => void;
   style?: StyleProp<ViewStyle>;
   placeholderColor?: string;
   bgColor?: string;
   id: string;
   selected?: string | null;
-  dInches?: string | null;
-  isOpen: boolean;
-  setOpenDropdownId: (id: string | null) => void;
   error?: string;
   containerStyle?: ViewStyle;
+  pair: MeasurementPair;
 }
 
 const ToolInput: React.FC<DropdownProps> = ({
-  data,
   label,
   onSelect,
+  onChange,
   placeholder = 'Select option',
   zIndex = 10,
   style,
   id,
   selected,
-  dInches,
-  isOpen,
-  setOpenDropdownId,
   error,
   containerStyle,
+  pair,
 }) => {
-  const [inches, setInches] = useState(dInches ?? '');
-  const [selectedItem, setSelectedItem] = useState(selected ?? '');
+  const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    setSelectedItem(selected ?? '');
-  }, [selected]);
+  // useEffect(() => {
+  //   setSelectedItem(selected ?? '');
+  // }, [selected]);
 
   const handleToggle = () => {
-    setOpenDropdownId(isOpen ? null : id);
+    setIsOpen(!isOpen);
   };
 
-  const handleSelection = useCallback(
-    (item: string) => {
-      setSelectedItem(item);
-      setOpenDropdownId(null); // Close after selection
-      onSelect({ key: id, value: item });
-    },
-    [id, onSelect, setOpenDropdownId],
-  );
+  const handleSelection = (item: string) => {
+    console.log('pair kia fraction', pair);
+    // setSelectedItem(item);
+    setIsOpen(false);
+    onSelect?.({ key: id, value: item });
+    onChange({ ...pair, fraction: item });
+  };
 
-  const renderOptions = useMemo(
-    () =>
-      data.map((item, index) => (
-        <TouchableOpacity
-          key={item}
-          style={[
-            styles.optionItem,
-            { borderColor: border },
-            index > 0 && styles.optionItemBorder,
-          ]}
-          onPress={() => handleSelection(item)}
-        >
-          <TheText text={item} />
-          {selectedItem === item && (
-            <FeatherIcon name="check" size={16} color="#34e145" />
-          )}
-        </TouchableOpacity>
-      )),
-    [data, handleSelection, selectedItem],
-  );
+  const renderOptions = () => {
+    return fractionalInches.map((item, index) => (
+      <TouchableOpacity
+        key={item}
+        style={[
+          styles.optionItem,
+          { borderColor: border },
+          index > 0 && styles.optionItemBorder,
+        ]}
+        onPress={() => handleSelection(item)}
+      >
+        <TheText text={item} />
+        {pair.fraction === item && (
+          <FeatherIcon name="check" size={16} color="#34e145" />
+        )}
+      </TouchableOpacity>
+    ));
+  };
 
   return (
     <View
@@ -110,10 +104,15 @@ const ToolInput: React.FC<DropdownProps> = ({
         }}
       >
         <TheTextInput
-          placeholder={inches || '0'}
+          placeholder={'0'}
           style={{ width: 70 }}
           isNum={true}
-          onChange={e => setInches(e)}
+          value={pair.value}
+          // onChange={e => setInches(e)}
+          onChange={t => {
+            console.log('pair kia value', pair);
+            onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') });
+          }}
         />
         <TheText text="in" size={16} />
         <View style={[style, {}]}>
@@ -123,7 +122,7 @@ const ToolInput: React.FC<DropdownProps> = ({
             style={{ justifyContent: 'center' }}
           >
             <TheTextInput
-              value={selectedItem || placeholder}
+              value={pair.fraction || placeholder}
               style={[styles.inputStyle, style]}
               editable={false}
             />
@@ -154,13 +153,13 @@ const ToolInput: React.FC<DropdownProps> = ({
               <ScrollView
                 style={{
                   backgroundColor: background,
-                  maxHeight: 150,
+                  maxHeight: 100,
                 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
                 nestedScrollEnabled={true}
               >
-                {renderOptions}
+                {renderOptions()}
               </ScrollView>
             </View>
           )}

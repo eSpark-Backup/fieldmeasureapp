@@ -4,8 +4,7 @@ export type toolNames =
   | 'Rake'
   | 'Rectangle'
   | 'Corner'
-  | 'Note'
-  | 'RoundUp';
+  | 'Note';
 
 export type Coords = {
   x: number[]; // You can replace `any` with a more specific type if you know it
@@ -22,7 +21,7 @@ export type Measure = {
   location: any;
   details: any;
   timestamp: number;
-  toolsData: Record<string, ToolData>;
+  toolsData: Tool[];
   photo: string;
 };
 
@@ -35,3 +34,81 @@ export type Project = {
   date: string;
   measures?: Measure[]; // 👈 optional so it won’t break existing code
 };
+
+export type MeasurementPair = { value: string; fraction: string };
+
+export type BaseItem = {
+  id: string;
+  xCoords: number[];
+  yCoords: number[];
+  locked?: boolean;
+  hidden?: boolean;
+};
+
+export type TapeItem = BaseItem & {
+  type: 'Tape';
+  data: { value: string; fraction: string };
+};
+
+export type LaserItem = BaseItem & {
+  type: 'Laser';
+  data: {
+    SlideA: MeasurementPair;
+    SlideB: MeasurementPair;
+  };
+};
+
+export type RakeItem = BaseItem & {
+  type: 'Rake';
+  data: {
+    value: string;
+    fraction: string;
+    distance: MeasurementPair;
+  };
+  xCoordsDist: number[];
+  yCoordsDist: number[];
+  showDist: boolean;
+};
+
+export type RectangleItem = BaseItem & {
+  type: 'Rectangle';
+  data: Record<
+    'TopA' | 'TopB' | 'RightA' | 'RightB' | 'BotA' | 'BotB' | 'LeftA' | 'LeftB',
+    MeasurementPair
+  >;
+};
+
+export type CornerItem = BaseItem & {
+  type: 'Corner';
+  data: Record<
+    | 'TopLA'
+    | 'TopLB'
+    | 'TopRA'
+    | 'TopRB'
+    | 'RightA'
+    | 'RightB'
+    | 'CenterA'
+    | 'CenterB'
+    | 'LeftA'
+    | 'LeftB'
+    | 'BotLA'
+    | 'BotLB'
+    | 'BotRA'
+    | 'BotRB',
+    MeasurementPair
+  >;
+};
+
+export type NoteItem = BaseItem & { type: 'Note'; data: { value: string } };
+
+export type Tool =
+  | TapeItem
+  | LaserItem
+  | RakeItem
+  | RectangleItem
+  | CornerItem
+  | NoteItem;
+
+export type ToolsList = Tool[];
+
+export type OnChange = (items: Tool[]) => void;

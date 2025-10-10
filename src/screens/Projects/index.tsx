@@ -81,7 +81,7 @@ const Projects = () => {
         paddingHorizontal: 20,
       }}
     >
-      <GapView length={useSafeAreaInsets().top} />
+      <GapView length={useSafeAreaInsets().top + 10} />
       <View
         style={{
           flexDirection: 'row',
@@ -263,17 +263,24 @@ const Projects = () => {
         </View>
       )}
       {role === 'admin' && (
-        <TheButton
-          btnTitle="Add Technician"
-          onPress={() => navigation.navigate('AddTechnician')}
-          style={{ marginBottom: 10 }}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+          <TheButton
+            btnTitle="Add Technician"
+            onPress={() => navigation.navigate('AddTechnician')}
+            style={{ marginBottom: 10, flex: 1 }}
+          />
+          <TheButton
+            btnTitle="Technicians List"
+            onPress={() => navigation.navigate('TechniciansList')}
+            style={{ marginBottom: 10, flex: 1 }}
+          />
+        </View>
       )}
       {projects.length > 0 ? (
         <ProjectsList
           projects={projects}
           onViewPress={data => {
-            navigation.navigate('ProjectDetails', data);
+            navigation.navigate('ProjectDetails', { ...data, role: role });
           }}
         />
       ) : showInputs ? null : (
@@ -296,6 +303,7 @@ const Projects = () => {
           />
         </View>
       )}
+      <GapView length={useSafeAreaInsets().bottom + 10} />
     </ScrollView>
   );
 };
