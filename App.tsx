@@ -6,18 +6,21 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, View } from 'react-native';
 import { WhiteBackground } from './src/constants/colors';
 import ToastConfig from './src/utils/toastConfig';
+import { MenuProvider } from 'react-native-popup-menu';
 
 const App = () => {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <StatusBar
-          barStyle={'dark-content'}
-          backgroundColor={WhiteBackground}
-        />
-        <RootNavigation />
-        <ToastConfig />
-      </NavigationContainer>
+      <MenuProvider>
+        <NavigationContainer>
+          <StatusBar
+            barStyle={'dark-content'}
+            backgroundColor={WhiteBackground}
+          />
+          <RootNavigation />
+          <ToastConfig />
+        </NavigationContainer>
+      </MenuProvider>
     </SafeAreaProvider>
   );
 };

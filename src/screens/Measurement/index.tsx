@@ -56,6 +56,7 @@ import { Measure, Project, Tool, ToolsList } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { showToast } from '../../utils/showToast';
 import ToolsForm from '../../components/ToolsForm';
+import ToolMenu from '../../components/ToolMenu';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -690,6 +691,7 @@ const Measurement = () => {
           backgroundColor: '#F9FAFB',
           gap: 10,
         }}
+        nestedScrollEnabled={true}
       >
         {!selectedPhoto ? (
           <View style={styles.noPhoto}>
@@ -719,7 +721,7 @@ const Measurement = () => {
             ref={ref}
             style={{
               // flex: 1,
-              width: '65%',
+              width: '76%',
               marginVertical: 10,
               justifyContent: 'center',
             }}
@@ -754,24 +756,20 @@ const Measurement = () => {
           </ViewShot>
         )}
 
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          // style={{ backgroundColor: 'pink' }}
+          // contentContainerStyle={{ width: '50%' }}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
+        >
           <View style={styles.tools}>
-            <FlatList
-              data={TOOLS}
-              numColumns={3}
-              contentContainerStyle={{
-                gap: 10,
-                paddingVertical: 10,
-              }}
-              ItemSeparatorComponent={() => <GapView mode="horizontal" />}
-              renderItem={({ item, index }) => (
-                <TheTool
-                  key={index}
-                  toolName={item}
-                  onPress={() => addTool(item)}
-                  style={{ marginHorizontal: 5 }}
-                />
-              )}
+            <ToolMenu TOOLS={TOOLS} addTool={addTool} />
+            <TheButton
+              btnTitle=""
+              icon={<Upload />}
+              titleStyle={{ fontWeight: 'bold' }}
+              onPress={getImage}
+              style={{ flex: 1 }}
             />
           </View>
           <View style={styles.initialContainer}>
@@ -783,14 +781,7 @@ const Measurement = () => {
               required
             />
           </View>
-          <View style={styles.initialContainer}>
-            <TheButton
-              btnTitle="Upload Photo"
-              icon={<Upload />}
-              titleStyle={{ fontWeight: 'bold' }}
-              onPress={getImage}
-            />
-          </View>
+
           <View style={styles.initialContainer}>
             <TheButton
               btnTitle="Add Details"
@@ -842,7 +833,7 @@ const Measurement = () => {
             titleStyle={{ fontWeight: 'bold' }}
             // icon={<Export />}
             onPress={handleSaveAndGoBack}
-            style={{ marginTop: 10 }}
+            style={{ marginTop: 20 }}
           />
           <GapView length={useSafeAreaInsets().bottom + 10} />
         </ScrollView>
@@ -891,7 +882,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noPhoto: {
-    width: '65%',
+    width: '76%',
     gap: 10,
     alignItems: 'center',
     justifyContent: 'center',
