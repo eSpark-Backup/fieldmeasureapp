@@ -147,14 +147,18 @@ export default function ToolsForm({
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
           >
+            {/* <View style={{ width: 1, height: '5%' }} /> */}
+
             <ToolInput
               id={'tape'}
               pair={{ value: p.value, fraction: p.fraction }}
               selected={p.fraction}
               onChange={pair => updatePair(item.id, pair)}
               placeholder="0"
+              isLocked={item.locked}
               style={{ width: 70 }}
             />
+            {/* <View style={{ width: 1, height: '1%' }} /> */}
           </Card>
         );
       }
@@ -175,6 +179,7 @@ export default function ToolsForm({
               onChange={pair => updatePair(item.id, pair, 'SlideA')}
               placeholder="0"
               style={{ width: 70 }}
+              isLocked={item.locked}
             />
             <ToolInput
               id={'laser'}
@@ -184,6 +189,7 @@ export default function ToolsForm({
               onChange={pair => updatePair(item.id, pair, 'SlideB')}
               placeholder="0"
               style={{ width: 70 }}
+              isLocked={item.locked}
             />
           </Card>
         );
@@ -202,11 +208,10 @@ export default function ToolsForm({
               id={'rake'}
               pair={{ value: p.value, fraction: p.fraction }}
               selected={p.fraction}
-              onChange={pair =>
-                updatePair(item.id, { ...pair, distance: p.distance })
-              }
+              onChange={pair => updatePair(item.id, pair)}
               placeholder="0"
               style={{ width: 70 }}
+              isLocked={item.locked}
             />
             <TheButton
               btnTitle="Distance"
@@ -220,15 +225,10 @@ export default function ToolsForm({
               <ToolInput
                 id={'rake-distance'}
                 pair={p.distance}
-                selected={p.distance.fraction}
-                onChange={pair =>
-                  updatePair(
-                    item.id,
-                    { distance: pair, value: p.value, fraction: p.fraction },
-                    'distance',
-                  )
-                }
+                selected={p.distance?.fraction}
+                onChange={pair => updatePair(item.id, pair, 'distance')}
                 placeholder="0"
+                isLocked={item.locked}
                 style={{ width: 70 }}
               />
             )}
@@ -263,6 +263,7 @@ export default function ToolsForm({
                 onChange={pair => updatePair(item.id, pair, k)}
                 placeholder="0"
                 style={{ width: 70 }}
+                isLocked={item.locked}
               />
             ))}
           </Card>
@@ -302,6 +303,7 @@ export default function ToolsForm({
                 onChange={pair => updatePair(item.id, pair, k)}
                 placeholder="0"
                 style={{ width: 70 }}
+                isLocked={item.locked}
               />
             ))}
           </Card>
@@ -388,13 +390,13 @@ const Card = ({
     <View style={[styles.initialContainer, style]}>
       {/* Header */}
       <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
-        <View style={[styles.rowContainer, { gap: 5, width: '70%' }]}>
+        <View style={[styles.rowContainer, { gap: 5, width: '60%' }]}>
           {/* <Badge color={color || '#FBBF24'} /> */}
           <TheText
-            text={item.type == 'Note' ? item.type : `${item.type} Measurement`}
+            text={item.type == 'Note' ? item.type : `${item.type}`}
             size={18}
             numberOfLines={1}
-            style={{ fontWeight: '600', width: '88%' }}
+            style={{ fontWeight: '600', width: '80%' }}
           />
         </View>
         <View style={[styles.rowContainer, { gap: 5 }]}>
@@ -403,7 +405,7 @@ const Card = ({
           ) : (
             <Eye color="#6B7280" onPress={onEye} />
           )}
-          <TheToggle value={item.locked} onValueChange={onToggle} />
+          <TheToggle value={item.locked!} onValueChange={onToggle} />
           <Trash onPress={onDelete} />
         </View>
       </View>

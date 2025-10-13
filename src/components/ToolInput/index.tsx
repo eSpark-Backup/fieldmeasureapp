@@ -10,6 +10,12 @@ import {
 
 import TheText from '../TheText';
 import { background, border, lightBackground } from '../../constants/colors';
+import {
+  Menu,
+  MenuOptions,
+  MenuOption,
+  MenuTrigger,
+} from 'react-native-popup-menu';
 
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
@@ -31,6 +37,7 @@ interface DropdownProps {
   error?: string;
   containerStyle?: ViewStyle;
   pair: MeasurementPair;
+  isLocked?: boolean;
 }
 
 const ToolInput: React.FC<DropdownProps> = ({
@@ -45,6 +52,7 @@ const ToolInput: React.FC<DropdownProps> = ({
   error,
   containerStyle,
   pair,
+  isLocked = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -91,6 +99,7 @@ const ToolInput: React.FC<DropdownProps> = ({
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
+          // backgroundColor: 'yellow',
         },
       ]}
     >
@@ -99,72 +108,110 @@ const ToolInput: React.FC<DropdownProps> = ({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'flex-start',
-          gap: 15,
+          justifyContent: 'flex-end',
+          gap: 5,
+          // flex: 1,
         }}
       >
         <TheTextInput
-          placeholder={'0'}
-          style={{ width: 70 }}
-          isNum={true}
+          placeholder="0"
+          style={{ width: 50 }}
+          isNum
           value={pair.value}
-          // onChange={e => setInches(e)}
-          onChange={t => {
-            console.log('pair kia value', pair);
-            onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') });
-          }}
+          onChange={t =>
+            onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') })
+          }
+          editable={!isLocked}
         />
         <TheText text="in" size={16} />
-        <View style={[style, {}]}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={handleToggle}
-            style={{ justifyContent: 'center' }}
-          >
-            <TheTextInput
-              value={pair.fraction || placeholder}
-              style={[styles.inputStyle, style]}
-              editable={false}
-            />
-            <EntypoIcon
-              name={isOpen ? 'chevron-up' : 'chevron-down'}
-              color={'#66666666'}
-              size={16}
-              style={{ position: 'absolute', right: 5 }}
-            />
-          </TouchableOpacity>
-          {error ? (
-            <TheText
-              color={'red'}
-              text={error}
-              style={styles.errorText}
-              size={10}
-            />
-          ) : null}
 
-          {/* {renderOptions} */}
-          {isOpen && (
-            <View
-              style={[
-                styles.dropdownListWrapper,
-                { top: error ? '70%' : '90%', zIndex },
-              ]}
-            >
-              <ScrollView
-                style={{
-                  backgroundColor: background,
-                  maxHeight: 100,
-                }}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                nestedScrollEnabled={true}
-              >
-                {renderOptions()}
-              </ScrollView>
+        <Menu>
+          <MenuTrigger disabled={isLocked}>
+            <View style={styles.menuTrigger}>
+              <TheText
+                text={pair.fraction || 'x/y'}
+                size={16}
+                color={!pair.fraction ? 'grey' : 'auto'}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={{ flexShrink: 1, maxWidth: 40, textAlign: 'center' }}
+              />
+              <EntypoIcon name="chevron-down" color="#666" size={16} />
             </View>
-          )}
-        </View>
+          </MenuTrigger>
+
+          <MenuOptions
+            customStyles={{
+              optionsContainer: {
+                ...styles.menuOptions,
+                maxHeight: 150,
+              },
+              optionsWrapper: {
+                maxHeight: 150,
+              },
+            }}
+          >
+            <ScrollView
+              style={{ maxHeight: 150 }}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}
+            >
+              {fractionalInches.map((item, index) => (
+                <MenuOption
+                  key={item}
+                  onSelect={() => onChange({ ...pair, fraction: item })}
+                >
+                  <View
+                    style={[
+                      styles.optionRow,
+                      {
+                        borderTopWidth: index === 0 ? 0 : 0.5,
+                        paddingBottom:
+                          index === fractionalInches.length - 1 ? 20 : 8,
+                      },
+                    ]}
+                  >
+                    <TheText text={item} />
+                    {pair.fraction === item && (
+                      <FeatherIcon name="check" size={16} color="#34e145" />
+                    )}
+                  </View>
+                </MenuOption>
+              ))}
+            </ScrollView>
+          </MenuOptions>
+        </Menu>
       </View>
+
+      {error ? (
+        <TheText
+          color={'red'}
+          text={error}
+          style={styles.errorText}
+          size={10}
+        />
+      ) : null}
+
+      {isOpen && (
+        <View
+          style={[
+            styles.dropdownListWrapper,
+            { top: error ? '70%' : '90%', zIndex },
+          ]}
+        >
+          <ScrollView
+            style={{
+              backgroundColor: background,
+              maxHeight: 100,
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
+            {renderOptions()}
+          </ScrollView>
+        </View>
+      )}
     </View>
   );
 };
@@ -217,14 +264,38 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     textAlign: 'right',
   },
-  inputStyle: {
-    fontSize: 16,
-    color: '#000',
-    paddingHorizontal: 15,
+
+  menuTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#F5F5F5',
-    borderColor: border,
+    padding: 8,
     borderWidth: 1,
+    borderColor: '#ccc',
     borderRadius: 5,
+
+    width: 60,
+    height: 50,
+    justifyContent: 'space-between',
+  },
+  optionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderColor: border,
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+  },
+
+  menuOptions: {
+    paddingVertical: 4,
+    borderRadius: 8,
+    elevation: 3,
+    backgroundColor: '#fff',
+    marginTop: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    width: 75,
   },
 });
 
