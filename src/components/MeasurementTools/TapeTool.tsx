@@ -12,6 +12,7 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
+import { CanvasVals } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -23,12 +24,14 @@ const TapeTool = ({
   yCoords,
   data,
   locked,
+  canvasSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
   data: { value: string; fraction: string };
+  canvasSize: CanvasVals;
   locked?: boolean;
 }) => {
   const initialX = xCoords;
@@ -65,13 +68,13 @@ const TapeTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX / scaleValue,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY / scaleValue,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
       })
       .onEnd(() => {

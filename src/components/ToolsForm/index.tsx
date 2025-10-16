@@ -173,20 +173,20 @@ export default function ToolsForm({
           >
             <ToolInput
               id={'laser'}
-              label="Slide A"
-              pair={p.SlideA}
-              selected={p.SlideA.fraction}
-              onChange={pair => updatePair(item.id, pair, 'SlideA')}
+              label="Side A"
+              pair={p.SideA}
+              selected={p.SideA.fraction}
+              onChange={pair => updatePair(item.id, pair, 'SideA')}
               placeholder="0"
               style={{ width: 70 }}
               isLocked={item.locked}
             />
             <ToolInput
               id={'laser'}
-              label="Slide B"
-              pair={p.SlideB}
-              selected={p.SlideB.fraction}
-              onChange={pair => updatePair(item.id, pair, 'SlideB')}
+              label="Side B"
+              pair={p.SideB}
+              selected={p.SideB.fraction}
+              onChange={pair => updatePair(item.id, pair, 'SideB')}
               placeholder="0"
               style={{ width: 70 }}
               isLocked={item.locked}

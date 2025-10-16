@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -12,10 +12,9 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
-import { MeasurementPair } from '../../types';
+import { CanvasVals, MeasurementPair } from '../../types';
 import { formatInches, formatInchesSum } from './utils';
 
-const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
 const LaserTool = ({
@@ -25,16 +24,18 @@ const LaserTool = ({
   yCoords,
   data,
   locked,
+  canvasSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
   data: {
-    SlideA: MeasurementPair;
-    SlideB: MeasurementPair;
+    SideA: MeasurementPair;
+    SideB: MeasurementPair;
   };
   locked?: boolean;
+  canvasSize: CanvasVals;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -67,13 +68,13 @@ const LaserTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
       })
       .onEnd(() => {
@@ -143,7 +144,7 @@ const LaserTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`LB: ${formatInches(data.SlideB)}`}
+              text={`LB: ${formatInches(data.SideB)}`}
             />
           </View>
           <View
@@ -158,7 +159,7 @@ const LaserTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`L1: ${formatInchesSum(data.SlideA, data.SlideB)}`}
+              text={`L1: ${formatInchesSum(data.SideA, data.SideB)}`}
             />
           </View>
           <View
@@ -171,7 +172,7 @@ const LaserTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`LA: ${formatInches(data.SlideA)}`}
+              text={`LA: ${formatInches(data.SideA)}`}
             />
           </View>
         </View>

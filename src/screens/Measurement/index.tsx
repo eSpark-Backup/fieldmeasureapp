@@ -52,7 +52,7 @@ import { TOOLS } from '../../constants';
 import { border } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import { createNewTool, pdfHTML } from './utils';
-import { Measure, Project, Tool, ToolsList } from '../../types';
+import { CanvasVals, Measure, Project, Tool, ToolsList } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { showToast } from '../../utils/showToast';
 import ToolsForm from '../../components/ToolsForm';
@@ -437,11 +437,7 @@ const Measurement = () => {
       showToast('Please select photo first.');
       return;
     }
-    const newTool = createNewTool(
-      type,
-      displayedSize.width,
-      displayedSize.height,
-    );
+    const newTool = createNewTool(type);
     setTools(prev => [...prev, newTool]);
   };
 
@@ -504,7 +500,7 @@ const Measurement = () => {
   const toPercentCoords = (
     xArr: number[],
     yArr: number[],
-    displayedSize: any,
+    displayedSize: CanvasVals,
   ) => {
     const percentX = xArr.map(
       x => ((x - displayedSize.offsetX) / displayedSize.width) * 100,
@@ -518,7 +514,7 @@ const Measurement = () => {
   const toPixelCoords = (
     xPercent: number[],
     yPercent: number[],
-    displayedSize: any,
+    displayedSize: CanvasVals,
   ) => {
     const xCoords = xPercent?.map(
       x => displayedSize.offsetX + (x / 100) * displayedSize.width,
@@ -545,6 +541,8 @@ const Measurement = () => {
       displayedSize,
     );
 
+    console.log('displayedSize q nhi araha', displayedSize);
+
     switch (tool.type) {
       case 'Tape': {
         return (
@@ -560,6 +558,7 @@ const Measurement = () => {
             yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
           />
         );
       }
@@ -577,6 +576,7 @@ const Measurement = () => {
             yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
           />
         );
       }
@@ -592,8 +592,8 @@ const Measurement = () => {
             }}
             getCoordsDist={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
-              updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
+              updateDistCoords(tool.id, x, y);
+              console.log('Now at Dist%:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
@@ -602,6 +602,7 @@ const Measurement = () => {
             showDist={tool.showDist}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
           />
         );
       }
@@ -619,6 +620,7 @@ const Measurement = () => {
             yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
           />
         );
       }
@@ -636,6 +638,7 @@ const Measurement = () => {
             yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
           />
         );
       }
@@ -653,6 +656,7 @@ const Measurement = () => {
             yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
           />
         );
       }
@@ -748,7 +752,11 @@ const Measurement = () => {
                     console.log('height', height);
                   }}
                 />
-                <Svg height="100" width="100%" style={{ position: 'absolute' }}>
+                <Svg
+                  height="100%"
+                  width="100%"
+                  style={{ position: 'absolute' }}
+                >
                   {tools.map(tool => renderTools(tool))}
                 </Svg>
               </Animated.View>

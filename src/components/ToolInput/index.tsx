@@ -84,7 +84,7 @@ const ToolInput: React.FC<DropdownProps> = ({
         onPress={() => handleSelection(item)}
       >
         <TheText text={item} />
-        {pair.fraction === item && (
+        {pair?.fraction === item && (
           <FeatherIcon name="check" size={16} color="#34e145" />
         )}
       </TouchableOpacity>
@@ -117,7 +117,7 @@ const ToolInput: React.FC<DropdownProps> = ({
           placeholder="0"
           style={{ width: 50 }}
           isNum
-          value={pair.value}
+          value={pair?.value}
           onChange={t =>
             onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') })
           }
@@ -129,9 +129,9 @@ const ToolInput: React.FC<DropdownProps> = ({
           <MenuTrigger disabled={isLocked}>
             <View style={styles.menuTrigger}>
               <TheText
-                text={pair.fraction || 'x/y'}
+                text={pair?.fraction || 'x/y'}
                 size={16}
-                color={!pair.fraction ? 'grey' : 'auto'}
+                color={!pair?.fraction ? 'grey' : 'auto'}
                 numberOfLines={1}
                 ellipsizeMode="tail"
                 style={{ flexShrink: 1, maxWidth: 40, textAlign: 'center' }}
@@ -172,7 +172,7 @@ const ToolInput: React.FC<DropdownProps> = ({
                     ]}
                   >
                     <TheText text={item} />
-                    {pair.fraction === item && (
+                    {pair?.fraction === item && (
                       <FeatherIcon name="check" size={16} color="#34e145" />
                     )}
                   </View>

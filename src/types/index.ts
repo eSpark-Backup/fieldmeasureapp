@@ -16,6 +16,13 @@ export type ToolData = {
   status: boolean;
 };
 
+export type CanvasVals = {
+  width: number;
+  height: number;
+  offsetX: number;
+  offsetY: number;
+};
+
 export type Measure = {
   id: string;
   location: any;
@@ -53,8 +60,8 @@ export type TapeItem = BaseItem & {
 export type LaserItem = BaseItem & {
   type: 'Laser';
   data: {
-    SlideA: MeasurementPair;
-    SlideB: MeasurementPair;
+    SideA: MeasurementPair;
+    SideB: MeasurementPair;
   };
 };
 

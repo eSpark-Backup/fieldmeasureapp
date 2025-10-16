@@ -70,11 +70,7 @@ export const pdfHTML = (uri: string) => {
   </table>`;
 };
 
-export const createNewTool = (
-  type: Tool['type'],
-  width: number,
-  height: number,
-): Tool => {
+export const createNewTool = (type: Tool['type']): Tool => {
   const baseId = `${type.toLowerCase()}${uuid.v4()}`;
 
   const initialNX = [5];
@@ -88,23 +84,9 @@ export const createNewTool = (
   const initialRX = [5, 5, 80, 80];
   const initialRY = [5, 50, 50, 5];
 
-  const initialCX = [
-    width / 2 / 3,
-    width / 2 / 3,
-    width / 2 / 1.7,
-    width / 2 / 1.2,
-    width / 2 / 1.2,
-    width / 2 / 1.7,
-  ];
+  const initialCX = [5, 5, 40, 80, 80, 40];
 
-  const initialCY = [
-    height / 3.5,
-    height / 2,
-    height / 2,
-    height / 2,
-    height / 3.5,
-    height / 3.5,
-  ];
+  const initialCY = [5, 50, 50, 50, 5, 5];
 
   switch (type) {
     case 'Tape':
@@ -122,8 +104,8 @@ export const createNewTool = (
         id: baseId,
         type,
         data: {
-          SlideA: { value: '', fraction: '' },
-          SlideB: { value: '', fraction: '' },
+          SideA: { value: '', fraction: '' },
+          SideB: { value: '', fraction: '' },
         },
         xCoords: initialX,
         yCoords: initialY,

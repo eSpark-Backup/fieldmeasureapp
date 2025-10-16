@@ -35,8 +35,8 @@ const AllDetails = () => {
   const [inputs, setInputs] = useState<{ [key: string]: string }>(
     initialInputs,
   );
-  const [datePromised, setDatePromised] = useState<Date | null>(
-    tempMeasure.datePromised ? new Date(tempMeasure.datePromised) : null,
+  const [datePromised, setDatePromised] = useState<Date>(
+    tempMeasure?.datePromised ? new Date(tempMeasure.datePromised) : new Date(),
   );
 
   const navigation = useNavigation();
@@ -264,7 +264,7 @@ const AllDetails = () => {
         ))}
         <TheDatePicker
           label="Date promised"
-          value={datePromised}
+          value={datePromised.toLocaleDateString('en-GB')}
           onChange={date => setDatePromised(date)}
         />
 

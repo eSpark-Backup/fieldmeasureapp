@@ -12,7 +12,7 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
-import { MeasurementPair } from '../../types';
+import { CanvasVals, MeasurementPair } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -28,6 +28,7 @@ const RakeTool = ({
   data,
   showDist,
   locked,
+  canvasSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -43,6 +44,7 @@ const RakeTool = ({
   };
   showDist: boolean;
   locked?: boolean;
+  canvasSize: CanvasVals;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -96,19 +98,23 @@ const RakeTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
         if (index == 0) {
           pointsDist[index].x.value = point.x.value;
           pointsDist[index].y.value = point.y.value;
+          pointsDist[1].x.value = points[1].x.value / 0.9;
+          pointsDist[1].y.value = points[1].y.value / 0.9;
         }
         if (index == 1 && !showDist) {
+          pointsDist[0].x.value = points[0].x.value;
+          pointsDist[0].y.value = points[0].y.value;
           pointsDist[index].x.value = point.x.value / 0.9;
           pointsDist[index].y.value = point.y.value / 0.9;
         }
@@ -135,13 +141,13 @@ const RakeTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
         // 🔥 Sync with points[index]
         if (index == 0) {
@@ -178,25 +184,23 @@ const RakeTool = ({
   );
 
   const animatedInfo = useAnimatedStyle(() => {
-    // Get mid-point between points
+    const dx = points[1].x.value - points[0].x.value;
+    const dy = points[1].y.value - points[0].y.value;
+
+    const length = Math.sqrt(dx * dx + dy * dy); // line length
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI); // rotation in degrees
+
     const midX = (points[0].x.value + points[1].x.value) / 2;
     const midY = (points[0].y.value + points[1].y.value) / 2;
 
-    // Calculate rotation in radians → degrees
-    const angleDeg =
-      Math.atan2(
-        points[1].y.value - points[0].y.value,
-        points[1].x.value - points[0].x.value,
-      ) *
-      (180 / Math.PI);
-
     return {
-      width: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-      height: 20 * (2 / scaleValue / 2),
+      width: length, // same as line length
+      height: 20 / scaleValue, // fixed height but scales with zoom
+      position: 'absolute',
       transform: [
-        { translateX: midX - 30 * (2 / scaleValue / 2) },
-        { translateY: midY - 10 * (2 / scaleValue / 2) },
-        { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
+        { translateX: midX + 10 - length / 2 }, // center align horizontally
+        { translateY: midY - 10 / scaleValue }, // center align vertically
+        { rotate: `${angle}deg` }, // rotation
       ],
     };
   });
@@ -255,8 +259,8 @@ const RakeTool = ({
     }
   };
   const inchesDist = () => {
-    const inches = data.distance.value ? data.distance.value : '0';
-    const fraction = data.distance.fraction ? data.distance.fraction : '0';
+    const inches = data.distance?.value ? data.distance?.value : '0';
+    const fraction = data.distance?.fraction ? data.distance?.fraction : '0';
     if (inches != '0' && fraction != '0') {
       return inches + '-' + fraction + `"`;
     } else if (inches != '0' && fraction == '0') {
@@ -269,11 +273,21 @@ const RakeTool = ({
   return (
     <View style={{ position: 'absolute' }}>
       <Animated.View style={[styles.box2, animatedInfo]}>
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text={`R1: ${inches()}`}
-        />
+        <View style={{ width: '100%', alignItems: 'flex-end' }}>
+          <View
+            style={{
+              backgroundColor: '#7e22ce',
+              paddingHorizontal: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TheText
+              size={14 * (2 / scaleValue / 2)}
+              color={WhiteBackground}
+              text={`R1: +${inches()}`}
+            />
+          </View>
+        </View>
       </Animated.View>
       {!locked
         ? points.map((_, i) => (
@@ -295,7 +309,7 @@ const RakeTool = ({
       ))}
       {showDist && (
         <>
-          <Animated.View style={[styles.box2, animatedInfoDist]}>
+          <Animated.View style={[styles.box3, animatedInfoDist]}>
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
@@ -325,7 +339,6 @@ const RakeTool = ({
           animatedProps={props}
           stroke={showDist ? '#7e22ce' : 'transparent'}
           strokeWidth="5"
-          strokeDasharray={[10, 5]}
         />
       ))}
     </View>
@@ -341,8 +354,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   box2: {
-    // height: 20,
-    // width: 20,
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  box3: {
     position: 'absolute',
     backgroundColor: '#7e22ce',
     alignItems: 'center',

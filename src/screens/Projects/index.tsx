@@ -121,7 +121,6 @@ const Projects = () => {
           validationSchema={ProjectSchema}
           onSubmit={(values: Project) => {
             console.log('Form Values:', values);
-
             setShowInputs(false);
             addProj(values);
           }}

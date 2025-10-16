@@ -12,7 +12,7 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
-import { MeasurementPair } from '../../types';
+import { CanvasVals, MeasurementPair } from '../../types';
 import { formatInches, formatInchesSum } from './utils';
 
 const { width, height } = Dimensions.get('screen');
@@ -25,6 +25,7 @@ const CornerTool = ({
   yCoords,
   data,
   locked,
+  canvasSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -48,6 +49,7 @@ const CornerTool = ({
     MeasurementPair
   >;
   locked?: boolean;
+  canvasSize: CanvasVals;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -78,18 +80,15 @@ const CornerTool = ({
         point.prevY.value = point.y.value;
       })
       .onUpdate(event => {
-        const maxTranslateX = width - 60;
-        const maxTranslateY = height - 90;
-
         point.x.value = clamp(
           point.prevX.value + event.translationX,
-          1,
-          maxTranslateX,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY,
-          1,
-          maxTranslateY,
+          0,
+          canvasSize.height - 20,
         );
       })
       .onEnd(() => {
