@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ColorValue } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -25,6 +25,8 @@ const LaserTool = ({
   data,
   locked,
   canvasSize,
+  baseColor,
+  laserNumber,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -36,6 +38,8 @@ const LaserTool = ({
   };
   locked?: boolean;
   canvasSize: CanvasVals;
+  baseColor: ColorValue;
+  laserNumber: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -105,7 +109,7 @@ const LaserTool = ({
 
     return {
       width: length, // same as line length
-      height: 20 / scaleValue, // fixed height but scales with zoom
+      // height: 20 / scaleValue, // fixed height but scales with zoom
       position: 'absolute',
       transform: [
         { translateX: midX + 10 - length / 2 }, // center align horizontally
@@ -136,20 +140,23 @@ const LaserTool = ({
         >
           <View
             style={{
-              backgroundColor: '#b91c1c',
+              backgroundColor: baseColor,
               paddingHorizontal: 10,
               alignItems: 'center',
+              borderWidth: 2,
+              borderRadius: 5,
+              borderColor: data.SideB.focused ? '#EAE72E' : baseColor,
             }}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`LB: ${formatInches(data.SideB)}`}
+              text={`L${laserNumber}B: ${formatInches(data.SideB)}`}
             />
           </View>
           <View
             style={{
-              backgroundColor: '#b91c1c',
+              backgroundColor: baseColor,
               paddingHorizontal: 10,
               alignItems: 'center',
               position: 'absolute',
@@ -159,20 +166,26 @@ const LaserTool = ({
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`L1: ${formatInchesSum(data.SideA, data.SideB)}`}
+              text={`L${laserNumber}: ${formatInchesSum(
+                data.SideA,
+                data.SideB,
+              )}`}
             />
           </View>
           <View
             style={{
-              backgroundColor: '#b91c1c',
+              backgroundColor: baseColor,
               paddingHorizontal: 10,
               alignItems: 'center',
+              borderWidth: 2,
+              borderRadius: 5,
+              borderColor: data.SideA.focused ? '#EAE72E' : baseColor,
             }}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`LA: ${formatInches(data.SideA)}`}
+              text={`L${laserNumber}A: ${formatInches(data.SideA)}`}
             />
           </View>
         </View>
@@ -197,7 +210,7 @@ const LaserTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#b91c1c"
+          stroke={baseColor}
           strokeWidth="5"
           strokeDasharray={[10, 5]}
         />
@@ -215,10 +228,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   box2: {
-    height: 20,
     width: 20,
     position: 'absolute',
-    // backgroundColor: '#b91c1c',
     alignItems: 'center',
   },
 });

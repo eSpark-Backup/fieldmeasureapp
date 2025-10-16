@@ -6,25 +6,40 @@ const TheDescriptionBox = ({
   label = 'Notes',
   placeholder = 'Additional notes and details',
   value,
+  focus,
   onChangeText,
+  onChangeFocus,
   textStyle,
 }: {
   label?: string;
   placeholder?: string;
   value?: string;
+  focus?: boolean;
   onChangeText: (text: string) => void;
+  onChangeFocus: (focus: boolean) => void;
   textStyle?: TextStyle;
 }) => {
+  console.log('Desc focus', focus);
+
   return (
     <View style={styles.container}>
       {/* <Text style={styles.label}>{label}</Text> */}
       <TextInput
-        style={[styles.textarea, textStyle]}
+        style={[
+          styles.textarea,
+          textStyle,
+          {
+            borderColor: focus ? '#2975D2' : border,
+            borderWidth: focus ? 2 : 1,
+          },
+        ]}
         multiline
         numberOfLines={6}
         placeholder={placeholder}
         placeholderTextColor="#999"
         value={value}
+        onFocus={() => onChangeFocus(true)}
+        onBlur={() => onChangeFocus(false)}
         onChangeText={onChangeText}
         textAlignVertical="top"
       />

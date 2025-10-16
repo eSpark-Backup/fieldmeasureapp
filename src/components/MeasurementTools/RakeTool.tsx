@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, Dimensions, StyleSheet, ColorValue } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -29,6 +29,8 @@ const RakeTool = ({
   showDist,
   locked,
   canvasSize,
+  baseColor,
+  rakeNumber,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -40,11 +42,14 @@ const RakeTool = ({
   data: {
     value: string;
     fraction: string;
+    focused: boolean;
     distance: MeasurementPair;
   };
   showDist: boolean;
   locked?: boolean;
   canvasSize: CanvasVals;
+  baseColor: ColorValue;
+  rakeNumber: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -110,13 +115,13 @@ const RakeTool = ({
           pointsDist[index].x.value = point.x.value;
           pointsDist[index].y.value = point.y.value;
           pointsDist[1].x.value = points[1].x.value / 0.9;
-          pointsDist[1].y.value = points[1].y.value / 0.9;
+          pointsDist[1].y.value = points[1].y.value / 0.6;
         }
         if (index == 1 && !showDist) {
           pointsDist[0].x.value = points[0].x.value;
           pointsDist[0].y.value = points[0].y.value;
           pointsDist[index].x.value = point.x.value / 0.9;
-          pointsDist[index].y.value = point.y.value / 0.9;
+          pointsDist[index].y.value = point.y.value / 0.6;
         }
       })
       .onEnd(() => {
@@ -195,7 +200,7 @@ const RakeTool = ({
 
     return {
       width: length, // same as line length
-      height: 20 / scaleValue, // fixed height but scales with zoom
+      // height: 20 / scaleValue, // fixed height but scales with zoom
       position: 'absolute',
       transform: [
         { translateX: midX + 10 - length / 2 }, // center align horizontally
@@ -219,8 +224,8 @@ const RakeTool = ({
       (180 / Math.PI);
 
     return {
-      minWidth: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-      height: 20 * (2 / scaleValue / 2),
+      // minWidth: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
+      // height: 20 * (2 / scaleValue / 2),
       transform: [
         { translateX: midX - 30 * (2 / scaleValue / 2) },
         { translateY: midY - 10 * (2 / scaleValue / 2) },
@@ -276,15 +281,18 @@ const RakeTool = ({
         <View style={{ width: '100%', alignItems: 'flex-end' }}>
           <View
             style={{
-              backgroundColor: '#7e22ce',
+              backgroundColor: baseColor,
               paddingHorizontal: 10,
               alignItems: 'center',
+              borderRadius: 5,
+              borderWidth: 2,
+              borderColor: data.focused ? '#EAE72E' : baseColor,
             }}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`R1: +${inches()}`}
+              text={`R${rakeNumber}: +${inches()}`}
             />
           </View>
         </View>
@@ -302,18 +310,27 @@ const RakeTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#7e22ce"
+          stroke={baseColor}
           strokeWidth="5"
           strokeDasharray={[10, 5]}
         />
       ))}
       {showDist && (
         <>
-          <Animated.View style={[styles.box3, animatedInfoDist]}>
+          <Animated.View
+            style={[
+              styles.box3,
+              animatedInfoDist,
+              {
+                borderColor: data.distance?.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
+          >
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`RD1: ${inchesDist()}`}
+              text={`R${rakeNumber}D: ${inchesDist()}`}
             />
           </Animated.View>
           {!locked
@@ -337,7 +354,7 @@ const RakeTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke={showDist ? '#7e22ce' : 'transparent'}
+          stroke={showDist ? baseColor : 'transparent'}
           strokeWidth="5"
         />
       ))}
@@ -358,8 +375,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   box3: {
+    borderRadius: 5,
+    borderWidth: 2,
+    paddingHorizontal: 10,
     position: 'absolute',
-    backgroundColor: '#7e22ce',
     alignItems: 'center',
   },
 });

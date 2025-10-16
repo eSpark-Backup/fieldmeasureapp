@@ -1,3 +1,5 @@
+import { ColorValue } from 'react-native';
+
 export type toolNames =
   | 'Tape'
   | 'Laser'
@@ -42,10 +44,15 @@ export type Project = {
   measures?: Measure[]; // 👈 optional so it won’t break existing code
 };
 
-export type MeasurementPair = { value: string; fraction: string };
+export type MeasurementPair = {
+  value: string;
+  fraction: string;
+  focused: boolean;
+};
 
 export type BaseItem = {
   id: string;
+  color: ColorValue;
   xCoords: number[];
   yCoords: number[];
   locked?: boolean;
@@ -54,7 +61,7 @@ export type BaseItem = {
 
 export type TapeItem = BaseItem & {
   type: 'Tape';
-  data: { value: string; fraction: string };
+  data: { value: string; fraction: string; focused: boolean };
 };
 
 export type LaserItem = BaseItem & {
@@ -70,6 +77,7 @@ export type RakeItem = BaseItem & {
   data: {
     value: string;
     fraction: string;
+    focused: boolean;
     distance: MeasurementPair;
   };
   xCoordsDist: number[];
@@ -106,7 +114,10 @@ export type CornerItem = BaseItem & {
   >;
 };
 
-export type NoteItem = BaseItem & { type: 'Note'; data: { value: string } };
+export type NoteItem = BaseItem & {
+  type: 'Note';
+  data: { value: string; focused: boolean };
+};
 
 export type Tool =
   | TapeItem

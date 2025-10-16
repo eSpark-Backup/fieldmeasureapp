@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, Dimensions, StyleSheet, ColorValue } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
@@ -22,14 +22,16 @@ const NoteTool = ({
   data,
   locked,
   canvasSize,
+  baseColor,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
-  data: { value: string };
+  data: { value: string; focused: boolean };
   locked?: boolean;
   canvasSize: CanvasVals;
+  baseColor: ColorValue;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -82,7 +84,7 @@ const NoteTool = ({
   const animatedStyles = points.map(point =>
     useAnimatedStyle(() => ({
       width: 100 * (2 / scaleValue / 2),
-      height: 20 * (2 / scaleValue / 2),
+      // height: 20 * (2 / scaleValue / 2),
       transform: [{ translateX: point.x.value }, { translateY: point.y.value }],
     })),
   );
@@ -102,7 +104,16 @@ const NoteTool = ({
           key={`pan-${i}`}
           gesture={panGestures[i].enabled(!locked)}
         >
-          <Animated.View style={[styles.box, animatedStyles[i]]}>
+          <Animated.View
+            style={[
+              styles.box,
+              animatedStyles[i],
+              {
+                borderColor: data.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
+          >
             <TheText
               size={14 * (2 / scaleValue / 2)}
               color={WhiteBackground}
@@ -117,8 +128,8 @@ const NoteTool = ({
 
 const styles = StyleSheet.create({
   box: {
-    backgroundColor: '#A16207',
     borderRadius: 5,
+    borderWidth: 2,
     position: 'absolute',
     alignItems: 'center',
   },

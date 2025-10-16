@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, ViewStyle, ColorValue } from 'react-native';
 import TheButton from '../TheButton';
 import TheText from '../TheText';
 import TheToggle from '../TheToggle';
@@ -82,12 +82,14 @@ export default function ToolsForm({
     );
   };
 
-  const updateSingle = (id: string, value: string, key: string) => {
+  const updateSingle = (id: string, value: string | boolean, key: string) => {
+    console.log('yeh chla', value, key);
+
     setItems(prev =>
       prev.map(it => {
         if (it.id !== id) return it;
         if (it.type === 'Note') {
-          return { ...it, data: { value } } as NoteItem;
+          return { ...it, data: { ...it.data, [key]: value } } as NoteItem;
         }
         const clone: any = { ...it, data: { ...(it as any).data } };
         clone.data[key] = value;
@@ -132,29 +134,54 @@ export default function ToolsForm({
     );
   };
 
+  // const updateFocus = (id: string, state: boolean) => {
+  //   setItems(prev =>
+  //     prev.map(it => {
+  //       if (it.id !== id) return it;
+  //       return {
+  //         ...it,
+  //         data: { ...it.data, focused: state },
+  //       };
+  //     }),
+  //   );
+  // };
+
   const deleteItem = (id: string) => {
     setItems(prev => prev.filter(it => it.id !== id));
   };
+
+  let tapeCount = 0;
+  let laserCount = 0;
+  let rakeCount = 0;
 
   const renderItem = ({ item }: { item: Tool }) => {
     switch (item.type) {
       case 'Tape': {
         const p = item.data as TapeItem['data'];
+        tapeCount++;
         return (
           <Card
             item={item}
+            color={item.color}
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
+            count={tapeCount}
           >
             {/* <View style={{ width: 1, height: '5%' }} /> */}
 
             <ToolInput
               id={'tape'}
-              pair={{ value: p.value, fraction: p.fraction }}
+              pair={{
+                value: p.value,
+                fraction: p.fraction,
+                focused: p.focused,
+              }}
               selected={p.fraction}
               onChange={pair => updatePair(item.id, pair)}
               placeholder="0"
+              // onFocused={() => updateFocus(item.id, true)}
+              // onBlurred={() => updateFocus(item.id, false)}
               isLocked={item.locked}
               style={{ width: 70 }}
             />
@@ -164,12 +191,15 @@ export default function ToolsForm({
       }
       case 'Laser': {
         const p = item.data as LaserItem['data'];
+        laserCount++;
         return (
           <Card
             item={item}
+            color={item.color}
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
+            count={laserCount}
           >
             <ToolInput
               id={'laser'}
@@ -197,16 +227,23 @@ export default function ToolsForm({
       case 'Rake': {
         const p = item.data as RakeItem['data'];
         const rake = item as RakeItem;
+        rakeCount++;
         return (
           <Card
             item={item}
+            color={item.color}
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
+            count={rakeCount}
           >
             <ToolInput
               id={'rake'}
-              pair={{ value: p.value, fraction: p.fraction }}
+              pair={{
+                value: p.value,
+                fraction: p.fraction,
+                focused: p.focused,
+              }}
               selected={p.fraction}
               onChange={pair => updatePair(item.id, pair)}
               placeholder="0"
@@ -250,6 +287,7 @@ export default function ToolsForm({
         return (
           <Card
             item={item}
+            color={item.color}
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
@@ -290,6 +328,7 @@ export default function ToolsForm({
         return (
           <Card
             item={item}
+            color={item.color}
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
@@ -313,6 +352,7 @@ export default function ToolsForm({
         return (
           <Card
             item={item}
+            color={item.color}
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
@@ -320,7 +360,9 @@ export default function ToolsForm({
             <TheDescriptionBox
               placeholder="Enter your note text here"
               value={(item as NoteItem).data.value}
+              focus={(item as NoteItem).data.focused}
               onChangeText={t => updateSingle(item.id, t, 'value')}
+              onChangeFocus={e => updateSingle(item.id, e, 'focused')}
             />
           </Card>
         );
@@ -373,27 +415,33 @@ export default function ToolsForm({
 
 const Card = ({
   item,
+  color,
   style,
   children,
   onDelete,
   onToggle,
   onEye,
+  count,
 }: {
   item: Tool;
+  color?: ColorValue;
   onToggle: () => void;
   onDelete: () => void;
   onEye: () => void;
   style?: ViewStyle;
   children?: React.ReactNode;
+  count?: number;
 }) => {
   return (
     <View style={[styles.initialContainer, style]}>
       {/* Header */}
       <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
         <View style={[styles.rowContainer, { gap: 5, width: '60%' }]}>
-          {/* <Badge color={color || '#FBBF24'} /> */}
+          <Badge color={color || '#FBBF24'} />
           <TheText
-            text={item.type == 'Note' ? item.type : `${item.type}`}
+            text={
+              item.type == 'Note' ? item.type : `${item.type} ${count ?? ''}`
+            }
             size={18}
             numberOfLines={1}
             style={{ fontWeight: '600', width: '80%' }}
@@ -476,6 +524,21 @@ const Card = ({
     </View>
   );
 };
+
+function Badge({ color }: { color: ColorValue }) {
+  return (
+    <View
+      style={{
+        backgroundColor: color,
+        width: 15,
+        aspectRatio: 1,
+        borderRadius: 50,
+        borderWidth: 1,
+        borderColor: border,
+      }}
+    />
+  );
+}
 
 const styles = StyleSheet.create({
   container: {

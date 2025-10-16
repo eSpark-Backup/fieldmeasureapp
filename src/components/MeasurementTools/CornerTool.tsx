@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, Dimensions, StyleSheet, ColorValue } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -26,6 +26,7 @@ const CornerTool = ({
   data,
   locked,
   canvasSize,
+  baseColor,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -50,6 +51,7 @@ const CornerTool = ({
   >;
   locked?: boolean;
   canvasSize: CanvasVals;
+  baseColor: ColorValue;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -142,7 +144,7 @@ const CornerTool = ({
 
       return {
         width: length,
-        height: 20 / scaleValue, // keep same scale effect
+        // height: 20 / scaleValue, // keep same scale effect
         position: 'absolute',
         transform: [
           { translateX: midX - length / 2 }, // center horizontally
@@ -173,11 +175,13 @@ const CornerTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.LeftA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -186,11 +190,7 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -199,11 +199,13 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.LeftB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -222,11 +224,13 @@ const CornerTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.BotLA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -235,11 +239,7 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -248,11 +248,13 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.BotLB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -271,11 +273,13 @@ const CornerTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.BotRA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -284,11 +288,7 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -297,11 +297,13 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.BotRB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -320,11 +322,13 @@ const CornerTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.RightA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -333,11 +337,7 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -346,11 +346,13 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.RightB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -369,11 +371,13 @@ const CornerTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.TopRA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -382,11 +386,7 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -395,11 +395,13 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.TopRB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -418,11 +420,13 @@ const CornerTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.TopLA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -431,11 +435,7 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -444,11 +444,13 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.TopLB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -467,11 +469,13 @@ const CornerTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.CenterA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -480,11 +484,7 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -493,11 +493,13 @@ const CornerTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#ca5056ff',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.CenterB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -520,7 +522,7 @@ const CornerTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#ca5056ff"
+          stroke={baseColor}
           strokeWidth="5"
         />
       ))}
@@ -528,7 +530,7 @@ const CornerTool = ({
         x={10 * (2 / scaleValue / 2)}
         y={10 * (2 / scaleValue / 2)}
         animatedProps={animatedLineCenter}
-        stroke="#ca5056ff"
+        stroke={baseColor}
         strokeWidth="5"
       />
     </View>
@@ -547,6 +549,16 @@ const styles = StyleSheet.create({
   box2: {
     alignItems: 'center',
     position: 'absolute',
+  },
+  centerLabelCont: {
+    paddingHorizontal: 10,
+    alignItems: 'center',
+  },
+  labelContainer: {
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderRadius: 5,
   },
 });
 

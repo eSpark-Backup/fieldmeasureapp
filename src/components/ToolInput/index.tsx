@@ -115,12 +115,18 @@ const ToolInput: React.FC<DropdownProps> = ({
       >
         <TheTextInput
           placeholder="0"
-          style={{ width: 50 }}
+          style={{
+            width: 50,
+            borderColor: pair?.focused ? '#2975D2' : border,
+            borderWidth: pair?.focused ? 2 : 1,
+          }}
           isNum
           value={pair?.value}
           onChange={t =>
             onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') })
           }
+          onBlur={() => onChange({ ...pair, focused: false })}
+          onFocus={() => onChange({ ...pair, focused: true })}
           editable={!isLocked}
         />
         <TheText text="in" size={16} />
@@ -129,7 +135,7 @@ const ToolInput: React.FC<DropdownProps> = ({
           <MenuTrigger disabled={isLocked}>
             <View style={styles.menuTrigger}>
               <TheText
-                text={pair?.fraction || 'x/y'}
+                text={pair?.fraction || '0'}
                 size={16}
                 color={!pair?.fraction ? 'grey' : 'auto'}
                 numberOfLines={1}

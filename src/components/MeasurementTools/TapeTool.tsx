@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, Dimensions, StyleSheet, ColorValue } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -12,7 +12,7 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
-import { CanvasVals } from '../../types';
+import { CanvasVals, MeasurementPair } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -25,14 +25,18 @@ const TapeTool = ({
   data,
   locked,
   canvasSize,
+  baseColor,
+  tapeNumber,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
-  data: { value: string; fraction: string };
+  data: MeasurementPair;
   canvasSize: CanvasVals;
   locked?: boolean;
+  baseColor: ColorValue;
+  tapeNumber: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -108,7 +112,7 @@ const TapeTool = ({
 
     return {
       width: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-      height: 20 * (2 / scaleValue / 2),
+      // height: 20 * (2 / scaleValue / 2),
       transform: [
         { translateX: midX - 30 * (2 / scaleValue / 2) },
         { translateY: midY - 10 * (2 / scaleValue / 2) },
@@ -140,11 +144,20 @@ const TapeTool = ({
 
   return (
     <View style={{ position: 'absolute' }}>
-      <Animated.View style={[styles.box2, animatedInfo]}>
+      <Animated.View
+        style={[
+          styles.box2,
+          animatedInfo,
+          {
+            borderColor: data.focused ? '#EAE72E' : baseColor,
+            backgroundColor: baseColor,
+          },
+        ]}
+      >
         <TheText
           size={14 * (2 / scaleValue / 2)}
           color={WhiteBackground}
-          text={`M1: ${inches()}`}
+          text={`M${tapeNumber}: ${inches()}`}
         />
       </Animated.View>
 
@@ -161,7 +174,7 @@ const TapeTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#1d4ed8"
+          stroke={baseColor}
           strokeWidth="5"
         />
       ))}
@@ -180,8 +193,9 @@ const styles = StyleSheet.create({
   box2: {
     // height: 20,
     // width: 20,
+    borderWidth: 2,
+    borderRadius: 5,
     position: 'absolute',
-    backgroundColor: '#1d4ed8',
     alignItems: 'center',
   },
 });

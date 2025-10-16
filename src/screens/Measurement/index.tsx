@@ -364,8 +364,6 @@ const Measurement = () => {
       scale.value = clamp(startScale.value * event.scale, 1, 2);
     });
 
-  console.log('scale val', scale.value);
-
   const panGesture = Gesture.Pan()
     .onStart(e => {
       if (scale.value < 1.2) {
@@ -525,6 +523,10 @@ const Measurement = () => {
     return { x: xCoords, y: yCoords };
   };
 
+  let tapeCount = 0;
+  let laserCount = 0;
+  let rakeCount = 0;
+
   const renderTools = (tool: Tool) => {
     if (tool.hidden) return null;
 
@@ -545,10 +547,12 @@ const Measurement = () => {
 
     switch (tool.type) {
       case 'Tape': {
+        tapeCount++;
         return (
           <TapeTool
             key={tool.id}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
@@ -556,6 +560,7 @@ const Measurement = () => {
             }}
             xCoords={xCoords}
             yCoords={yCoords}
+            tapeNumber={tapeCount}
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
@@ -563,10 +568,12 @@ const Measurement = () => {
         );
       }
       case 'Laser': {
+        laserCount++;
         return (
           <LaserTool
             key={tool.id}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
@@ -574,6 +581,7 @@ const Measurement = () => {
             }}
             xCoords={xCoords}
             yCoords={yCoords}
+            laserNumber={laserCount}
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
@@ -581,10 +589,12 @@ const Measurement = () => {
         );
       }
       case 'Rake': {
+        rakeCount++;
         return (
           <RakeTool
             key={tool.id}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
@@ -599,6 +609,7 @@ const Measurement = () => {
             yCoords={yCoords}
             xCoordsDist={xCoordsDist}
             yCoordsDist={yCoordsDist}
+            rakeNumber={rakeCount}
             showDist={tool.showDist}
             data={tool.data}
             locked={tool.locked}
@@ -611,6 +622,7 @@ const Measurement = () => {
           <RectangleTool
             key={tool.id}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
@@ -629,6 +641,7 @@ const Measurement = () => {
           <CornerTool
             key={tool.id}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
@@ -647,6 +660,7 @@ const Measurement = () => {
           <NoteTool
             key={tool.id}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
@@ -849,21 +863,6 @@ const Measurement = () => {
     </GestureHandlerRootView>
   );
 };
-
-function Badge({ color }: { color: string }) {
-  return (
-    <View
-      style={{
-        backgroundColor: color,
-        width: 15,
-        aspectRatio: 1,
-        borderRadius: 50,
-        borderWidth: 1,
-        borderColor: border,
-      }}
-    />
-  );
-}
 
 const styles = StyleSheet.create({
   container: { flex: 1 },

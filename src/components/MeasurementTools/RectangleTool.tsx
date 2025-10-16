@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, Dimensions, StyleSheet, ColorValue } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -26,6 +26,7 @@ const RectangleTool = ({
   data,
   locked,
   canvasSize,
+  baseColor,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -37,6 +38,7 @@ const RectangleTool = ({
   >;
   locked?: boolean;
   canvasSize: CanvasVals;
+  baseColor: ColorValue;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -121,7 +123,7 @@ const RectangleTool = ({
 
       return {
         width: length,
-        height: 20 / scaleValue, // keep same scale effect
+        // height: 20 / scaleValue, // keep same scale effect
         position: 'absolute',
         transform: [
           { translateX: midX - length / 2 }, // center horizontally
@@ -149,11 +151,13 @@ const RectangleTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.LeftA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -162,11 +166,7 @@ const RectangleTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -175,11 +175,13 @@ const RectangleTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.LeftB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -198,11 +200,13 @@ const RectangleTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.BotA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -211,11 +215,7 @@ const RectangleTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -224,11 +224,13 @@ const RectangleTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.BotB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -247,11 +249,13 @@ const RectangleTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.RightA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -260,11 +264,7 @@ const RectangleTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -273,11 +273,13 @@ const RectangleTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.RightB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -296,11 +298,13 @@ const RectangleTool = ({
           }}
         >
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.TopA.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -309,11 +313,7 @@ const RectangleTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -322,11 +322,13 @@ const RectangleTool = ({
             />
           </View>
           <View
-            style={{
-              backgroundColor: '#15803d',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
+            style={[
+              styles.labelContainer,
+              {
+                borderColor: data.TopB.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
           >
             <TheText
               size={14 * (2 / scaleValue / 2)}
@@ -349,7 +351,7 @@ const RectangleTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#15803d"
+          stroke={baseColor}
           strokeWidth="5"
         />
       ))}
@@ -373,6 +375,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // borderRadius: 20,
     // borderWidth: 1,
+  },
+  centerLabelCont: {
+    paddingHorizontal: 10,
+    alignItems: 'center',
+  },
+  labelContainer: {
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderRadius: 5,
   },
 });
 

@@ -22,6 +22,7 @@ const TheTextInput = ({
   required,
   onChange,
   onBlur,
+  onFocus,
   error,
   isNum,
   editable,
@@ -34,6 +35,7 @@ const TheTextInput = ({
   secureTextEntry?: boolean;
   onChange?: (text: string) => void;
   onBlur?: (e: any) => void;
+  onFocus?: (e: any) => void;
   error?: string;
   required?: boolean;
   isNum?: boolean;
@@ -64,6 +66,7 @@ const TheTextInput = ({
           onChangeText={onChange}
           secureTextEntry={hidePassword}
           onBlur={onBlur}
+          onFocus={onFocus}
           keyboardType={isNum ? 'decimal-pad' : 'default'}
           inputMode={isNum ? 'decimal' : 'text'}
           editable={editable}

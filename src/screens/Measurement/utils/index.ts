@@ -70,6 +70,19 @@ export const pdfHTML = (uri: string) => {
   </table>`;
 };
 
+const getRandomDarkHexColor = () => {
+  // Keep colors between 50–180 (medium-dark range)
+  const r = Math.floor(50 + Math.random() * 130);
+  const g = Math.floor(50 + Math.random() * 130);
+  const b = Math.floor(50 + Math.random() * 130);
+
+  const hex = `#${r.toString(16).padStart(2, '0')}${g
+    .toString(16)
+    .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+
+  return hex.toUpperCase();
+};
+
 export const createNewTool = (type: Tool['type']): Tool => {
   const baseId = `${type.toLowerCase()}${uuid.v4()}`;
 
@@ -88,12 +101,15 @@ export const createNewTool = (type: Tool['type']): Tool => {
 
   const initialCY = [5, 50, 50, 50, 5, 5];
 
+  const toolColor = getRandomDarkHexColor();
+
   switch (type) {
     case 'Tape':
       return {
         id: baseId,
+        color: toolColor,
         type,
-        data: { value: '', fraction: '' },
+        data: { value: '', fraction: '', focused: false },
         xCoords: initialX,
         yCoords: initialY,
         locked: false,
@@ -102,10 +118,11 @@ export const createNewTool = (type: Tool['type']): Tool => {
     case 'Laser':
       return {
         id: baseId,
+        color: toolColor,
         type,
         data: {
-          SideA: { value: '', fraction: '' },
-          SideB: { value: '', fraction: '' },
+          SideA: { value: '', fraction: '', focused: false },
+          SideB: { value: '', fraction: '', focused: false },
         },
         xCoords: initialX,
         yCoords: initialY,
@@ -115,11 +132,13 @@ export const createNewTool = (type: Tool['type']): Tool => {
     case 'Rake':
       return {
         id: baseId,
+        color: toolColor,
         type,
         data: {
           value: '',
           fraction: '',
-          distance: { value: '', fraction: '' },
+          focused: false,
+          distance: { value: '', fraction: '', focused: false },
         },
         xCoords: initialX,
         yCoords: initialY,
@@ -132,16 +151,17 @@ export const createNewTool = (type: Tool['type']): Tool => {
     case 'Rectangle':
       return {
         id: baseId,
+        color: toolColor,
         type,
         data: {
-          TopA: { value: '', fraction: '' },
-          TopB: { value: '', fraction: '' },
-          RightA: { value: '', fraction: '' },
-          RightB: { value: '', fraction: '' },
-          BotA: { value: '', fraction: '' },
-          BotB: { value: '', fraction: '' },
-          LeftA: { value: '', fraction: '' },
-          LeftB: { value: '', fraction: '' },
+          TopA: { value: '', fraction: '', focused: false },
+          TopB: { value: '', fraction: '', focused: false },
+          RightA: { value: '', fraction: '', focused: false },
+          RightB: { value: '', fraction: '', focused: false },
+          BotA: { value: '', fraction: '', focused: false },
+          BotB: { value: '', fraction: '', focused: false },
+          LeftA: { value: '', fraction: '', focused: false },
+          LeftB: { value: '', fraction: '', focused: false },
         },
         xCoords: initialRX,
         yCoords: initialRY,
@@ -151,22 +171,23 @@ export const createNewTool = (type: Tool['type']): Tool => {
     case 'Corner':
       return {
         id: baseId,
+        color: toolColor,
         type,
         data: {
-          TopLA: { value: '', fraction: '' },
-          TopLB: { value: '', fraction: '' },
-          TopRA: { value: '', fraction: '' },
-          TopRB: { value: '', fraction: '' },
-          RightA: { value: '', fraction: '' },
-          RightB: { value: '', fraction: '' },
-          CenterA: { value: '', fraction: '' },
-          CenterB: { value: '', fraction: '' },
-          LeftA: { value: '', fraction: '' },
-          LeftB: { value: '', fraction: '' },
-          BotLA: { value: '', fraction: '' },
-          BotLB: { value: '', fraction: '' },
-          BotRA: { value: '', fraction: '' },
-          BotRB: { value: '', fraction: '' },
+          TopLA: { value: '', fraction: '', focused: false },
+          TopLB: { value: '', fraction: '', focused: false },
+          TopRA: { value: '', fraction: '', focused: false },
+          TopRB: { value: '', fraction: '', focused: false },
+          RightA: { value: '', fraction: '', focused: false },
+          RightB: { value: '', fraction: '', focused: false },
+          CenterA: { value: '', fraction: '', focused: false },
+          CenterB: { value: '', fraction: '', focused: false },
+          LeftA: { value: '', fraction: '', focused: false },
+          LeftB: { value: '', fraction: '', focused: false },
+          BotLA: { value: '', fraction: '', focused: false },
+          BotLB: { value: '', fraction: '', focused: false },
+          BotRA: { value: '', fraction: '', focused: false },
+          BotRB: { value: '', fraction: '', focused: false },
         },
         xCoords: initialCX,
         yCoords: initialCY,
@@ -176,8 +197,9 @@ export const createNewTool = (type: Tool['type']): Tool => {
     case 'Note':
       return {
         id: baseId,
+        color: toolColor,
         type,
-        data: { value: '' },
+        data: { value: '', focused: false },
         xCoords: initialNX,
         yCoords: initialNY,
         locked: false,
