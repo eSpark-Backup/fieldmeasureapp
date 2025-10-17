@@ -16,7 +16,7 @@ const TheDescriptionBox = ({
   value?: string;
   focus?: boolean;
   onChangeText: (text: string) => void;
-  onChangeFocus: (focus: boolean) => void;
+  onChangeFocus?: (focus: boolean) => void;
   textStyle?: TextStyle;
 }) => {
   console.log('Desc focus', focus);
@@ -38,8 +38,8 @@ const TheDescriptionBox = ({
         placeholder={placeholder}
         placeholderTextColor="#999"
         value={value}
-        onFocus={() => onChangeFocus(true)}
-        onBlur={() => onChangeFocus(false)}
+        onFocus={() => onChangeFocus?.(true)}
+        onBlur={() => onChangeFocus?.(false)}
         onChangeText={onChangeText}
         textAlignVertical="top"
       />

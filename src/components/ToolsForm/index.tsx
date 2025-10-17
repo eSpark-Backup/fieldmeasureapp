@@ -154,6 +154,199 @@ export default function ToolsForm({
   let laserCount = 0;
   let rakeCount = 0;
 
+  // Helper function to calculate variance between rectangle measurements
+  const calculateVariance = (value1: number, value2: number): boolean => {
+    const difference = Math.abs(value1 - value2);
+    return difference > 0.5; // More than 1/2" difference
+  };
+
+  // Helper function to convert inches and fraction to decimal
+  const convertToDecimal = (
+    inches: number = 0,
+    fractionStr: string = '0',
+  ): number => {
+    let fractionValue = 0;
+    if (fractionStr !== '0') {
+      const [numerator, denominator] = fractionStr.split('/').map(Number);
+      fractionValue = numerator / denominator;
+    }
+    return inches + fractionValue;
+  };
+
+  // Helper function to check if measurement has variance warning
+  const hasVarianceWarning = (
+    type: Tool['type'],
+    measurement: RectangleItem['data'] | CornerItem['data'],
+    field: string,
+  ): boolean => {
+    console.log('kia milrhi hain', type, measurement, field);
+    const measure = measurement as RectangleItem['data'];
+
+    if (type === 'Rectangle') {
+      const topA = convertToDecimal(
+        Number(measure.TopA.value || '0'),
+        measure.TopA.fraction || '0',
+      );
+      const topB = convertToDecimal(
+        Number(measure.TopB.value || '0'),
+        measure.TopB.fraction || '0',
+      );
+      const bottomA = convertToDecimal(
+        Number(measure.BotA.value || '0'),
+        measure.BotA.fraction || '0',
+      );
+      const bottomB = convertToDecimal(
+        Number(measure.BotB.value || '0'),
+        measure.BotB.fraction || '0',
+      );
+      const leftA = convertToDecimal(
+        Number(measure.LeftA.value || '0'),
+        measure.LeftA.fraction || '0',
+      );
+      const leftB = convertToDecimal(
+        Number(measure.LeftB.value || '0'),
+        measure.LeftB.fraction || '0',
+      );
+      const rightA = convertToDecimal(
+        Number(measure.RightA.value || '0'),
+        measure.RightA.fraction || '0',
+      );
+      const rightB = convertToDecimal(
+        Number(measure.RightB.value || '0'),
+        measure.RightB.fraction || '0',
+      );
+
+      console.log('Cnverted topA', topA);
+      console.log('Cnverted bottomA', bottomA);
+      console.log(
+        'calculateVariance(topA, bottomA)',
+        calculateVariance(topA, bottomA),
+      );
+
+      switch (field) {
+        case 'TopA':
+        case 'BotA':
+          return calculateVariance(topA, bottomA);
+        case 'TopB':
+        case 'BotB':
+          return calculateVariance(topB, bottomB);
+        case 'LeftA':
+        case 'RightA':
+          return calculateVariance(leftA, rightA);
+        case 'LeftB':
+        case 'RightB':
+          return calculateVariance(leftB, rightB);
+        default:
+          return false;
+      }
+    } else if (type === 'Corner') {
+      const m = measurement as CornerItem['data'];
+
+      switch (field) {
+        // Top L A to Bottom L A
+        case 'TopLA':
+        case 'BotLA':
+          const topLA = convertToDecimal(
+            Number(m.TopLA.value || '0'),
+            m.TopLA.fraction || '0',
+          );
+          const bottomLA = convertToDecimal(
+            Number(m.BotLA.value || '0'),
+            m.BotLA.fraction || '0',
+          );
+          return calculateVariance(topLA, bottomLA);
+
+        // Top R A to Bottom R A
+        case 'TopRA':
+        case 'BotRA':
+          const topRA = convertToDecimal(
+            Number(m.TopRA.value || '0'),
+            m.TopRA.fraction || '0',
+          );
+          const bottomRA = convertToDecimal(
+            Number(m.BotRA.value || '0'),
+            m.BotRA.fraction || '0',
+          );
+          return calculateVariance(topRA, bottomRA);
+
+        // Top L B to Bottom L B
+        case 'TopLB':
+        case 'BotLB':
+          const topLB = convertToDecimal(
+            Number(m.TopLB.value || '0'),
+            m.TopLB.fraction || '0',
+          );
+          const bottomLB = convertToDecimal(
+            Number(m.BotLB.value || '0'),
+            m.BotLB.fraction || '0',
+          );
+          return calculateVariance(topLB, bottomLB);
+
+        // Top R B to Bottom R B
+        case 'TopRB':
+        case 'BotRB':
+          const topRB = convertToDecimal(
+            Number(m.TopRB.value || '0'),
+            m.TopRB.fraction || '0',
+          );
+          const bottomRB = convertToDecimal(
+            Number(m.BotRB.value || '0'),
+            m.BotRB.fraction || '0',
+          );
+          return calculateVariance(topRB, bottomRB);
+
+        // Left A to Center A to Right A (triple relationship)
+        case 'LeftA':
+        case 'CenterA':
+        case 'RightA':
+          const leftA = convertToDecimal(
+            Number(m.LeftA.value || '0'),
+            m.LeftA.fraction || '0',
+          );
+          const centerA = convertToDecimal(
+            Number(m.CenterA.value || '0'),
+            m.CenterA.fraction || '0',
+          );
+          const rightA = convertToDecimal(
+            Number(m.RightA.value || '0'),
+            m.RightA.fraction || '0',
+          );
+          return (
+            calculateVariance(leftA, centerA) ||
+            calculateVariance(centerA, rightA) ||
+            calculateVariance(leftA, rightA)
+          );
+
+        // Left B to Center B to Right B (triple relationship)
+        case 'LeftB':
+        case 'CenterB':
+        case 'RightB':
+          const leftB = convertToDecimal(
+            Number(m.LeftB.value || '0'),
+            m.LeftB.fraction || '0',
+          );
+          const centerB = convertToDecimal(
+            Number(m.CenterB.value || '0'),
+            m.CenterB.fraction || '0',
+          );
+          const rightB = convertToDecimal(
+            Number(m.RightB.value || '0'),
+            m.RightB.fraction || '0',
+          );
+          return (
+            calculateVariance(leftB, centerB) ||
+            calculateVariance(centerB, rightB) ||
+            calculateVariance(leftB, rightB)
+          );
+
+        default:
+          return false;
+      }
+    }
+
+    return false;
+  };
+
   const renderItem = ({ item }: { item: Tool }) => {
     switch (item.type) {
       case 'Tape': {
@@ -180,8 +373,6 @@ export default function ToolsForm({
               selected={p.fraction}
               onChange={pair => updatePair(item.id, pair)}
               placeholder="0"
-              // onFocused={() => updateFocus(item.id, true)}
-              // onBlurred={() => updateFocus(item.id, false)}
               isLocked={item.locked}
               style={{ width: 70 }}
             />
@@ -297,6 +488,7 @@ export default function ToolsForm({
                 id={`rectangle-${index}`}
                 label={k}
                 pair={p[k]}
+                showWarn={hasVarianceWarning(item.type, p, k)}
                 selected={p[k].fraction}
                 onChange={pair => updatePair(item.id, pair, k)}
                 placeholder="0"
@@ -338,6 +530,7 @@ export default function ToolsForm({
                 id={`corner-${index}`}
                 label={k}
                 pair={p[k]}
+                showWarn={hasVarianceWarning(item.type, p, k)}
                 selected={p[k].fraction}
                 onChange={pair => updatePair(item.id, pair, k)}
                 placeholder="0"
@@ -435,7 +628,12 @@ const Card = ({
   return (
     <View style={[styles.initialContainer, style]}>
       {/* Header */}
-      <View style={[styles.rowContainer, { justifyContent: 'space-between' }]}>
+      <View
+        style={[
+          styles.rowContainer,
+          { justifyContent: 'space-between', paddingHorizontal: 10 },
+        ]}
+      >
         <View style={[styles.rowContainer, { gap: 5, width: '60%' }]}>
           <Badge color={color || '#FBBF24'} />
           <TheText
@@ -563,7 +761,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'lightgrey',
-    padding: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 5,
     marginVertical: 5,
     backgroundColor: 'white',
     gap: 10,
@@ -571,5 +770,6 @@ const styles = StyleSheet.create({
   rowContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    // paddingHorizontal: 10,
   },
 });

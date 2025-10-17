@@ -22,6 +22,7 @@ import EntypoIcon from 'react-native-vector-icons/Entypo';
 import TheTextInput from '../TheTextInput';
 import { fractionalInches } from '../../constants';
 import { MeasurementPair } from '../../types';
+import { Warn } from '../../assets';
 
 interface DropdownProps {
   label?: string;
@@ -34,6 +35,7 @@ interface DropdownProps {
   bgColor?: string;
   id: string;
   selected?: string | null;
+  showWarn?: boolean;
   error?: string;
   containerStyle?: ViewStyle;
   pair: MeasurementPair;
@@ -49,6 +51,7 @@ const ToolInput: React.FC<DropdownProps> = ({
   style,
   id,
   selected,
+  showWarn,
   error,
   containerStyle,
   pair,
@@ -110,6 +113,7 @@ const ToolInput: React.FC<DropdownProps> = ({
           alignItems: 'center',
           justifyContent: 'flex-end',
           gap: 5,
+          // backgroundColor: 'pink',
           // flex: 1,
         }}
       >
@@ -130,7 +134,7 @@ const ToolInput: React.FC<DropdownProps> = ({
           editable={!isLocked}
         />
         <TheText text="in" size={16} />
-
+        {showWarn && <Warn width={20} height={20} />}
         <Menu>
           <MenuTrigger disabled={isLocked}>
             <View style={styles.menuTrigger}>
