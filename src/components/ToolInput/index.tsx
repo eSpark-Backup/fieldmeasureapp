@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  forwardRef,
+} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -6,6 +12,7 @@ import {
   ScrollView,
   ViewStyle,
   StyleProp,
+  TextInput,
 } from 'react-native';
 
 import TheText from '../TheText';
@@ -42,189 +49,196 @@ interface DropdownProps {
   isLocked?: boolean;
 }
 
-const ToolInput: React.FC<DropdownProps> = ({
-  label,
-  onSelect,
-  onChange,
-  placeholder = 'Select option',
-  zIndex = 10,
-  style,
-  id,
-  selected,
-  showWarn,
-  error,
-  containerStyle,
-  pair,
-  isLocked = false,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ToolInput = forwardRef<TextInput, DropdownProps>(
+  (
+    {
+      label,
+      onSelect,
+      onChange,
+      placeholder = 'Select option',
+      zIndex = 10,
+      style,
+      id,
+      selected,
+      showWarn,
+      error,
+      containerStyle,
+      pair,
+      isLocked = false,
+    },
+    ref, // 👈 ref comes from parent
+  ) => {
+    const [isOpen, setIsOpen] = useState(false);
 
-  // useEffect(() => {
-  //   setSelectedItem(selected ?? '');
-  // }, [selected]);
+    // useEffect(() => {
+    //   setSelectedItem(selected ?? '');
+    // }, [selected]);
 
-  const handleToggle = () => {
-    setIsOpen(!isOpen);
-  };
+    const handleToggle = () => {
+      setIsOpen(!isOpen);
+    };
 
-  const handleSelection = (item: string) => {
-    console.log('pair kia fraction', pair);
-    // setSelectedItem(item);
-    setIsOpen(false);
-    onSelect?.({ key: id, value: item });
-    onChange({ ...pair, fraction: item });
-  };
+    const handleSelection = (item: string) => {
+      console.log('pair kia fraction', pair);
+      // setSelectedItem(item);
+      setIsOpen(false);
+      onSelect?.({ key: id, value: item });
+      onChange({ ...pair, fraction: item });
+    };
 
-  const renderOptions = () => {
-    return fractionalInches.map((item, index) => (
-      <TouchableOpacity
-        key={item}
-        style={[
-          styles.optionItem,
-          { borderColor: border },
-          index > 0 && styles.optionItemBorder,
-        ]}
-        onPress={() => handleSelection(item)}
-      >
-        <TheText text={item} />
-        {pair?.fraction === item && (
-          <FeatherIcon name="check" size={16} color="#34e145" />
-        )}
-      </TouchableOpacity>
-    ));
-  };
+    const renderOptions = () => {
+      return fractionalInches.map((item, index) => (
+        <TouchableOpacity
+          key={item}
+          style={[
+            styles.optionItem,
+            { borderColor: border },
+            index > 0 && styles.optionItemBorder,
+          ]}
+          onPress={() => handleSelection(item)}
+        >
+          <TheText text={item} />
+          {pair?.fraction === item && (
+            <FeatherIcon name="check" size={16} color="#34e145" />
+          )}
+        </TouchableOpacity>
+      ));
+    };
 
-  return (
-    <View
-      style={[
-        containerStyle,
-        {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          // backgroundColor: 'yellow',
-        },
-      ]}
-    >
-      {label && <TheText text={`${label}:`} />}
+    return (
       <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          gap: 5,
-          // backgroundColor: 'pink',
-          // flex: 1,
-        }}
+        style={[
+          containerStyle,
+          {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            // backgroundColor: 'yellow',
+          },
+        ]}
       >
-        <TheTextInput
-          placeholder="0"
+        {label && <TheText text={`${label}:`} />}
+        <View
           style={{
-            width: 50,
-            borderColor: pair?.focused ? '#2975D2' : border,
-            borderWidth: pair?.focused ? 2 : 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 5,
+            // backgroundColor: 'pink',
+            // flex: 1,
           }}
-          isNum
-          value={pair?.value}
-          onChange={t =>
-            onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') })
-          }
-          onBlur={() => onChange({ ...pair, focused: false })}
-          onFocus={() => onChange({ ...pair, focused: true })}
-          editable={!isLocked}
-        />
-        <TheText text="in" size={16} />
-        {showWarn && <Warn width={20} height={20} />}
-        <Menu>
-          <MenuTrigger disabled={isLocked}>
-            <View style={styles.menuTrigger}>
-              <TheText
-                text={pair?.fraction || '0'}
-                size={16}
-                color={!pair?.fraction ? 'grey' : 'auto'}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                style={{ flexShrink: 1, maxWidth: 40, textAlign: 'center' }}
-              />
-              <EntypoIcon name="chevron-down" color="#666" size={16} />
-            </View>
-          </MenuTrigger>
-
-          <MenuOptions
-            customStyles={{
-              optionsContainer: {
-                ...styles.menuOptions,
-                maxHeight: 150,
-              },
-              optionsWrapper: {
-                maxHeight: 150,
-              },
+        >
+          <TheTextInput
+            ref={ref}
+            placeholder="0"
+            style={{
+              width: 50,
+              borderColor: pair?.focused ? '#2975D2' : border,
+              borderWidth: pair?.focused ? 2 : 1,
             }}
+            // isNum
+            value={pair?.value}
+            onChange={t =>
+              onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') })
+            }
+            onBlur={() => onChange({ ...pair, focused: false })}
+            onFocus={() => onChange({ ...pair, focused: true })}
+            editable={!isLocked}
+            showSoftInputOnFocus={false}
+          />
+          <TheText text="in" size={16} />
+          {showWarn && <Warn width={20} height={20} />}
+          <Menu>
+            <MenuTrigger disabled={isLocked}>
+              <View style={styles.menuTrigger}>
+                <TheText
+                  text={pair?.fraction || '0'}
+                  size={16}
+                  color={!pair?.fraction ? 'grey' : 'auto'}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={{ flexShrink: 1, maxWidth: 40, textAlign: 'center' }}
+                />
+                <EntypoIcon name="chevron-down" color="#666" size={16} />
+              </View>
+            </MenuTrigger>
+
+            <MenuOptions
+              customStyles={{
+                optionsContainer: {
+                  ...styles.menuOptions,
+                  maxHeight: 150,
+                },
+                optionsWrapper: {
+                  maxHeight: 150,
+                },
+              }}
+            >
+              <ScrollView
+                style={{ maxHeight: 150 }}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={false}
+              >
+                {fractionalInches.map((item, index) => (
+                  <MenuOption
+                    key={item}
+                    onSelect={() => onChange({ ...pair, fraction: item })}
+                  >
+                    <View
+                      style={[
+                        styles.optionRow,
+                        {
+                          borderTopWidth: index === 0 ? 0 : 0.5,
+                          paddingBottom:
+                            index === fractionalInches.length - 1 ? 20 : 8,
+                        },
+                      ]}
+                    >
+                      <TheText text={item} />
+                      {pair?.fraction === item && (
+                        <FeatherIcon name="check" size={16} color="#34e145" />
+                      )}
+                    </View>
+                  </MenuOption>
+                ))}
+              </ScrollView>
+            </MenuOptions>
+          </Menu>
+        </View>
+
+        {error ? (
+          <TheText
+            color={'red'}
+            text={error}
+            style={styles.errorText}
+            size={10}
+          />
+        ) : null}
+
+        {isOpen && (
+          <View
+            style={[
+              styles.dropdownListWrapper,
+              { top: error ? '70%' : '90%', zIndex },
+            ]}
           >
             <ScrollView
-              style={{ maxHeight: 150 }}
-              nestedScrollEnabled
+              style={{
+                backgroundColor: background,
+                maxHeight: 100,
+              }}
+              keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
+              nestedScrollEnabled={true}
             >
-              {fractionalInches.map((item, index) => (
-                <MenuOption
-                  key={item}
-                  onSelect={() => onChange({ ...pair, fraction: item })}
-                >
-                  <View
-                    style={[
-                      styles.optionRow,
-                      {
-                        borderTopWidth: index === 0 ? 0 : 0.5,
-                        paddingBottom:
-                          index === fractionalInches.length - 1 ? 20 : 8,
-                      },
-                    ]}
-                  >
-                    <TheText text={item} />
-                    {pair?.fraction === item && (
-                      <FeatherIcon name="check" size={16} color="#34e145" />
-                    )}
-                  </View>
-                </MenuOption>
-              ))}
+              {renderOptions()}
             </ScrollView>
-          </MenuOptions>
-        </Menu>
+          </View>
+        )}
       </View>
-
-      {error ? (
-        <TheText
-          color={'red'}
-          text={error}
-          style={styles.errorText}
-          size={10}
-        />
-      ) : null}
-
-      {isOpen && (
-        <View
-          style={[
-            styles.dropdownListWrapper,
-            { top: error ? '70%' : '90%', zIndex },
-          ]}
-        >
-          <ScrollView
-            style={{
-              backgroundColor: background,
-              maxHeight: 100,
-            }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled={true}
-          >
-            {renderOptions()}
-          </ScrollView>
-        </View>
-      )}
-    </View>
-  );
-};
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   labelRow: {

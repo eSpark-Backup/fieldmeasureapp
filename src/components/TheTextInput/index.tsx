@@ -7,26 +7,12 @@ import {
   StyleProp,
   TouchableOpacity,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import TheText from '../TheText';
 import { border } from '../../constants/colors';
 import { PEye, PEyeClosed } from '../../assets';
 
-const TheTextInput = ({
-  label,
-  value,
-  placeholder,
-  style,
-  containerStyle,
-  secureTextEntry = false,
-  required,
-  onChange,
-  onBlur,
-  onFocus,
-  error,
-  isNum,
-  editable,
-}: {
+interface TheTextInputProps {
   label?: string;
   value?: string;
   placeholder?: string;
@@ -40,62 +26,87 @@ const TheTextInput = ({
   required?: boolean;
   isNum?: boolean;
   editable?: boolean;
-}) => {
-  const [hidePassword, setHidePassword] = useState(secureTextEntry);
+  showSoftInputOnFocus?: boolean;
+}
 
-  return (
-    <View style={containerStyle}>
-      {label && (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginVertical: 5,
-          }}
-        >
-          {label && <TheText style={styles.label} text={label} />}
-          {required && <TheText style={styles.required} text=" *" />}
-        </View>
-      )}
-      <View>
-        <TextInput
-          placeholder={placeholder}
-          placeholderTextColor={'#9E9E9E'}
-          value={value}
-          style={[styles.inputStyle, style]}
-          onChangeText={onChange}
-          secureTextEntry={hidePassword}
-          onBlur={onBlur}
-          onFocus={onFocus}
-          keyboardType={isNum ? 'decimal-pad' : 'default'}
-          inputMode={isNum ? 'decimal' : 'text'}
-          editable={editable}
-        />
-        {secureTextEntry && (
-          <TouchableOpacity
-            onPress={() => setHidePassword(!hidePassword)}
-            hitSlop={20}
+const TheTextInput = forwardRef<TextInput, TheTextInputProps>(
+  (
+    {
+      label,
+      value,
+      placeholder,
+      style,
+      containerStyle,
+      secureTextEntry = false,
+      required,
+      onChange,
+      onBlur,
+      onFocus,
+      error,
+      isNum,
+      editable,
+      showSoftInputOnFocus,
+    },
+    ref, // 👈 ref comes from parent
+  ) => {
+    const [hidePassword, setHidePassword] = useState(secureTextEntry);
+
+    return (
+      <View style={containerStyle}>
+        {label && (
+          <View
             style={{
-              position: 'absolute',
-              right: '2%',
-              top: '25%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginVertical: 5,
             }}
           >
-            {hidePassword ? <PEyeClosed /> : <PEye />}
-          </TouchableOpacity>
+            {label && <TheText style={styles.label} text={label} />}
+            {required && <TheText style={styles.required} text=" *" />}
+          </View>
         )}
+        <View>
+          <TextInput
+            ref={ref}
+            placeholder={placeholder}
+            placeholderTextColor={'#9E9E9E'}
+            value={value}
+            style={[styles.inputStyle, style]}
+            onChangeText={onChange}
+            secureTextEntry={hidePassword}
+            onBlur={onBlur}
+            onFocus={onFocus}
+            keyboardType={isNum ? 'decimal-pad' : 'default'}
+            inputMode={isNum ? 'decimal' : undefined}
+            editable={editable}
+            showSoftInputOnFocus={showSoftInputOnFocus}
+          />
+          {secureTextEntry && (
+            <TouchableOpacity
+              onPress={() => setHidePassword(!hidePassword)}
+              hitSlop={20}
+              style={{
+                position: 'absolute',
+                right: '2%',
+                top: '25%',
+              }}
+            >
+              {hidePassword ? <PEyeClosed /> : <PEye />}
+            </TouchableOpacity>
+          )}
+        </View>
+        {error ? (
+          <TheText
+            text={error}
+            color={'red'}
+            style={styles.errorText}
+            size={10}
+          />
+        ) : null}
       </View>
-      {error ? (
-        <TheText
-          text={error}
-          color={'red'}
-          style={styles.errorText}
-          size={10}
-        />
-      ) : null}
-    </View>
-  );
-};
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   inputStyle: {

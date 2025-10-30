@@ -1,6 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet, ColorValue } from 'react-native';
-import { Line as SVGLine } from 'react-native-svg';
+import {
+  View,
+  Dimensions,
+  StyleSheet,
+  ColorValue,
+  TouchableOpacity,
+} from 'react-native';
+import Svg, { Rect, Line as SVGLine, Text } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
@@ -31,6 +37,7 @@ const RakeTool = ({
   canvasSize,
   baseColor,
   rakeNumber,
+  onLabelPress,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -50,6 +57,12 @@ const RakeTool = ({
   canvasSize: CanvasVals;
   baseColor: ColorValue;
   rakeNumber: number;
+  onLabelPress: (data: {
+    value: string;
+    fraction: string;
+    focused: boolean;
+    distance: MeasurementPair;
+  }) => void;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -114,14 +127,26 @@ const RakeTool = ({
         if (index == 0) {
           pointsDist[index].x.value = point.x.value;
           pointsDist[index].y.value = point.y.value;
-          pointsDist[1].x.value = points[1].x.value / 0.9;
-          pointsDist[1].y.value = points[1].y.value / 0.6;
+          pointsDist[1].x.value =
+            points[1].x.value / 0.9 > canvasSize.width
+              ? points[1].x.value
+              : points[1].x.value / 0.9;
+          pointsDist[1].y.value =
+            points[1].y.value / 0.6 > canvasSize.height
+              ? points[1].y.value
+              : points[1].y.value / 0.6;
         }
         if (index == 1 && !showDist) {
           pointsDist[0].x.value = points[0].x.value;
           pointsDist[0].y.value = points[0].y.value;
-          pointsDist[index].x.value = point.x.value / 0.9;
-          pointsDist[index].y.value = point.y.value / 0.6;
+          pointsDist[index].x.value =
+            point.x.value / 0.9 > canvasSize.width
+              ? point.x.value
+              : point.x.value / 0.9;
+          pointsDist[index].y.value =
+            point.y.value / 0.6 > canvasSize.height
+              ? point.y.value
+              : point.y.value / 0.6;
         }
       })
       .onEnd(() => {
@@ -275,26 +300,40 @@ const RakeTool = ({
     }
   };
 
+  const labelPress = () => {
+    const newData = { ...data };
+    newData.focused = true;
+  };
+  const tapGesture = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
+  });
   return (
     <View style={{ position: 'absolute' }}>
-      <Animated.View style={[styles.box2, animatedInfo]}>
-        <View style={{ width: '100%', alignItems: 'flex-end' }}>
-          <View
-            style={{
-              backgroundColor: baseColor,
-              paddingHorizontal: 10,
-              alignItems: 'center',
-              borderRadius: 5,
-              borderWidth: 2,
-              borderColor: data.focused ? '#EAE72E' : baseColor,
-            }}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`R${rakeNumber}: +${inches()}`}
-            />
-          </View>
+      <Animated.View style={[styles.box2, animatedInfo]} pointerEvents="auto">
+        <View
+          style={{
+            width: '100%',
+            alignItems: 'flex-end',
+          }}
+        >
+          <GestureDetector gesture={tapGesture}>
+            <View
+              style={{
+                backgroundColor: baseColor,
+                paddingHorizontal: 10,
+                alignItems: 'center',
+                borderRadius: 5,
+                borderWidth: 2,
+                borderColor: data.focused ? '#EAE72E' : baseColor,
+              }}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`R${rakeNumber}: +${inches()}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       {!locked

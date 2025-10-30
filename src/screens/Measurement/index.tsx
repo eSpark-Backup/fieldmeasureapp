@@ -7,6 +7,7 @@ import {
   FlatList,
   Alert,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import {
@@ -14,7 +15,7 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
-import Svg from 'react-native-svg';
+import Svg, { Rect } from 'react-native-svg';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -543,8 +544,6 @@ const Measurement = () => {
       displayedSize,
     );
 
-    console.log('displayedSize q nhi araha', displayedSize);
-
     switch (tool.type) {
       case 'Tape': {
         tapeCount++;
@@ -614,6 +613,7 @@ const Measurement = () => {
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
+            onLabelPress={data => console.log('onLabelPress data', data)}
           />
         );
       }

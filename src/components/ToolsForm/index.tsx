@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, ViewStyle, ColorValue } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ViewStyle,
+  ColorValue,
+  TouchableOpacity,
+  Animated,
+  Text,
+  TextInput,
+} from 'react-native';
 import TheButton from '../TheButton';
 import TheText from '../TheText';
 import TheToggle from '../TheToggle';
@@ -47,6 +56,79 @@ export default function ToolsForm({
   debounceMs = 200,
 }: FormProps) {
   const [items, setItems] = useState<ToolsList>(tools);
+  const [focusedPair, setFocusedPair] = useState<{
+    toolId: string;
+    key?: string;
+    pair?: MeasurementPair;
+    refKey?: string;
+  } | null>(null);
+  const inputRef = useRef<TextInput>(null);
+  // map of input refs keyed by a unique id (we'll prefix with tool.id)
+  const inputRefs = useRef<Record<string, TextInput | null>>({});
+  // map of tool.id -> (pairKey -> inputId) so we can find refs by pair key names
+  const inputIdMap = useRef<Record<string, Record<string, string>>>({});
+
+  const findFocusedPair = (tool: Tool): void => {
+    if (tool.type === 'Note') setFocusedPair(null);
+    const data: any = tool.data;
+    const map = inputIdMap.current[tool.id] || {};
+
+    // Tape / Rake primary
+    if (tool.type === 'Tape' || tool.type === 'Rake') {
+      const pair: MeasurementPair = data as any;
+      const refKey = map['primary'] || `${tool.id}-${tool.type.toLowerCase()}`;
+      setFocusedPair({ toolId: tool.id, key: undefined, pair, refKey });
+    }
+
+    if (tool.type === 'Laser') {
+      if (data.SideA?.focused)
+        setFocusedPair({
+          toolId: tool.id,
+          key: 'SideA',
+          pair: data.SideA,
+          refKey: map['SideA'],
+        });
+      if (data.SideB?.focused)
+        setFocusedPair({
+          toolId: tool.id,
+          key: 'SideB',
+          pair: data.SideB,
+          refKey: map['SideB'],
+        });
+      // default to SideA
+      setFocusedPair({
+        toolId: tool.id,
+        key: 'SideA',
+        pair: data.SideA,
+        refKey: map['SideA'],
+      });
+    }
+
+    // Rectangle / Corner: check map entries for focused flag
+    for (const key of Object.keys(map)) {
+      const pair = data[key];
+      if (
+        pair &&
+        typeof pair === 'object' &&
+        'focused' in pair &&
+        pair.focused
+      ) {
+        setFocusedPair({ toolId: tool.id, key, pair, refKey: map[key] });
+      }
+    }
+
+    // fallback: try to return first mapping
+    const first = Object.keys(map)[0];
+    if (first)
+      setFocusedPair({
+        toolId: tool.id,
+        key: first,
+        pair: data[first],
+        refKey: map[first],
+      });
+
+    setFocusedPair(null);
+  };
 
   console.log('Items me kia', items);
 
@@ -347,42 +429,128 @@ export default function ToolsForm({
     return false;
   };
 
+  const FloatingKeyboard = ({
+    visible,
+    onPressKey,
+    isQwerty,
+  }: {
+    visible: boolean;
+    onPressKey: (key: string) => void;
+    isQwerty?: boolean;
+  }) => {
+    const translateY = useRef(new Animated.Value(300)).current;
+
+    useEffect(() => {
+      if (visible) {
+        Animated.spring(translateY, {
+          toValue: visible ? 0 : 300, // Slide in/out
+          useNativeDriver: true,
+        }).start();
+      }
+    }, [visible]);
+
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '←', 'OK'];
+    const KEY_ROWS = [
+      ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+      ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+      ['Z', 'X', 'C', 'V', 'B', 'N', 'M', '←'],
+      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+      ['Space', 'OK'],
+    ];
+
+    return (
+      <Animated.View
+        style={[styles.keyboardContainer, { transform: [{ translateY }] }]}
+      >
+        {isQwerty ? (
+          KEY_ROWS.map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.row}>
+              {row.map(key => (
+                <TouchableOpacity
+                  key={key}
+                  onPress={() => onPressKey(key)}
+                  style={[
+                    styles.key,
+                    key === 'Space' && styles.spaceKey,
+                    key === 'OK' && styles.okKey,
+                  ]}
+                >
+                  <Text style={styles.keyText}>
+                    {key === 'Space' ? '⎵' : key}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))
+        ) : (
+          <View style={styles.row}>
+            {keys.map(key => (
+              <TouchableOpacity
+                key={key}
+                style={[styles.key, { width: '15%', margin: 2 }]}
+                onPress={() => onPressKey(key)}
+              >
+                <Text style={styles.keyText}>{key}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </Animated.View>
+    );
+  };
+
   const renderItem = ({ item }: { item: Tool }) => {
     switch (item.type) {
       case 'Tape': {
         const p = item.data as TapeItem['data'];
         tapeCount++;
+        const inputId = `${item.id}-tape`;
         return (
-          <Card
-            item={item}
-            color={item.color}
-            onDelete={() => deleteItem(item.id)}
-            onEye={() => updateEye(item.id, !item.hidden)}
-            onToggle={() => updateToggle(item.id, !item.locked)}
-            count={tapeCount}
-          >
-            {/* <View style={{ width: 1, height: '5%' }} /> */}
+          <>
+            <Card
+              item={item}
+              color={item.color}
+              onDelete={() => deleteItem(item.id)}
+              onEye={() => updateEye(item.id, !item.hidden)}
+              onToggle={() => updateToggle(item.id, !item.locked)}
+              count={tapeCount}
+            >
+              {/* <View style={{ width: 1, height: '5%' }} /> */}
 
-            <ToolInput
-              id={'tape'}
-              pair={{
-                value: p.value,
-                fraction: p.fraction,
-                focused: p.focused,
-              }}
-              selected={p.fraction}
-              onChange={pair => updatePair(item.id, pair)}
-              placeholder="0"
-              isLocked={item.locked}
-              style={{ width: 70 }}
-            />
-            {/* <View style={{ width: 1, height: '1%' }} /> */}
-          </Card>
+              <ToolInput
+                ref={r => {
+                  inputRefs.current[inputId] = r;
+                  inputIdMap.current[item.id] =
+                    inputIdMap.current[item.id] || {};
+                  inputIdMap.current[item.id]['primary'] = inputId;
+                }}
+                id={inputId}
+                pair={{
+                  value: p.value,
+                  fraction: p.fraction,
+                  focused: p.focused,
+                }}
+                selected={p.fraction}
+                onChange={pair => {
+                  updatePair(item.id, pair);
+                  if (pair.focused) {
+                    findFocusedPair(item);
+                  }
+                }}
+                placeholder="0"
+                isLocked={item.locked}
+                style={{ width: 70 }}
+              />
+              {/* <View style={{ width: 1, height: '1%' }} /> */}
+            </Card>
+          </>
         );
       }
       case 'Laser': {
         const p = item.data as LaserItem['data'];
         laserCount++;
+        const idA = `${item.id}-laser-SideA`;
+        const idB = `${item.id}-laser-SideB`;
         return (
           <Card
             item={item}
@@ -393,7 +561,12 @@ export default function ToolsForm({
             count={laserCount}
           >
             <ToolInput
-              id={'laser'}
+              ref={r => {
+                inputRefs.current[idA] = r;
+                inputIdMap.current[item.id] = inputIdMap.current[item.id] || {};
+                inputIdMap.current[item.id]['SideA'] = idA;
+              }}
+              id={idA}
               label="Side A"
               pair={p.SideA}
               selected={p.SideA.fraction}
@@ -403,7 +576,12 @@ export default function ToolsForm({
               isLocked={item.locked}
             />
             <ToolInput
-              id={'laser'}
+              ref={r => {
+                inputRefs.current[idB] = r;
+                inputIdMap.current[item.id] = inputIdMap.current[item.id] || {};
+                inputIdMap.current[item.id]['SideB'] = idB;
+              }}
+              id={idB}
               label="Side B"
               pair={p.SideB}
               selected={p.SideB.fraction}
@@ -419,6 +597,7 @@ export default function ToolsForm({
         const p = item.data as RakeItem['data'];
         const rake = item as RakeItem;
         rakeCount++;
+        const rakeId = `${item.id}-rake`;
         return (
           <Card
             item={item}
@@ -429,7 +608,12 @@ export default function ToolsForm({
             count={rakeCount}
           >
             <ToolInput
-              id={'rake'}
+              ref={r => {
+                inputRefs.current[rakeId] = r;
+                inputIdMap.current[item.id] = inputIdMap.current[item.id] || {};
+                inputIdMap.current[item.id]['primary'] = rakeId;
+              }}
+              id={rakeId}
               pair={{
                 value: p.value,
                 fraction: p.fraction,
@@ -451,7 +635,15 @@ export default function ToolsForm({
             />
             {rake.showDist && (
               <ToolInput
-                id={'rake-distance'}
+                ref={r => {
+                  inputRefs.current[`${item.id}-rake-distance`] = r;
+                  inputIdMap.current[item.id] =
+                    inputIdMap.current[item.id] || {};
+                  inputIdMap.current[item.id][
+                    'distance'
+                  ] = `${item.id}-rake-distance`;
+                }}
+                id={`${item.id}-rake-distance`}
                 pair={p.distance}
                 selected={p.distance?.fraction}
                 onChange={pair => updatePair(item.id, pair, 'distance')}
@@ -483,19 +675,28 @@ export default function ToolsForm({
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
           >
-            {keys.map((k, index) => (
-              <ToolInput
-                id={`rectangle-${index}`}
-                label={k}
-                pair={p[k]}
-                showWarn={hasVarianceWarning(item.type, p, k)}
-                selected={p[k].fraction}
-                onChange={pair => updatePair(item.id, pair, k)}
-                placeholder="0"
-                style={{ width: 70 }}
-                isLocked={item.locked}
-              />
-            ))}
+            {keys.map((k, index) => {
+              const rid = `${item.id}-rectangle-${index}`;
+              return (
+                <ToolInput
+                  ref={r => {
+                    inputRefs.current[rid] = r;
+                    inputIdMap.current[item.id] =
+                      inputIdMap.current[item.id] || {};
+                    inputIdMap.current[item.id][k] = rid;
+                  }}
+                  id={rid}
+                  label={k}
+                  pair={p[k]}
+                  showWarn={hasVarianceWarning(item.type, p, k)}
+                  selected={p[k].fraction}
+                  onChange={pair => updatePair(item.id, pair, k)}
+                  placeholder="0"
+                  style={{ width: 70 }}
+                  isLocked={item.locked}
+                />
+              );
+            })}
           </Card>
         );
       }
@@ -525,19 +726,28 @@ export default function ToolsForm({
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
           >
-            {keys.map((k, index) => (
-              <ToolInput
-                id={`corner-${index}`}
-                label={k}
-                pair={p[k]}
-                showWarn={hasVarianceWarning(item.type, p, k)}
-                selected={p[k].fraction}
-                onChange={pair => updatePair(item.id, pair, k)}
-                placeholder="0"
-                style={{ width: 70 }}
-                isLocked={item.locked}
-              />
-            ))}
+            {keys.map((k, index) => {
+              const cid = `${item.id}-corner-${index}`;
+              return (
+                <ToolInput
+                  ref={r => {
+                    inputRefs.current[cid] = r;
+                    inputIdMap.current[item.id] =
+                      inputIdMap.current[item.id] || {};
+                    inputIdMap.current[item.id][k] = cid;
+                  }}
+                  id={cid}
+                  label={k}
+                  pair={p[k]}
+                  showWarn={hasVarianceWarning(item.type, p, k)}
+                  selected={p[k].fraction}
+                  onChange={pair => updatePair(item.id, pair, k)}
+                  placeholder="0"
+                  style={{ width: 70 }}
+                  isLocked={item.locked}
+                />
+              );
+            })}
           </Card>
         );
       }
@@ -570,6 +780,38 @@ export default function ToolsForm({
           {renderItem({ item: tool })}
         </View>
       ))}
+      <FloatingKeyboard
+        visible={true}
+        onPressKey={key => {
+          const focused = focusedPair;
+          if (!focused || !focused.pair) return;
+          const pair = focused.pair;
+
+          if (key === '←') {
+            const newVal = (pair.value || '').slice(0, -1);
+            updatePair(focused.toolId, { ...pair, value: newVal }, focused.key);
+            return;
+          }
+
+          if (key === 'OK') {
+            const ref = focused.refKey
+              ? inputRefs.current[focused.refKey]
+              : null;
+            ref?.blur?.();
+            updatePair(
+              focused.toolId,
+              { ...pair, focused: false },
+              focused.key,
+            );
+            return;
+          }
+
+          // Append only digits or dot
+          if (!/^[0-9.]$/.test(key)) return;
+          const newVal = (pair.value || '') + key;
+          updatePair(focused.toolId, { ...pair, value: newVal }, focused.key);
+        }}
+      />
       {/* <Card
           id={tool.id}
           type={tool.type}
@@ -772,4 +1014,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // paddingHorizontal: 10,
   },
+  keyboardContainer: {
+    // position: 'absolute',
+    // bottom: 20,
+    // left: 20,
+    // right: 20,
+    backgroundColor: '#333',
+    borderRadius: 16,
+    padding: 10,
+    elevation: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    marginVertical: 4,
+    flexWrap: 'wrap',
+  },
+  key: {
+    width: '8%',
+    // paddingVertical: 5,
+    backgroundColor: '#444',
+    margin: 1,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  // key: {
+  //   flex: 1,
+  //   margin: 3,
+  //   backgroundColor: '#444',
+  //   paddingVertical: 12,
+  //   borderRadius: 8,
+  //   alignItems: 'center',
+  // },
+  spaceKey: {
+    flex: 3,
+  },
+  okKey: {
+    flex: 1,
+    backgroundColor: '#5A8DEE',
+  },
+  keyText: { color: '#fff', fontSize: 16, fontWeight: '500' },
 });
