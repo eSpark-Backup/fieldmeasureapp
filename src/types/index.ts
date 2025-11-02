@@ -48,6 +48,7 @@ export type MeasurementPair = {
   value: string;
   fraction: string;
   focused: boolean;
+  distance?: MeasurementPair;
 };
 
 export type BaseItem = {

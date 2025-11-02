@@ -141,8 +141,16 @@ const ToolInput = forwardRef<TextInput, DropdownProps>(
             onChange={t =>
               onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') })
             }
-            onBlur={() => onChange({ ...pair, focused: false })}
-            onFocus={() => onChange({ ...pair, focused: true })}
+            onBlur={() =>
+              pair?.focused == true
+                ? onChange({ ...pair, focused: false })
+                : null
+            }
+            onFocus={() =>
+              pair?.focused == false
+                ? onChange({ ...pair, focused: true })
+                : null
+            }
             editable={!isLocked}
             showSoftInputOnFocus={false}
           />

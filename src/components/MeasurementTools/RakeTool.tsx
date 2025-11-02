@@ -300,13 +300,24 @@ const RakeTool = ({
     }
   };
 
-  const labelPress = () => {
+  const onLabel = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
     const newData = { ...data };
     newData.focused = true;
-  };
-  const tapGesture = Gesture.Tap().onStart(() => {
-    console.log('SVG Rect pressed via gesture ✅');
+    newData.distance.focused = false;
+    runOnJS(onLabelPress)(newData);
   });
+
+  const onDistLabel = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
+    const newData = { ...data };
+    newData.focused = false;
+    newData.distance.focused = true;
+    runOnJS(onLabelPress)(newData);
+  });
+
+  console.log('Rake data', data);
+
   return (
     <View style={{ position: 'absolute' }}>
       <Animated.View style={[styles.box2, animatedInfo]} pointerEvents="auto">
@@ -316,7 +327,7 @@ const RakeTool = ({
             alignItems: 'flex-end',
           }}
         >
-          <GestureDetector gesture={tapGesture}>
+          <GestureDetector gesture={onLabel}>
             <View
               style={{
                 backgroundColor: baseColor,
@@ -356,22 +367,24 @@ const RakeTool = ({
       ))}
       {showDist && (
         <>
-          <Animated.View
-            style={[
-              styles.box3,
-              animatedInfoDist,
-              {
-                borderColor: data.distance?.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`R${rakeNumber}D: ${inchesDist()}`}
-            />
-          </Animated.View>
+          <GestureDetector gesture={onDistLabel}>
+            <Animated.View
+              style={[
+                styles.box3,
+                animatedInfoDist,
+                {
+                  borderColor: data.distance?.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`R${rakeNumber}D: ${inchesDist()}`}
+              />
+            </Animated.View>
+          </GestureDetector>
           {!locked
             ? pointsDist.map((_, i) => (
                 <GestureDetector key={`pan-${i}`} gesture={panGesturesDist[i]}>

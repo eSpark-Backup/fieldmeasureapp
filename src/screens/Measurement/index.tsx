@@ -470,6 +470,22 @@ const Measurement = () => {
     );
   };
 
+  const updateFocus = (id: string, data: any) => {
+    console.log('shared data', data);
+
+    setTools(prev =>
+      prev.map(it => {
+        if (it.id !== id) return it;
+        return {
+          ...it,
+          data,
+        };
+      }),
+    );
+  };
+
+  console.log('TOols info', JSON.stringify(tools));
+
   const lockAllTools = (locked: boolean) => {
     setTools(prev =>
       prev.map(it => ({
@@ -613,7 +629,7 @@ const Measurement = () => {
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
-            onLabelPress={data => console.log('onLabelPress data', data)}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }

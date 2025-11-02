@@ -55,7 +55,7 @@ export default function ToolsForm({
   onChange,
   debounceMs = 200,
 }: FormProps) {
-  const [items, setItems] = useState<ToolsList>(tools);
+  // const [items, setItems] = useState<ToolsList>(tools);
   const [focusedPair, setFocusedPair] = useState<{
     toolId: string;
     key?: string;
@@ -67,6 +67,8 @@ export default function ToolsForm({
   const inputRefs = useRef<Record<string, TextInput | null>>({});
   // map of tool.id -> (pairKey -> inputId) so we can find refs by pair key names
   const inputIdMap = useRef<Record<string, Record<string, string>>>({});
+  // flag to skip focus/blur logic during programmatic updates (e.g. updatePair)
+  const skipFocusRef = useRef(false);
 
   const findFocusedPair = (tool: Tool): void => {
     if (tool.type === 'Note') setFocusedPair(null);
@@ -130,90 +132,92 @@ export default function ToolsForm({
     setFocusedPair(null);
   };
 
-  console.log('Items me kia', items);
+  // console.log('Items me kia', items);
 
-  useEffect(() => {
-    setItems(tools);
-  }, [tools]);
+  // useEffect(() => {
+  //   setItems(tools);
+  // }, [tools]);
 
   const emitChange = useDebouncedCallback(
     (next: Tool[]) => onChange?.(next),
     debounceMs,
   );
 
-  useEffect(() => {
-    emitChange(items);
-  }, [items]);
+  // useEffect(() => {
+  //   emitChange(items);
+  // }, [items]);
 
   const updatePair = (id: string, pair: MeasurementPair, key?: string) => {
-    setItems(prev =>
-      prev.map(it => {
-        if (it.id !== id) return it;
-        if (it.type === 'Note') return it; // not a pair
-        console.log('it kia', it.data);
+    // prevent focus/blur side-effects that run during render caused by this update
+    skipFocusRef.current = true;
+    const updatedTools = tools.map(it => {
+      if (it.id !== id) return it;
+      if (it.type === 'Note') return it;
 
-        const clone: any = { ...it, data: { ...it.data } };
-        console.log('clone me kia', clone);
-        if (key) {
-          clone.data[key] = pair;
-        } else {
-          clone.data = pair;
-        }
-        return clone;
-      }),
-    );
+      const clone: any = { ...it, data: { ...it.data } };
+      if (key) {
+        clone.data[key] = pair;
+      } else {
+        clone.data = pair;
+      }
+      return clone;
+    });
+    onChange(updatedTools);
+    // clear the skip flag on next tick so normal focus handling resumes
+    setTimeout(() => {
+      skipFocusRef.current = false;
+    }, 0);
   };
 
   const updateSingle = (id: string, value: string | boolean, key: string) => {
-    console.log('yeh chla', value, key);
-
-    setItems(prev =>
-      prev.map(it => {
-        if (it.id !== id) return it;
-        if (it.type === 'Note') {
-          return { ...it, data: { ...it.data, [key]: value } } as NoteItem;
-        }
-        const clone: any = { ...it, data: { ...(it as any).data } };
-        clone.data[key] = value;
-        return clone;
-      }),
-    );
+    const updatedTools = tools.map(it => {
+      if (it.id !== id) return it;
+      if (it.type === 'Note') {
+        return { ...it, data: { ...it.data, [key]: value } } as NoteItem;
+      }
+      const clone: any = { ...it, data: { ...(it as any).data } };
+      clone.data[key] = value;
+      return clone;
+    });
+    onChange(updatedTools);
   };
 
   const updateDist = (id: string, state: boolean) => {
-    setItems(prev =>
-      prev.map(it => {
-        if (it.id !== id) return it;
-        return {
-          ...it,
-          showDist: state,
-        };
-      }),
-    );
+    const updatedTools = tools.map(it => {
+      if (it.id !== id) return it;
+      return {
+        ...it,
+        showDist: state,
+      };
+    });
+    onChange(updatedTools);
   };
 
   const updateToggle = (id: string, state: boolean) => {
-    setItems(prev =>
-      prev.map(it => {
-        if (it.id !== id) return it;
-        return {
-          ...it,
-          locked: state,
-        };
-      }),
-    );
+    const updatedTools = tools.map(it => {
+      if (it.id !== id) return it;
+      return {
+        ...it,
+        locked: state,
+      };
+    });
+    onChange(updatedTools);
   };
 
   const updateEye = (id: string, state: boolean) => {
-    setItems(prev =>
-      prev.map(it => {
-        if (it.id !== id) return it;
-        return {
-          ...it,
-          hidden: state,
-        };
-      }),
-    );
+    const updatedTools = tools.map(it => {
+      if (it.id !== id) return it;
+      return {
+        ...it,
+        hidden: state,
+      };
+    });
+    onChange(updatedTools);
+  };
+
+  const deleteItem = (id: string) => {
+    const updatedTools = tools.filter(it => it.id !== id);
+    onChange(updatedTools);
   };
 
   // const updateFocus = (id: string, state: boolean) => {
@@ -228,9 +232,9 @@ export default function ToolsForm({
   //   );
   // };
 
-  const deleteItem = (id: string) => {
-    setItems(prev => prev.filter(it => it.id !== id));
-  };
+  // const deleteItem = (id: string) => {
+  //   setItems(prev => prev.filter(it => it.id !== id));
+  // };
 
   let tapeCount = 0;
   let laserCount = 0;
@@ -598,6 +602,21 @@ export default function ToolsForm({
         const rake = item as RakeItem;
         rakeCount++;
         const rakeId = `${item.id}-rake`;
+
+        // compacted focus/blur logic and skip when flagged (skipFocusRef)
+        const manageFocus = (
+          refKey: string,
+          shouldFocus: boolean | undefined,
+        ) => {
+          if (skipFocusRef.current) return;
+          const ref = inputRefs.current[refKey];
+          const isFocused = ref?.isFocused?.() === true;
+          if (shouldFocus && !isFocused) ref?.focus?.();
+          else if (!shouldFocus && isFocused) ref?.blur?.();
+        };
+        +manageFocus(rakeId, !!item.data.focused);
+        manageFocus(`${item.id}-rake-distance`, !!item.data.distance?.focused);
+
         return (
           <Card
             item={item}
@@ -620,7 +639,9 @@ export default function ToolsForm({
                 focused: p.focused,
               }}
               selected={p.fraction}
-              onChange={pair => updatePair(item.id, pair)}
+              onChange={pair =>
+                updatePair(item.id, { ...pair, distance: p.distance })
+              }
               placeholder="0"
               style={{ width: 70 }}
               isLocked={item.locked}
@@ -775,7 +796,7 @@ export default function ToolsForm({
 
   return (
     <View style={styles.container}>
-      {items.map((tool, index) => (
+      {tools.map((tool, index) => (
         <View style={{ zIndex: 10 + tools.length - index }}>
           {renderItem({ item: tool })}
         </View>
