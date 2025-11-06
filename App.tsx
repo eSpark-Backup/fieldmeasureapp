@@ -8,11 +8,13 @@ import { MenuProvider } from 'react-native-popup-menu';
 import RootNavigation from './src/navigation/RootNavigation';
 import { WhiteBackground } from './src/constants/colors';
 import ToastConfig from './src/utils/toastConfig';
+import { KeyboardProvider } from './src/utils/keyboardContext';
 
 const App = () => {
   return (
     <SafeAreaProvider>
-      <MenuProvider>
+      <KeyboardProvider>
+        <MenuProvider>
           <NavigationContainer>
             <StatusBar
               barStyle={'dark-content'}
@@ -21,7 +23,8 @@ const App = () => {
             <RootNavigation />
             <ToastConfig />
           </NavigationContainer>
-      </MenuProvider>
+        </MenuProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 };
