@@ -316,8 +316,6 @@ const RakeTool = ({
     runOnJS(onLabelPress)(newData);
   });
 
-  console.log('Rake data', data);
-
   return (
     <View style={{ position: 'absolute' }}>
       <Animated.View style={[styles.box2, animatedInfo]} pointerEvents="auto">

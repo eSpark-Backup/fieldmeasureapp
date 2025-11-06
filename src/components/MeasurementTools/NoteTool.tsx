@@ -23,6 +23,7 @@ const NoteTool = ({
   locked,
   canvasSize,
   baseColor,
+  onLabelPress,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -32,6 +33,7 @@ const NoteTool = ({
   locked?: boolean;
   canvasSize: CanvasVals;
   baseColor: ColorValue;
+  onLabelPress: (data: { value: string; focused: boolean }) => void;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -89,6 +91,17 @@ const NoteTool = ({
     })),
   );
 
+  const onLabel = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
+    const newData = { ...data };
+    newData.focused = true;
+    runOnJS(onLabelPress)(newData);
+  });
+
+  const combinedGestures = points.map((point, index) =>
+    Gesture.Simultaneous(panGestures[index].enabled(!locked), onLabel),
+  );
+
   return (
     <View style={{ position: 'absolute' }}>
       {/* <Animated.View style={[styles.box2, animatedInfo]}>
@@ -100,10 +113,7 @@ const NoteTool = ({
       </Animated.View> */}
 
       {points.map((_, i) => (
-        <GestureDetector
-          key={`pan-${i}`}
-          gesture={panGestures[i].enabled(!locked)}
-        >
+        <GestureDetector key={`pan-${i}`} gesture={combinedGestures[i]}>
           <Animated.View
             style={[
               styles.box,

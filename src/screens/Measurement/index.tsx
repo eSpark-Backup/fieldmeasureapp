@@ -53,7 +53,15 @@ import { TOOLS } from '../../constants';
 import { border } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import { createNewTool, pdfHTML } from './utils';
-import { CanvasVals, Measure, Project, Tool, ToolsList } from '../../types';
+import {
+  CanvasVals,
+  Measure,
+  Project,
+  Tool,
+  ToolsList,
+  RakeItem,
+  MeasurementPair,
+} from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { showToast } from '../../utils/showToast';
 import ToolsForm from '../../components/ToolsForm';
@@ -473,18 +481,102 @@ const Measurement = () => {
   const updateFocus = (id: string, data: any) => {
     console.log('shared data', data);
 
-    setTools(prev =>
-      prev.map(it => {
-        if (it.id !== id) return it;
-        return {
-          ...it,
-          data,
-        };
-      }),
-    );
-  };
+    setTools(prev => {
+      // First, find any tool that is currently focused
+      const focusedTool = prev.find(tool => {
+        const toolData = tool.data as any;
+        // Check if the tool has focused state in any measurement
+        if (tool.type === 'Rake') {
+          // Check both main measurement and distance for Rake tools
+          const rakeData = toolData as RakeItem['data'];
+          return rakeData.focused || rakeData.distance?.focused;
+        }
+        return (
+          toolData.focused || // Direct focus (like Note)
+          (typeof toolData === 'object' &&
+            Object.values(toolData).some(
+              (val: any) => val?.focused, // Nested focus (like Rectangle/Corner measurements)
+            ))
+        );
+      });
 
-  console.log('TOols info', JSON.stringify(tools));
+      return prev.map(it => {
+        // If this is a currently focused tool that's not the target tool, unfocus it
+        if (focusedTool && it.id === focusedTool.id && it.id !== id) {
+          if (it.type === 'Rake') {
+            // Handle Rake tool's main and distance measurements safely
+            const rakeData = { ...(it.data as RakeItem['data']) };
+            // Clear main measurement focus if it exists
+            if ('focused' in rakeData) {
+              rakeData.focused = false;
+            }
+            // Clear distance measurement focus if it exists
+            if (rakeData.distance) {
+              rakeData.distance = {
+                ...rakeData.distance,
+                focused: false,
+              };
+            }
+            return { ...it, data: rakeData };
+          }
+          if (it.type === 'Laser') {
+            // Properly unfocus both sides of Laser tool
+            const laserData = { ...it.data };
+            if (laserData.SideA?.focused) {
+              laserData.SideA = { ...laserData.SideA, focused: false };
+            }
+            if (laserData.SideB?.focused) {
+              laserData.SideB = { ...laserData.SideB, focused: false };
+            }
+            return { ...it, data: laserData };
+          }
+          if (it.type === 'Rectangle') {
+            // Unfocus all sides of Rectangle
+            const rectangleData = { ...it.data };
+            (
+              Object.keys(rectangleData) as Array<keyof typeof rectangleData>
+            ).forEach(key => {
+              rectangleData[key] = {
+                ...rectangleData[key],
+                focused: false,
+              };
+            });
+            return { ...it, data: rectangleData };
+          }
+          if (it.type === 'Corner') {
+            // Unfocus all sides of Rectangle
+            const cornerData = { ...it.data };
+            (Object.keys(cornerData) as Array<keyof typeof cornerData>).forEach(
+              key => {
+                cornerData[key] = {
+                  ...cornerData[key],
+                  focused: false,
+                };
+              },
+            );
+            return { ...it, data: cornerData };
+          }
+          const unfocusedData = { ...it.data };
+          if ('focused' in unfocusedData) {
+            unfocusedData.focused = false;
+          } else {
+            // For tools with multiple measurements (Rectangle/Corner/etc)
+            Object.keys(unfocusedData).forEach(key => {
+              if ((unfocusedData as any)[key]?.focused) {
+                (unfocusedData as any)[key].focused = false;
+              }
+            });
+          }
+          return { ...it, data: unfocusedData };
+        }
+        // Update the target tool with new focus state
+        if (it.id === id) {
+          return { ...it, data };
+        }
+        return it;
+      });
+    });
+  };
 
   const lockAllTools = (locked: boolean) => {
     setTools(prev =>
@@ -579,6 +671,7 @@ const Measurement = () => {
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
@@ -600,6 +693,7 @@ const Measurement = () => {
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
@@ -649,6 +743,7 @@ const Measurement = () => {
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
@@ -668,6 +763,7 @@ const Measurement = () => {
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
@@ -687,6 +783,7 @@ const Measurement = () => {
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }

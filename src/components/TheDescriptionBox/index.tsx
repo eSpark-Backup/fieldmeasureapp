@@ -1,16 +1,8 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { View, Text, TextInput, StyleSheet, TextStyle } from 'react-native';
 import { background, border, WhiteBackground } from '../../constants/colors';
 
-const TheDescriptionBox = ({
-  label = 'Notes',
-  placeholder = 'Additional notes and details',
-  value,
-  focus,
-  onChangeText,
-  onChangeFocus,
-  textStyle,
-}: {
+interface DescriptionBoxProps {
   label?: string;
   placeholder?: string;
   value?: string;
@@ -18,34 +10,53 @@ const TheDescriptionBox = ({
   onChangeText: (text: string) => void;
   onChangeFocus?: (focus: boolean) => void;
   textStyle?: TextStyle;
-}) => {
-  console.log('Desc focus', focus);
+  showSoftInputOnFocus?: boolean;
+}
 
-  return (
-    <View style={styles.container}>
-      {/* <Text style={styles.label}>{label}</Text> */}
-      <TextInput
-        style={[
-          styles.textarea,
-          textStyle,
-          {
-            borderColor: focus ? '#2975D2' : border,
-            borderWidth: focus ? 2 : 1,
-          },
-        ]}
-        multiline
-        numberOfLines={6}
-        placeholder={placeholder}
-        placeholderTextColor="#999"
-        value={value}
-        onFocus={() => onChangeFocus?.(true)}
-        onBlur={() => onChangeFocus?.(false)}
-        onChangeText={onChangeText}
-        textAlignVertical="top"
-      />
-    </View>
-  );
-};
+const TheDescriptionBox = forwardRef<TextInput, DescriptionBoxProps>(
+  (
+    {
+      label = 'Notes',
+      placeholder = 'Additional notes and details',
+      value,
+      focus,
+      onChangeText,
+      onChangeFocus,
+      textStyle,
+      showSoftInputOnFocus,
+    },
+    ref, // 👈 ref comes from parent
+  ) => {
+    console.log('Desc focus', focus);
+
+    return (
+      <View style={styles.container}>
+        {/* <Text style={styles.label}>{label}</Text> */}
+        <TextInput
+          ref={ref}
+          style={[
+            styles.textarea,
+            textStyle,
+            {
+              borderColor: focus ? '#2975D2' : border,
+              borderWidth: focus ? 2 : 1,
+            },
+          ]}
+          multiline
+          numberOfLines={6}
+          placeholder={placeholder}
+          placeholderTextColor="#999"
+          value={value}
+          onFocus={() => onChangeFocus?.(true)}
+          onBlur={() => onChangeFocus?.(false)}
+          onChangeText={onChangeText}
+          textAlignVertical="top"
+          showSoftInputOnFocus={showSoftInputOnFocus}
+        />
+      </View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {

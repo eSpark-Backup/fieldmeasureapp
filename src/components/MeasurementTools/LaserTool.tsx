@@ -27,6 +27,7 @@ const LaserTool = ({
   canvasSize,
   baseColor,
   laserNumber,
+  onLabelPress,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -40,6 +41,10 @@ const LaserTool = ({
   canvasSize: CanvasVals;
   baseColor: ColorValue;
   laserNumber: number;
+  onLabelPress: (data: {
+    SideA: MeasurementPair;
+    SideB: MeasurementPair;
+  }) => void;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -128,6 +133,16 @@ const LaserTool = ({
     }));
   });
 
+  const handleFocus = (side: 'SideA' | 'SideB') =>
+    Gesture.Tap().onStart(() => {
+      console.log('SVG Rect pressed via gesture ✅');
+      runOnJS(onLabelPress)({
+        ...data,
+        SideA: { ...data.SideA, focused: side === 'SideA' },
+        SideB: { ...data.SideB, focused: side === 'SideB' },
+      });
+    });
+
   return (
     <View style={{ position: 'absolute' }}>
       <Animated.View style={[styles.box2, animatedInfoCenter]}>
@@ -138,22 +153,24 @@ const LaserTool = ({
             width: '100%',
           }}
         >
-          <View
-            style={{
-              backgroundColor: baseColor,
-              paddingHorizontal: 10,
-              alignItems: 'center',
-              borderWidth: 2,
-              borderRadius: 5,
-              borderColor: data.SideB.focused ? '#EAE72E' : baseColor,
-            }}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`L${laserNumber}B: ${formatInches(data.SideB)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('SideB')}>
+            <View
+              style={{
+                backgroundColor: baseColor,
+                paddingHorizontal: 10,
+                alignItems: 'center',
+                borderWidth: 2,
+                borderRadius: 5,
+                borderColor: data.SideB.focused ? '#EAE72E' : baseColor,
+              }}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`L${laserNumber}B: ${formatInches(data.SideB)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={{
               backgroundColor: baseColor,
@@ -172,22 +189,24 @@ const LaserTool = ({
               )}`}
             />
           </View>
-          <View
-            style={{
-              backgroundColor: baseColor,
-              paddingHorizontal: 10,
-              alignItems: 'center',
-              borderWidth: 2,
-              borderRadius: 5,
-              borderColor: data.SideA.focused ? '#EAE72E' : baseColor,
-            }}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`L${laserNumber}A: ${formatInches(data.SideA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('SideA')}>
+            <View
+              style={{
+                backgroundColor: baseColor,
+                paddingHorizontal: 10,
+                alignItems: 'center',
+                borderWidth: 2,
+                borderRadius: 5,
+                borderColor: data.SideA.focused ? '#EAE72E' : baseColor,
+              }}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`L${laserNumber}A: ${formatInches(data.SideA)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       {/* <Animated.View style={[styles.box2, animatedInfoRight]}>

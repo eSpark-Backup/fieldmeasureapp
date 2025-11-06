@@ -265,7 +265,6 @@ export default function ToolsForm({
     measurement: RectangleItem['data'] | CornerItem['data'],
     field: string,
   ): boolean => {
-    console.log('kia milrhi hain', type, measurement, field);
     const measure = measurement as RectangleItem['data'];
 
     if (type === 'Rectangle') {
@@ -433,6 +432,8 @@ export default function ToolsForm({
     return false;
   };
 
+  console.log('inputRefs', inputRefs);
+
   const FloatingKeyboard = ({
     visible,
     onPressKey,
@@ -508,7 +509,21 @@ export default function ToolsForm({
       case 'Tape': {
         const p = item.data as TapeItem['data'];
         tapeCount++;
-        const inputId = `${item.id}-tape`;
+        const tooId = `${item.id}-tape`;
+
+        const manageFocus = (
+          refKey: string,
+          shouldFocus: boolean | undefined,
+        ) => {
+          console.log('refKey,shouldFocus.....', refKey, shouldFocus);
+
+          if (skipFocusRef.current) return;
+          const ref = inputRefs.current[refKey];
+          const isFocused = ref?.isFocused?.() === true;
+          if (shouldFocus && !isFocused) ref?.focus?.();
+          else if (!shouldFocus && isFocused) ref?.blur?.();
+        };
+        manageFocus(tooId, item.data.focused);
         return (
           <>
             <Card
@@ -519,16 +534,14 @@ export default function ToolsForm({
               onToggle={() => updateToggle(item.id, !item.locked)}
               count={tapeCount}
             >
-              {/* <View style={{ width: 1, height: '5%' }} /> */}
-
               <ToolInput
                 ref={r => {
-                  inputRefs.current[inputId] = r;
+                  inputRefs.current[tooId] = r;
                   inputIdMap.current[item.id] =
                     inputIdMap.current[item.id] || {};
-                  inputIdMap.current[item.id]['primary'] = inputId;
+                  inputIdMap.current[item.id]['primary'] = tooId;
                 }}
-                id={inputId}
+                id={tooId}
                 pair={{
                   value: p.value,
                   fraction: p.fraction,
@@ -545,7 +558,6 @@ export default function ToolsForm({
                 isLocked={item.locked}
                 style={{ width: 70 }}
               />
-              {/* <View style={{ width: 1, height: '1%' }} /> */}
             </Card>
           </>
         );
@@ -555,6 +567,22 @@ export default function ToolsForm({
         laserCount++;
         const idA = `${item.id}-laser-SideA`;
         const idB = `${item.id}-laser-SideB`;
+
+        const manageFocus = (
+          refKey: string,
+          shouldFocus: boolean | undefined,
+        ) => {
+          console.log('refKey,shouldFocus.....', refKey, shouldFocus);
+
+          if (skipFocusRef.current) return;
+          const ref = inputRefs.current[refKey];
+          const isFocused = ref?.isFocused?.() === true;
+          if (shouldFocus && !isFocused) ref?.focus?.();
+          else if (!shouldFocus && isFocused) ref?.blur?.();
+        };
+        manageFocus(idA, p.SideA.focused);
+        manageFocus(idB, p.SideB.focused);
+
         return (
           <Card
             item={item}
@@ -614,7 +642,7 @@ export default function ToolsForm({
           if (shouldFocus && !isFocused) ref?.focus?.();
           else if (!shouldFocus && isFocused) ref?.blur?.();
         };
-        +manageFocus(rakeId, !!item.data.focused);
+        manageFocus(rakeId, !!item.data.focused);
         manageFocus(`${item.id}-rake-distance`, !!item.data.distance?.focused);
 
         return (
@@ -630,7 +658,7 @@ export default function ToolsForm({
               ref={r => {
                 inputRefs.current[rakeId] = r;
                 inputIdMap.current[item.id] = inputIdMap.current[item.id] || {};
-                inputIdMap.current[item.id]['primary'] = rakeId;
+                // inputIdMap.current[item.id]['primary'] = rakeId;
               }}
               id={rakeId}
               pair={{
@@ -688,6 +716,43 @@ export default function ToolsForm({
           'LeftA',
           'LeftB',
         ] as const;
+
+        // Add focus management for Rectangle
+        const manageFocus = (
+          refKey: string,
+          shouldFocus: boolean | undefined,
+        ) => {
+          if (skipFocusRef.current) return;
+
+          // First unfocus all other inputs in this Rectangle
+          if (shouldFocus) {
+            keys.forEach(key => {
+              const rid = `${item.id}-rectangle-${key}`;
+              if (rid !== refKey) {
+                const ref = inputRefs.current[rid];
+                if (ref?.isFocused?.()) {
+                  ref.blur();
+                }
+              }
+            });
+          }
+
+          // Then handle focus for the target input
+          const ref = inputRefs.current[refKey];
+          const isFocused = ref?.isFocused?.() === true;
+          if (shouldFocus && !isFocused) {
+            ref?.focus?.();
+          } else if (!shouldFocus && isFocused) {
+            ref?.blur?.();
+          }
+        };
+
+        // Call manageFocus for each input that needs focus
+        keys.forEach((k, index) => {
+          const rid = `${item.id}-rectangle-${index}`;
+          manageFocus(rid, p[k].focused);
+        });
+
         return (
           <Card
             item={item}
@@ -739,6 +804,43 @@ export default function ToolsForm({
           'BotRA',
           'BotRB',
         ] as const;
+
+        // Add focus management for Rectangle
+        const manageFocus = (
+          refKey: string,
+          shouldFocus: boolean | undefined,
+        ) => {
+          if (skipFocusRef.current) return;
+
+          // First unfocus all other inputs in this Rectangle
+          if (shouldFocus) {
+            keys.forEach(key => {
+              const cid = `${item.id}-corner-${key}`;
+              if (cid !== refKey) {
+                const ref = inputRefs.current[cid];
+                if (ref?.isFocused?.()) {
+                  ref.blur();
+                }
+              }
+            });
+          }
+
+          // Then handle focus for the target input
+          const ref = inputRefs.current[refKey];
+          const isFocused = ref?.isFocused?.() === true;
+          if (shouldFocus && !isFocused) {
+            ref?.focus?.();
+          } else if (!shouldFocus && isFocused) {
+            ref?.blur?.();
+          }
+        };
+
+        // Call manageFocus for each input that needs focus
+        keys.forEach((k, index) => {
+          const cid = `${item.id}-corner-${index}`;
+          manageFocus(cid, p[k].focused);
+        });
+
         return (
           <Card
             item={item}
@@ -773,6 +875,21 @@ export default function ToolsForm({
         );
       }
       case 'Note': {
+        const p = item.data as NoteItem['data'];
+        const tooId = `${item.id}-note`;
+        const manageFocus = (
+          refKey: string,
+          shouldFocus: boolean | undefined,
+        ) => {
+          console.log('refKey,shouldFocus.....', refKey, shouldFocus);
+
+          if (skipFocusRef.current) return;
+          const ref = inputRefs.current[refKey];
+          const isFocused = ref?.isFocused?.() === true;
+          if (shouldFocus && !isFocused) ref?.focus?.();
+          else if (!shouldFocus && isFocused) ref?.blur?.();
+        };
+        manageFocus(tooId, item.data.focused);
         return (
           <Card
             item={item}
@@ -782,11 +899,17 @@ export default function ToolsForm({
             onToggle={() => updateToggle(item.id, !item.locked)}
           >
             <TheDescriptionBox
+              ref={r => {
+                inputRefs.current[tooId] = r;
+                inputIdMap.current[item.id] = inputIdMap.current[item.id] || {};
+                inputIdMap.current[item.id]['primary'] = tooId;
+              }}
               placeholder="Enter your note text here"
               value={(item as NoteItem).data.value}
               focus={(item as NoteItem).data.focused}
               onChangeText={t => updateSingle(item.id, t, 'value')}
               onChangeFocus={e => updateSingle(item.id, e, 'focused')}
+              showSoftInputOnFocus={false}
             />
           </Card>
         );

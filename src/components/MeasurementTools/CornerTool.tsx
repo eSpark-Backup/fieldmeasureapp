@@ -27,6 +27,7 @@ const CornerTool = ({
   locked,
   canvasSize,
   baseColor,
+  onLabelPress,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -52,6 +53,25 @@ const CornerTool = ({
   locked?: boolean;
   canvasSize: CanvasVals;
   baseColor: ColorValue;
+  onLabelPress: (
+    data: Record<
+      | 'TopLA'
+      | 'TopLB'
+      | 'TopRA'
+      | 'TopRB'
+      | 'RightA'
+      | 'RightB'
+      | 'CenterA'
+      | 'CenterB'
+      | 'LeftA'
+      | 'LeftB'
+      | 'BotLA'
+      | 'BotLB'
+      | 'BotRA'
+      | 'BotRB',
+      MeasurementPair
+    >,
+  ) => void;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -164,6 +184,28 @@ const CornerTool = ({
   const topLeftStyle = animatedInfo(points[5], points[0]);
   const centerStyle = animatedInfo(points[2], points[5]);
 
+  const handleFocus = (side: keyof typeof data) =>
+    Gesture.Tap().onStart(() => {
+      console.log('SVG Rect pressed via gesture ✅');
+      const updatedData = { ...data };
+
+      // Unfocus all sides first
+      Object.keys(updatedData).forEach(key => {
+        updatedData[key as keyof typeof data] = {
+          ...updatedData[key as keyof typeof data],
+          focused: false,
+        };
+      });
+
+      // Focus only the tapped side
+      updatedData[side] = {
+        ...updatedData[side],
+        focused: true,
+      };
+
+      runOnJS(onLabelPress)(updatedData);
+    });
+
   return (
     <View style={{ position: 'absolute' }}>
       <Animated.View style={[styles.box2, leftStyle]}>
@@ -174,21 +216,23 @@ const CornerTool = ({
             width: '100%',
           }}
         >
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.LeftA.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`LA: ${formatInches(data.LeftA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('LeftA')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.LeftA.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`LA: ${formatInches(data.LeftA)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
@@ -198,21 +242,23 @@ const CornerTool = ({
               text={formatInchesSum(data.LeftA, data.LeftB)}
             />
           </View>
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.LeftB.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`LB: ${formatInches(data.LeftB)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('LeftB')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.LeftB.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`LB: ${formatInches(data.LeftB)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       <Animated.View style={[styles.box2, bottomLeftStyle]}>
@@ -223,21 +269,23 @@ const CornerTool = ({
             width: '100%',
           }}
         >
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.BotLA.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`BLA: ${formatInches(data.BotLA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('BotLA')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.BotLA.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`BLA: ${formatInches(data.BotLA)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
@@ -247,21 +295,23 @@ const CornerTool = ({
               text={formatInchesSum(data.BotLA, data.BotLB)}
             />
           </View>
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.BotLB.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`BLB: ${formatInches(data.BotLB)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('BotLB')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.BotLB.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`BLB: ${formatInches(data.BotLB)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       <Animated.View style={[styles.box2, bottomRightStyle]}>
@@ -272,21 +322,23 @@ const CornerTool = ({
             width: '100%',
           }}
         >
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.BotRA.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`BRA: ${formatInches(data.BotRA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('BotRA')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.BotRA.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`BRA: ${formatInches(data.BotRA)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
@@ -296,21 +348,23 @@ const CornerTool = ({
               text={formatInchesSum(data.BotRA, data.BotRB)}
             />
           </View>
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.BotRB.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`BRB: ${formatInches(data.BotRB)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('BotRB')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.BotRB.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`BRB: ${formatInches(data.BotRB)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       <Animated.View style={[styles.box2, rightStyle]}>
@@ -321,21 +375,23 @@ const CornerTool = ({
             width: '100%',
           }}
         >
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.RightA.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`RA: ${formatInches(data.RightA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('RightA')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.RightA.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`RA: ${formatInches(data.RightA)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
@@ -345,21 +401,23 @@ const CornerTool = ({
               text={formatInchesSum(data.RightA, data.RightB)}
             />
           </View>
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.RightB.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`RB: ${formatInches(data.RightB)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('RightB')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.RightB.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`RB: ${formatInches(data.RightB)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       <Animated.View style={[styles.box2, topRightStyle]}>
@@ -370,21 +428,23 @@ const CornerTool = ({
             width: '100%',
           }}
         >
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.TopRA.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`TRA: ${formatInches(data.TopRA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('TopRA')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.TopRA.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`TRA: ${formatInches(data.TopRA)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
@@ -394,21 +454,23 @@ const CornerTool = ({
               text={formatInchesSum(data.TopRA, data.TopRB)}
             />
           </View>
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.TopRB.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`TRB: ${formatInches(data.TopRB)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('TopRB')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.TopRB.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`TRB: ${formatInches(data.TopRB)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       <Animated.View style={[styles.box2, topLeftStyle]}>
@@ -419,21 +481,23 @@ const CornerTool = ({
             width: '100%',
           }}
         >
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.TopLA.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`TLA: ${formatInches(data.TopLA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('TopLA')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.TopLA.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`TLA: ${formatInches(data.TopLA)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
@@ -443,21 +507,23 @@ const CornerTool = ({
               text={formatInchesSum(data.TopLA, data.TopLB)}
             />
           </View>
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.TopLB.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`TLB: ${formatInches(data.TopLB)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('TopLB')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.TopLB.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`TLB: ${formatInches(data.TopLB)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       <Animated.View style={[styles.box2, centerStyle]}>
@@ -468,21 +534,23 @@ const CornerTool = ({
             width: '100%',
           }}
         >
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.CenterA.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`CA: ${formatInches(data.CenterA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('CenterA')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.CenterA.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`CA: ${formatInches(data.CenterA)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
@@ -492,21 +560,23 @@ const CornerTool = ({
               text={formatInchesSum(data.CenterA, data.CenterB)}
             />
           </View>
-          <View
-            style={[
-              styles.labelContainer,
-              {
-                borderColor: data.CenterB.focused ? '#EAE72E' : baseColor,
-                backgroundColor: baseColor,
-              },
-            ]}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`CB: ${formatInches(data.CenterB)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('CenterB')}>
+            <View
+              style={[
+                styles.labelContainer,
+                {
+                  borderColor: data.CenterB.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={14 * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`CB: ${formatInches(data.CenterB)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       {!locked

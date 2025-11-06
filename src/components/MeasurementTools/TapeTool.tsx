@@ -27,6 +27,7 @@ const TapeTool = ({
   canvasSize,
   baseColor,
   tapeNumber,
+  onLabelPress,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -37,12 +38,14 @@ const TapeTool = ({
   locked?: boolean;
   baseColor: ColorValue;
   tapeNumber: number;
+  onLabelPress: (data: {
+    value: string;
+    fraction: string;
+    focused: boolean;
+  }) => void;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
-
-  console.log('initialX', xCoords);
-  console.log('initialY', yCoords);
 
   const points = initialX.map((x, i) => ({
     x: useSharedValue(x),
@@ -142,24 +145,33 @@ const TapeTool = ({
     }
   };
 
+  const onLabel = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
+    const newData = { ...data };
+    newData.focused = true;
+    runOnJS(onLabelPress)(newData);
+  });
+
   return (
     <View style={{ position: 'absolute' }}>
-      <Animated.View
-        style={[
-          styles.box2,
-          animatedInfo,
-          {
-            borderColor: data.focused ? '#EAE72E' : baseColor,
-            backgroundColor: baseColor,
-          },
-        ]}
-      >
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text={`M${tapeNumber}: ${inches()}`}
-        />
-      </Animated.View>
+      <GestureDetector gesture={onLabel}>
+        <Animated.View
+          style={[
+            styles.box2,
+            animatedInfo,
+            {
+              borderColor: data.focused ? '#EAE72E' : baseColor,
+              backgroundColor: baseColor,
+            },
+          ]}
+        >
+          <TheText
+            size={14 * (2 / scaleValue / 2)}
+            color={WhiteBackground}
+            text={`M${tapeNumber}: ${inches()}`}
+          />
+        </Animated.View>
+      </GestureDetector>
 
       {!locked
         ? points.map((_, i) => (
