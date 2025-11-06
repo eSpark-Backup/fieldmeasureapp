@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+} from 'react';
+import FloatingKeyboard from '../components/TheKeyboard';
+import { TextInput } from 'react-native';
 
 interface KeyboardContextType {
   isVisible: boolean;
@@ -7,6 +15,9 @@ interface KeyboardContextType {
   hideKeyboard: () => void;
   onKeyPress: (key: string) => void;
   onSubmit: (value: string) => void;
+  activeInputId: string | null;
+  setActiveInputId: (id: string | null) => void;
+  registerInput: (id: string, ref: TextInput) => void;
 }
 
 const KeyboardContext = createContext<KeyboardContextType | undefined>(
@@ -23,6 +34,14 @@ export const KeyboardProvider = ({
   const [onSubmitCallback, setOnSubmitCallback] = useState<
     ((value: string) => void) | null
   >(null);
+  const [activeInputId, setActiveInputId] = useState<string | null>(null);
+
+  const inputRefs = useRef<Record<string, TextInput>>({});
+
+  // Add function to register input refs
+  const registerInput = useCallback((id: string, ref: TextInput) => {
+    inputRefs.current[id] = ref;
+  }, []);
 
   const showKeyboard = useCallback(
     (initialValue = '', onSubmit?: (value: string) => void) => {
@@ -39,6 +58,7 @@ export const KeyboardProvider = ({
     setIsVisible(false);
     setCurrentValue('');
     setOnSubmitCallback(null);
+    setActiveInputId(null);
   }, []);
 
   const onKeyPress = useCallback(
@@ -46,15 +66,20 @@ export const KeyboardProvider = ({
       if (key === '←') {
         setCurrentValue(prev => prev.slice(0, -1));
       } else if (key === 'OK') {
+        // Handle submit regardless of value change
         if (onSubmitCallback) {
           onSubmitCallback(currentValue);
+        }
+        // Always blur active input when OK is pressed
+        if (activeInputId && inputRefs.current[activeInputId]) {
+          inputRefs.current[activeInputId]?.blur();
         }
         hideKeyboard();
       } else {
         setCurrentValue(prev => prev + key);
       }
     },
-    [currentValue, hideKeyboard, onSubmitCallback],
+    [hideKeyboard, onSubmitCallback, activeInputId], // Remove currentValue from dependencies
   );
 
   return (
@@ -66,6 +91,9 @@ export const KeyboardProvider = ({
         hideKeyboard,
         onKeyPress,
         onSubmit: onSubmitCallback || (() => {}),
+        activeInputId,
+        setActiveInputId,
+        registerInput,
       }}
     >
       {children}

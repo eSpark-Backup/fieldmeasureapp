@@ -56,9 +56,9 @@ const FloatingKeyboard = ({
       style={[styles.keyboardContainer, { transform: [{ translateY }] }]}
     >
       {isQwerty ? (
-        KEY_ROWS.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
-            {row.map(key => (
+        <View style={styles.row}>
+          {KEY_ROWS.map((row, rowIndex) =>
+            row.map(key => (
               <TouchableOpacity
                 key={key}
                 onPress={() => onPressKey(key)}
@@ -72,9 +72,9 @@ const FloatingKeyboard = ({
                   {key === 'Space' ? '⎵' : key}
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
-        ))
+            )),
+          )}
+        </View>
       ) : (
         <View style={styles.row}>
           {NUMERIC_KEYS.map(key => (
@@ -95,9 +95,9 @@ const FloatingKeyboard = ({
 const styles = StyleSheet.create({
   keyboardContainer: {
     position: 'absolute',
+    left: '5%',
+    right: '30%',
     bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: '#333',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginVertical: 4,
+    // marginVertical: 4,
     flexWrap: 'wrap',
   },
   key: {
@@ -121,11 +121,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   spaceKey: {
-    width: '50%',
+    // width: '50%',
   },
   okKey: {
     backgroundColor: '#5A8DEE',
-    width: '20%',
+    // width: '20%',
   },
   keyText: {
     color: '#fff',

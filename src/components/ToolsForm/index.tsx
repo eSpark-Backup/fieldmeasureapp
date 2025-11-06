@@ -924,7 +924,7 @@ export default function ToolsForm({
           {renderItem({ item: tool })}
         </View>
       ))}
-      <FloatingKeyboard
+      {/* <FloatingKeyboard
         visible={true}
         onPressKey={key => {
           const focused = focusedPair;
@@ -955,7 +955,7 @@ export default function ToolsForm({
           const newVal = (pair.value || '') + key;
           updatePair(focused.toolId, { ...pair, value: newVal }, focused.key);
         }}
-      />
+      /> */}
       {/* <Card
           id={tool.id}
           type={tool.type}

@@ -30,6 +30,7 @@ import TheTextInput from '../TheTextInput';
 import { fractionalInches } from '../../constants';
 import { MeasurementPair } from '../../types';
 import { Warn } from '../../assets';
+import { useKeyboard } from '../../utils/KeyboardContext';
 
 interface DropdownProps {
   label?: string;
@@ -69,10 +70,26 @@ const ToolInput = forwardRef<TextInput, DropdownProps>(
     ref, // 👈 ref comes from parent
   ) => {
     const [isOpen, setIsOpen] = useState(false);
+    const {
+      showKeyboard,
+      currentValue,
+      setActiveInputId,
+      activeInputId,
+      registerInput,
+    } = useKeyboard();
 
-    // useEffect(() => {
-    //   setSelectedItem(selected ?? '');
-    // }, [selected]);
+    const handlePress = () => {
+      // showKeyboard expects a string (initial value), not a callback
+      showKeyboard(pair?.value ?? '');
+      setActiveInputId(id);
+    };
+
+    useEffect(() => {
+      // Only update if this input is active
+      if (activeInputId === id) {
+        onChange({ ...pair, value: currentValue });
+      }
+    }, [currentValue, activeInputId, id]);
 
     const handleToggle = () => {
       setIsOpen(!isOpen);
@@ -80,11 +97,26 @@ const ToolInput = forwardRef<TextInput, DropdownProps>(
 
     const handleSelection = (item: string) => {
       console.log('pair kia fraction', pair);
-      // setSelectedItem(item);
       setIsOpen(false);
       onSelect?.({ key: id, value: item });
       onChange({ ...pair, fraction: item });
     };
+
+    // Register the input ref when it's available
+    const handleRef = useCallback(
+      (inputRef: TextInput | null) => {
+        if (inputRef && id) {
+          registerInput(id, inputRef);
+        }
+        // Forward the ref
+        if (typeof ref === 'function') {
+          ref(inputRef);
+        } else if (ref) {
+          ref.current = inputRef;
+        }
+      },
+      [id, registerInput, ref],
+    );
 
     const renderOptions = () => {
       return fractionalInches.map((item, index) => (
@@ -129,7 +161,7 @@ const ToolInput = forwardRef<TextInput, DropdownProps>(
           }}
         >
           <TheTextInput
-            ref={ref}
+            ref={handleRef}
             placeholder="0"
             style={{
               width: 50,
@@ -141,8 +173,16 @@ const ToolInput = forwardRef<TextInput, DropdownProps>(
             onChange={t =>
               onChange({ ...pair, value: t.replace(/[^0-9.]/g, '') })
             }
-            onBlur={() => onChange({ ...pair, focused: false })}
-            onFocus={() => onChange({ ...pair, focused: true })}
+            onBlur={() => {
+              onChange({ ...pair, focused: false });
+              if (activeInputId === id) {
+                setActiveInputId(null);
+              }
+            }}
+            onFocus={() => {
+              handlePress();
+              onChange({ ...pair, focused: true });
+            }}
             editable={!isLocked}
             showSoftInputOnFocus={false}
           />
