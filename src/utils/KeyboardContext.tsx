@@ -6,23 +6,30 @@ import React, {
   useRef,
 } from 'react';
 import FloatingKeyboard from '../components/TheKeyboard';
-import { TextInput } from 'react-native';
+import { Dimensions, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface KeyboardContextType {
   isVisible: boolean;
   currentValue: string;
-  showKeyboard: (initialValue?: string) => void;
+  showKeyboard: (
+    initialValue?: string,
+    onSubmit?: (value: string) => void,
+    isQwerty?: boolean,
+  ) => void;
   hideKeyboard: () => void;
   onKeyPress: (key: string) => void;
   onSubmit: (value: string) => void;
   activeInputId: string | null;
   setActiveInputId: (id: string | null) => void;
   registerInput: (id: string, ref: TextInput) => void;
+  isQwerty: boolean;
 }
 
 const KeyboardContext = createContext<KeyboardContextType | undefined>(
   undefined,
 );
+
+const { height: hei } = Dimensions.get('window');
 
 export const KeyboardProvider = ({
   children,
@@ -35,6 +42,7 @@ export const KeyboardProvider = ({
     ((value: string) => void) | null
   >(null);
   const [activeInputId, setActiveInputId] = useState<string | null>(null);
+  const [isQwerty, setIsQwerty] = useState(false);
 
   const inputRefs = useRef<Record<string, TextInput>>({});
 
@@ -44,9 +52,14 @@ export const KeyboardProvider = ({
   }, []);
 
   const showKeyboard = useCallback(
-    (initialValue = '', onSubmit?: (value: string) => void) => {
+    (
+      initialValue = '',
+      onSubmit?: (value: string) => void,
+      qwerty?: boolean,
+    ) => {
       setCurrentValue(initialValue);
       setIsVisible(true);
+      setIsQwerty(!!qwerty);
       if (onSubmit) {
         setOnSubmitCallback(() => onSubmit);
       }
@@ -66,20 +79,28 @@ export const KeyboardProvider = ({
       if (key === '←') {
         setCurrentValue(prev => prev.slice(0, -1));
       } else if (key === 'OK') {
-        // Handle submit regardless of value change
+        // 1️⃣ Blur the active input if registered
+        if (activeInputId && inputRefs.current[activeInputId]) {
+          const ref = inputRefs.current[activeInputId];
+          if (ref && ref.blur) ref.blur();
+        }
+
+        // 2️⃣ Trigger submit callback
         if (onSubmitCallback) {
           onSubmitCallback(currentValue);
         }
-        // Always blur active input when OK is pressed
-        if (activeInputId && inputRefs.current[activeInputId]) {
-          inputRefs.current[activeInputId]?.blur();
-        }
+
+        // 3️⃣ Hide keyboard and reset state
         hideKeyboard();
       } else {
-        setCurrentValue(prev => prev + key);
+        if (key === 'Space') {
+          setCurrentValue(prev => prev + ' ');
+        } else {
+          setCurrentValue(prev => prev + key);
+        }
       }
     },
-    [hideKeyboard, onSubmitCallback, activeInputId], // Remove currentValue from dependencies
+    [hideKeyboard, onSubmitCallback, activeInputId, currentValue],
   );
 
   return (
@@ -94,10 +115,27 @@ export const KeyboardProvider = ({
         activeInputId,
         setActiveInputId,
         registerInput,
+        isQwerty,
       }}
     >
       {children}
-      <FloatingKeyboard visible={isVisible} onPressKey={onKeyPress} />
+      {isVisible && (
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: hei,
+          }}
+          onPress={() => onKeyPress('OK')}
+        ></TouchableOpacity>
+      )}
+      <FloatingKeyboard
+        visible={isVisible}
+        onPressKey={onKeyPress}
+        isQwerty={isQwerty}
+      />
     </KeyboardContext.Provider>
   );
 };

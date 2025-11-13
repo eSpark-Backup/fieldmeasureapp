@@ -1,12 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
   ViewStyle,
   ColorValue,
-  TouchableOpacity,
-  Animated,
-  Text,
   TextInput,
 } from 'react-native';
 import TheButton from '../TheButton';
@@ -14,7 +11,6 @@ import TheText from '../TheText';
 import TheToggle from '../TheToggle';
 import { Eye, EyeClosed, Minus, Plus, Trash } from '../../assets';
 import ToolInput from '../ToolInput';
-import { cornerLabels, rectangleLabels } from '../../constants';
 import TheDescriptionBox from '../TheDescriptionBox';
 import {
   CornerItem,
@@ -432,78 +428,6 @@ export default function ToolsForm({
     return false;
   };
 
-  console.log('inputRefs', inputRefs);
-
-  const FloatingKeyboard = ({
-    visible,
-    onPressKey,
-    isQwerty,
-  }: {
-    visible: boolean;
-    onPressKey: (key: string) => void;
-    isQwerty?: boolean;
-  }) => {
-    const translateY = useRef(new Animated.Value(300)).current;
-
-    useEffect(() => {
-      if (visible) {
-        Animated.spring(translateY, {
-          toValue: visible ? 0 : 300, // Slide in/out
-          useNativeDriver: true,
-        }).start();
-      }
-    }, [visible]);
-
-    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '←', 'OK'];
-    const KEY_ROWS = [
-      ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-      ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-      ['Z', 'X', 'C', 'V', 'B', 'N', 'M', '←'],
-      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
-      ['Space', 'OK'],
-    ];
-
-    return (
-      <Animated.View
-        style={[styles.keyboardContainer, { transform: [{ translateY }] }]}
-      >
-        {isQwerty ? (
-          KEY_ROWS.map((row, rowIndex) => (
-            <View key={rowIndex} style={styles.row}>
-              {row.map(key => (
-                <TouchableOpacity
-                  key={key}
-                  onPress={() => onPressKey(key)}
-                  style={[
-                    styles.key,
-                    key === 'Space' && styles.spaceKey,
-                    key === 'OK' && styles.okKey,
-                  ]}
-                >
-                  <Text style={styles.keyText}>
-                    {key === 'Space' ? '⎵' : key}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ))
-        ) : (
-          <View style={styles.row}>
-            {keys.map(key => (
-              <TouchableOpacity
-                key={key}
-                style={[styles.key, { width: '15%', margin: 2 }]}
-                onPress={() => onPressKey(key)}
-              >
-                <Text style={styles.keyText}>{key}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </Animated.View>
-    );
-  };
-
   const renderItem = ({ item }: { item: Tool }) => {
     switch (item.type) {
       case 'Tape': {
@@ -515,8 +439,6 @@ export default function ToolsForm({
           refKey: string,
           shouldFocus: boolean | undefined,
         ) => {
-          console.log('refKey,shouldFocus.....', refKey, shouldFocus);
-
           if (skipFocusRef.current) return;
           const ref = inputRefs.current[refKey];
           const isFocused = ref?.isFocused?.() === true;
@@ -572,8 +494,6 @@ export default function ToolsForm({
           refKey: string,
           shouldFocus: boolean | undefined,
         ) => {
-          console.log('refKey,shouldFocus.....', refKey, shouldFocus);
-
           if (skipFocusRef.current) return;
           const ref = inputRefs.current[refKey];
           const isFocused = ref?.isFocused?.() === true;
@@ -881,8 +801,6 @@ export default function ToolsForm({
           refKey: string,
           shouldFocus: boolean | undefined,
         ) => {
-          console.log('refKey,shouldFocus.....', refKey, shouldFocus);
-
           if (skipFocusRef.current) return;
           const ref = inputRefs.current[refKey];
           const isFocused = ref?.isFocused?.() === true;
@@ -899,6 +817,7 @@ export default function ToolsForm({
             onToggle={() => updateToggle(item.id, !item.locked)}
           >
             <TheDescriptionBox
+              id={tooId}
               ref={r => {
                 inputRefs.current[tooId] = r;
                 inputIdMap.current[item.id] = inputIdMap.current[item.id] || {};
@@ -924,38 +843,7 @@ export default function ToolsForm({
           {renderItem({ item: tool })}
         </View>
       ))}
-      {/* <FloatingKeyboard
-        visible={true}
-        onPressKey={key => {
-          const focused = focusedPair;
-          if (!focused || !focused.pair) return;
-          const pair = focused.pair;
 
-          if (key === '←') {
-            const newVal = (pair.value || '').slice(0, -1);
-            updatePair(focused.toolId, { ...pair, value: newVal }, focused.key);
-            return;
-          }
-
-          if (key === 'OK') {
-            const ref = focused.refKey
-              ? inputRefs.current[focused.refKey]
-              : null;
-            ref?.blur?.();
-            updatePair(
-              focused.toolId,
-              { ...pair, focused: false },
-              focused.key,
-            );
-            return;
-          }
-
-          // Append only digits or dot
-          if (!/^[0-9.]$/.test(key)) return;
-          const newVal = (pair.value || '') + key;
-          updatePair(focused.toolId, { ...pair, value: newVal }, focused.key);
-        }}
-      /> */}
       {/* <Card
           id={tool.id}
           type={tool.type}

@@ -1,6 +1,7 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useCallback, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TextStyle } from 'react-native';
 import { background, border, WhiteBackground } from '../../constants/colors';
+import { useKeyboard } from '../../utils/KeyboardContext';
 
 interface DescriptionBoxProps {
   label?: string;
@@ -11,11 +12,13 @@ interface DescriptionBoxProps {
   onChangeFocus?: (focus: boolean) => void;
   textStyle?: TextStyle;
   showSoftInputOnFocus?: boolean;
+  id?: string;
 }
 
 const TheDescriptionBox = forwardRef<TextInput, DescriptionBoxProps>(
   (
     {
+      id,
       label = 'Notes',
       placeholder = 'Additional notes and details',
       value,
@@ -27,13 +30,42 @@ const TheDescriptionBox = forwardRef<TextInput, DescriptionBoxProps>(
     },
     ref, // 👈 ref comes from parent
   ) => {
-    console.log('Desc focus', focus);
+    const {
+      registerInput,
+      setActiveInputId,
+      activeInputId,
+      currentValue,
+      showKeyboard,
+    } = useKeyboard();
+
+    // Register the input ref when it's available
+    const handleRef = useCallback(
+      (inputRef: TextInput | null) => {
+        if (inputRef && id) {
+          registerInput(id, inputRef);
+        }
+        // Forward the ref
+        if (typeof ref === 'function') {
+          ref(inputRef);
+        } else if (ref) {
+          ref.current = inputRef;
+        }
+      },
+      [id, registerInput, ref],
+    );
+
+    useEffect(() => {
+      // Only update if this input is active
+      if (activeInputId === id) {
+        onChangeText(currentValue);
+      }
+    }, [currentValue, activeInputId, id]);
 
     return (
       <View style={styles.container}>
         {/* <Text style={styles.label}>{label}</Text> */}
         <TextInput
-          ref={ref}
+          ref={handleRef}
           style={[
             styles.textarea,
             textStyle,
@@ -47,8 +79,19 @@ const TheDescriptionBox = forwardRef<TextInput, DescriptionBoxProps>(
           placeholder={placeholder}
           placeholderTextColor="#999"
           value={value}
-          onFocus={() => onChangeFocus?.(true)}
-          onBlur={() => onChangeFocus?.(false)}
+          onFocus={() => {
+            onChangeFocus?.(true);
+            if (showSoftInputOnFocus === false) {
+              setActiveInputId(id!);
+              showKeyboard(value, undefined, true);
+            }
+          }}
+          onBlur={() => {
+            onChangeFocus?.(false);
+            if (activeInputId === id) {
+              setActiveInputId(null);
+            }
+          }}
           onChangeText={onChangeText}
           textAlignVertical="top"
           showSoftInputOnFocus={showSoftInputOnFocus}
@@ -69,6 +112,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   textarea: {
+    color: '#000',
     borderColor: border, // tailwind gray-300
     borderWidth: 1,
     borderRadius: 6,

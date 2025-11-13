@@ -4,10 +4,8 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  FlatList,
   Alert,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import {
@@ -15,7 +13,7 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
-import Svg, { Rect } from 'react-native-svg';
+import Svg from 'react-native-svg';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,9 +35,7 @@ import {
   RakeTool,
   TapeTool,
   TheText,
-  TheTool,
   TheButton,
-  TheTextInput,
   TheToggle,
   GapView,
   RectangleTool,
@@ -50,7 +46,6 @@ import {
 import { Camera, RoundPlus, Upload } from '../../assets';
 
 import { TOOLS } from '../../constants';
-import { border } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import { createNewTool, pdfHTML } from './utils';
 import {
@@ -60,12 +55,12 @@ import {
   Tool,
   ToolsList,
   RakeItem,
-  MeasurementPair,
 } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { showToast } from '../../utils/showToast';
 import ToolsForm from '../../components/ToolsForm';
 import ToolMenu from '../../components/ToolMenu';
+import LocationInput from '../../components/LocationInput';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -90,6 +85,7 @@ const Measurement = () => {
   const [scaleVal, setScaleVal] = useState(1);
 
   const ref = useRef<ViewShot>(null);
+  const id = 'locationInput';
 
   const scale = useSharedValue(1);
   const startScale = useSharedValue(0);
@@ -100,6 +96,10 @@ const Measurement = () => {
 
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+
+  const onLocChange = (loc: string) => {
+    setLocation(loc);
+  };
 
   useEffect(() => {
     if (selectedPhoto) {
@@ -663,7 +663,6 @@ const Measurement = () => {
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
@@ -685,7 +684,6 @@ const Measurement = () => {
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
@@ -707,12 +705,10 @@ const Measurement = () => {
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             getCoordsDist={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateDistCoords(tool.id, x, y);
-              console.log('Now at Dist%:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
@@ -736,7 +732,6 @@ const Measurement = () => {
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
@@ -756,7 +751,6 @@ const Measurement = () => {
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
@@ -776,7 +770,6 @@ const Measurement = () => {
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
@@ -875,8 +868,6 @@ const Measurement = () => {
                   onLayout={event => {
                     const { width, height } = event.nativeEvent.layout;
                     setContainerSize({ width, height });
-                    console.log('width', width);
-                    console.log('height', height);
                   }}
                 />
                 <Svg
@@ -908,13 +899,24 @@ const Measurement = () => {
             />
           </View>
           <View style={styles.initialContainer}>
-            <TheTextInput
-              label="Location"
-              placeholder="Kitchen, Bathroom, Living Room"
-              value={location}
-              onChange={setLocation}
-              required
+            <LocationInput
+              id={id}
+              location={location}
+              onLocChange={onLocChange}
             />
+            {/* <TheTextInput
+              // ref={inputRef}
+              label="Location"
+              placeholder="Living Room"
+              value={location}
+              onChange={onLocChange}
+              required
+              showSoftInputOnFocus={false}
+              // onFocus={() => {
+              //   setActiveInputId(id);
+              //   showKeyboard(location, onLocChange, true);
+              // }}
+            /> */}
           </View>
 
           <View style={styles.initialContainer}>

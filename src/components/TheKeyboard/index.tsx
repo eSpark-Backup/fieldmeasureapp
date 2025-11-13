@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { bool } from 'yup';
 
 interface FloatingKeyboardProps {
   visible: boolean;
@@ -20,6 +21,7 @@ const FloatingKeyboard = ({
   isQwerty,
 }: FloatingKeyboardProps) => {
   const translateY = useRef(new Animated.Value(300)).current;
+  const [capsLock, setCapsLock] = useState(true); // ✅ Default ON for uppercase
 
   useEffect(() => {
     Animated.spring(translateY, {
@@ -31,9 +33,9 @@ const FloatingKeyboard = ({
   const KEY_ROWS = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
     ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['Z', 'X', 'C', 'V', 'B', 'N', 'M', '←'],
-    ['Space', 'OK'],
+    ['⇪', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+    ['←', 'Space', 'OK'],
   ];
 
   const NUMERIC_KEYS = [
@@ -51,29 +53,56 @@ const FloatingKeyboard = ({
     'OK',
   ];
 
+  const handleKeyPress = (key: string) => {
+    if (key === '⇪') {
+      // ✅ Toggle caps lock
+      setCapsLock(prev => !prev);
+    } else if (/^[A-Za-z]$/.test(key)) {
+      // ✅ Convert to correct case before sending
+      const finalKey = capsLock ? key.toUpperCase() : key.toLowerCase();
+      onPressKey(finalKey);
+    } else {
+      onPressKey(key);
+    }
+  };
+
   return (
     <Animated.View
       style={[styles.keyboardContainer, { transform: [{ translateY }] }]}
     >
       {isQwerty ? (
-        <View style={styles.row}>
-          {KEY_ROWS.map((row, rowIndex) =>
-            row.map(key => (
-              <TouchableOpacity
-                key={key}
-                onPress={() => onPressKey(key)}
-                style={[
-                  styles.key,
-                  key === 'Space' && styles.spaceKey,
-                  key === 'OK' && styles.okKey,
-                ]}
-              >
-                <Text style={styles.keyText}>
-                  {key === 'Space' ? '⎵' : key}
-                </Text>
-              </TouchableOpacity>
-            )),
-          )}
+        <View>
+          {KEY_ROWS.map((row, rowIndex) => (
+            <View style={styles.row}>
+              {row.map(key => (
+                <TouchableOpacity
+                  key={key}
+                  onPress={() => handleKeyPress(key)}
+                  style={[
+                    styles.key,
+                    key === 'Space' && styles.spaceKey,
+                    key === 'OK' && styles.okKey,
+                    key === '⇪' && [
+                      styles.capsKey,
+                      capsLock && styles.capsKeyActive,
+                    ],
+                  ]}
+                >
+                  <Text style={styles.keyText}>
+                    {key === 'Space'
+                      ? '⎵'
+                      : key === '⇪'
+                      ? '⇪'
+                      : capsLock
+                      ? key.toUpperCase()
+                      : /^[A-Za-z]$/.test(key)
+                      ? key.toLowerCase()
+                      : key}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
         </View>
       ) : (
         <View style={styles.row}>
@@ -121,11 +150,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   spaceKey: {
-    // width: '50%',
+    width: '50%',
+    aspectRatio: undefined,
   },
   okKey: {
     backgroundColor: '#5A8DEE',
-    // width: '20%',
+    width: '20%',
+    aspectRatio: undefined,
+  },
+  capsKey: {
+    backgroundColor: '#666',
+    width: '12%',
+    aspectRatio: undefined,
+  },
+  capsKeyActive: {
+    backgroundColor: '#5A8DEE',
   },
   keyText: {
     color: '#fff',
