@@ -43,7 +43,7 @@ import {
 } from '../../components';
 // import RNHTMLtoPDF from 'react-native-html-to-pdf';
 
-import { Camera, RoundPlus, Upload } from '../../assets';
+import { Camera, Minus, Plus, RoundPlus, Upload } from '../../assets';
 
 import { TOOLS } from '../../constants';
 import { RootNavParamList } from '../../types/navigationParams';
@@ -80,6 +80,7 @@ const Measurement = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [location, setLocation] = useState('');
   const [mainLock, setMainLock] = useState(false);
+  const [fSize, setFSize] = useState(14);
   const [tools, setTools] = useState<ToolsList>([]);
 
   const [scaleVal, setScaleVal] = useState(1);
@@ -246,15 +247,80 @@ const Measurement = () => {
     return unsubscribe;
   }, [navigation]);
 
-  function hasEmptyOrZero(tools: Tool[]): boolean {
-    const check = (obj: any): boolean => {
-      if (obj && typeof obj === 'object') {
-        return Object.values(obj).some(v => check(v));
-      }
-      return obj === '' || obj === '0';
-    };
+  // function hasEmptyOrZero(tools: Tool[]): boolean {
+  //   console.log('Tools', JSON.stringify(tools));
 
-    return tools.some(tool => check(tool.data));
+  //   const check = (obj: any): boolean => {
+  //     if (obj && typeof obj === 'object') {
+  //       return Object.values(obj).some(v => check(v));
+  //     }
+  //     return obj === '' || obj === '0';
+  //   };
+
+  //   return tools.some(tool => check(tool.data));
+  // }
+
+  function hasEmptyOrZero(tools: Tool[]): boolean {
+    const isEmptyOrZero = (val?: string) =>
+      !val || val.trim() === '' || val === '0';
+
+    return tools.some(tool => {
+      switch (tool.type) {
+        // 🧷 Tape: simple value/fraction check
+        case 'Tape': {
+          const { value, fraction } = tool.data;
+          return isEmptyOrZero(value) && isEmptyOrZero(fraction);
+        }
+
+        // 🧮 Rake: main check + optional distance check
+        case 'Rake': {
+          const { value, fraction, distance } = tool.data;
+          const mainEmpty = isEmptyOrZero(value) && isEmptyOrZero(fraction);
+
+          let distEmpty = false;
+          if (tool.showDist) {
+            distEmpty =
+              isEmptyOrZero(distance.value) && isEmptyOrZero(distance.fraction);
+          }
+
+          return mainEmpty || distEmpty;
+        }
+
+        // 🔦 Laser: check SideA and SideB pairs
+        case 'Laser': {
+          const { SideA, SideB } = tool.data;
+          const sideAEmpty =
+            isEmptyOrZero(SideA.value) && isEmptyOrZero(SideA.fraction);
+          const sideBEmpty =
+            isEmptyOrZero(SideB.value) && isEmptyOrZero(SideB.fraction);
+
+          return sideAEmpty || sideBEmpty;
+        }
+
+        // 🔺 Rectangle: check each MeasurementPair (TopA, RightB, etc.)
+        case 'Rectangle': {
+          return Object.values(tool.data).some(
+            pair => isEmptyOrZero(pair.value) && isEmptyOrZero(pair.fraction),
+          );
+        }
+
+        // 🔹 Corner: check each MeasurementPair (TopLA, BotRB, etc.)
+        case 'Corner': {
+          return Object.values(tool.data).some(
+            pair => isEmptyOrZero(pair.value) && isEmptyOrZero(pair.fraction),
+          );
+        }
+
+        // 🗒️ Note: check text value
+        case 'Note': {
+          const { value } = tool.data;
+          return isEmptyOrZero(value);
+        }
+
+        default:
+          return false;
+      }
+    });
   }
 
   const handleSaveMeasurements = (onSuccess?: () => void) => {
@@ -418,6 +484,14 @@ const Measurement = () => {
     console.log('image result', result);
     if (result?.assets && result?.assets[0].uri) {
       setSelectedPhoto(result?.assets[0].uri);
+    }
+  };
+
+  const setFontSize = async (scale: '+' | '-') => {
+    if (scale == '+' && fSize < 14) {
+      setFSize(fSize + 2);
+    } else if (scale == '-' && fSize > 8) {
+      setFSize(fSize - 2);
     }
   };
 
@@ -658,6 +732,7 @@ const Measurement = () => {
         return (
           <TapeTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
             baseColor={tool.color}
             getCoords={(xArr, yArr) => {
@@ -679,6 +754,7 @@ const Measurement = () => {
         return (
           <LaserTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
             baseColor={tool.color}
             getCoords={(xArr, yArr) => {
@@ -700,6 +776,7 @@ const Measurement = () => {
         return (
           <RakeTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
             baseColor={tool.color}
             getCoords={(xArr, yArr) => {
@@ -727,6 +804,7 @@ const Measurement = () => {
         return (
           <RectangleTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
             baseColor={tool.color}
             getCoords={(xArr, yArr) => {
@@ -746,6 +824,7 @@ const Measurement = () => {
         return (
           <CornerTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
             baseColor={tool.color}
             getCoords={(xArr, yArr) => {
@@ -765,6 +844,7 @@ const Measurement = () => {
         return (
           <NoteTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
             baseColor={tool.color}
             getCoords={(xArr, yArr) => {
@@ -888,6 +968,27 @@ const Measurement = () => {
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
         >
+          <View style={styles.tools}>
+            <TheText
+              text={`Label Font:`}
+              size={20}
+              style={{ fontWeight: 'bold', marginVertical: 20 }}
+            />
+            <TheButton
+              btnTitle=""
+              icon={<Plus color={'white'} />}
+              titleStyle={{ fontWeight: 'bold', fontSize: 18 }}
+              onPress={() => setFontSize('+')}
+              style={{ flex: 1 }}
+            />
+            <TheButton
+              btnTitle=""
+              icon={<Minus color={'white'} />}
+              titleStyle={{ fontWeight: 'bold', fontSize: 18 }}
+              onPress={() => setFontSize('-')}
+              style={{ flex: 1 }}
+            />
+          </View>
           <View style={styles.tools}>
             <ToolMenu TOOLS={TOOLS} addTool={addTool} />
             <TheButton

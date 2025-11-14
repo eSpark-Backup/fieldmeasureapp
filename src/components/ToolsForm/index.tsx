@@ -5,6 +5,7 @@ import {
   ViewStyle,
   ColorValue,
   TextInput,
+  Alert,
 } from 'react-native';
 import TheButton from '../TheButton';
 import TheText from '../TheText';
@@ -212,8 +213,23 @@ export default function ToolsForm({
   };
 
   const deleteItem = (id: string) => {
-    const updatedTools = tools.filter(it => it.id !== id);
-    onChange(updatedTools);
+    Alert.alert('Deleting Tool', 'Are you sure you want to delete?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+        onPress: () => {
+          console.log('❌ Save canceled');
+        },
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          const updatedTools = tools.filter(it => it.id !== id);
+          onChange(updatedTools);
+        },
+      },
+    ]);
   };
 
   // const updateFocus = (id: string, state: boolean) => {
@@ -596,7 +612,13 @@ export default function ToolsForm({
             />
             <TheButton
               btnTitle="Distance"
-              icon={rake.showDist ? <Minus /> : <Plus />}
+              icon={
+                rake.showDist ? (
+                  <Minus color={'#000'} />
+                ) : (
+                  <Plus color={'#33363F'} />
+                )
+              }
               onPress={() => updateDist(item.id, !item.showDist)}
               btnColor={rake.showDist ? '#fbeefdff' : border}
               titleStyle={{ fontWeight: 'bold' }}
@@ -926,7 +948,7 @@ const Card = ({
             <Eye color="#6B7280" onPress={onEye} />
           )}
           <TheToggle value={item.locked!} onValueChange={onToggle} />
-          <Trash onPress={onDelete} />
+          <Trash onPress={!item.locked ? onDelete : null} />
         </View>
       </View>
 

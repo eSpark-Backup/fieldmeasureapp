@@ -24,6 +24,7 @@ const NoteTool = ({
   canvasSize,
   baseColor,
   onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -34,6 +35,7 @@ const NoteTool = ({
   canvasSize: CanvasVals;
   baseColor: ColorValue;
   onLabelPress: (data: { value: string; focused: boolean }) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -125,7 +127,7 @@ const NoteTool = ({
             ]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={`Note`}
             />

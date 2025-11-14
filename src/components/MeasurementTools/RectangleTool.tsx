@@ -28,6 +28,7 @@ const RectangleTool = ({
   canvasSize,
   baseColor,
   onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -53,6 +54,7 @@ const RectangleTool = ({
       MeasurementPair
     >,
   ) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -141,7 +143,31 @@ const RectangleTool = ({
         position: 'absolute',
         transform: [
           { translateX: midX - length / 2 }, // center horizontally
-          { translateY: midY - 20 / scaleValue / 2 }, // center vertically
+          { translateY: midY - labelSize / scaleValue / 2 }, // center vertically
+          { rotate: `${angle}deg` },
+        ],
+      };
+    });
+  };
+
+  const animatedVInfo = (p1: any, p2: any) => {
+    return useAnimatedStyle(() => {
+      const dx = p2.x.value - p1.x.value;
+      const dy = p2.y.value - p1.y.value;
+
+      const length = Math.sqrt(dx * dx + dy * dy); // distance between points
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+      const midX = (p1.x.value + p2.x.value) / 2;
+      const midY = (p1.y.value + p2.y.value) / 2;
+
+      return {
+        width: length,
+        // height: 20 / scaleValue, // keep same scale effect
+        position: 'absolute',
+        transform: [
+          { translateX: midX - length / 2 }, // center horizontally
+          { translateY: midY - labelSize / scaleValue / 2 }, // center vertically
           { rotate: `${angle}deg` },
         ],
       };
@@ -149,9 +175,9 @@ const RectangleTool = ({
   };
 
   // Four sides of rectangle
-  const leftStyle = animatedInfo(points[0], points[1]);
+  const leftStyle = animatedVInfo(points[0], points[1]);
   const bottomStyle = animatedInfo(points[1], points[2]);
-  const rightStyle = animatedInfo(points[2], points[3]);
+  const rightStyle = animatedVInfo(points[2], points[3]);
   const topStyle = animatedInfo(points[3], points[0]);
 
   const handleFocus = (side: keyof typeof data) =>
@@ -181,7 +207,7 @@ const RectangleTool = ({
       <Animated.View style={[styles.box2, leftStyle]}>
         <View
           style={{
-            flexDirection: 'row-reverse',
+            flexDirection: 'row',
             justifyContent: 'space-around',
             width: '100%',
           }}
@@ -197,7 +223,7 @@ const RectangleTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`A: ${formatInches(data.LeftA)}`}
               />
@@ -207,7 +233,7 @@ const RectangleTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={`${formatInchesSum(data.LeftA, data.LeftB)}`}
             />
@@ -223,9 +249,9 @@ const RectangleTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
-                text={`B: ${formatInches(data.LeftA)}`}
+                text={`B: ${formatInches(data.LeftB)}`}
               />
             </View>
           </GestureDetector>
@@ -250,7 +276,7 @@ const RectangleTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`A: ${formatInches(data.BotA)}`}
               />
@@ -260,7 +286,7 @@ const RectangleTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.BotA, data.BotB)}
             />
@@ -276,7 +302,7 @@ const RectangleTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`B: ${formatInches(data.BotB)}`}
               />
@@ -303,7 +329,7 @@ const RectangleTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`A: ${formatInches(data.RightA)}`}
               />
@@ -313,7 +339,7 @@ const RectangleTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.RightA, data.RightB)}
             />
@@ -329,7 +355,7 @@ const RectangleTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`B: ${formatInches(data.RightB)}`}
               />
@@ -356,7 +382,7 @@ const RectangleTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`A: ${formatInches(data.TopA)}`}
               />
@@ -366,7 +392,7 @@ const RectangleTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.TopA, data.TopB)}
             />
@@ -382,7 +408,7 @@ const RectangleTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`B: ${formatInches(data.TopB)}`}
               />
@@ -404,7 +430,7 @@ const RectangleTool = ({
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke={baseColor}
-          strokeWidth="5"
+          strokeWidth="2.5"
         />
       ))}
     </View>

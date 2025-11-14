@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import DatePicker from 'react-native-modal-datetime-picker';
 import TheText from '../TheText';
-import { border } from '../../constants/colors';
+import { border, primaryColor, WhiteBackground } from '../../constants/colors';
 
 interface TheDatePickerProps {
   label?: string;
@@ -19,6 +19,8 @@ interface TheDatePickerProps {
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
   error?: string;
+  onClear?: () => void;
+  clearBtn?: boolean;
 }
 
 const TheDatePicker: React.FC<TheDatePickerProps> = ({
@@ -29,6 +31,8 @@ const TheDatePicker: React.FC<TheDatePickerProps> = ({
   containerStyle,
   inputStyle,
   error,
+  onClear,
+  clearBtn,
 }) => {
   const [showPicker, setShowPicker] = useState(false);
 
@@ -54,7 +58,11 @@ const TheDatePicker: React.FC<TheDatePickerProps> = ({
         </View>
       )}
 
-      <TouchableOpacity activeOpacity={0.8} onPress={() => setShowPicker(true)}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => setShowPicker(true)}
+        style={{ justifyContent: 'center' }}
+      >
         <TextInput
           value={value}
           style={[styles.inputStyle, inputStyle]}
@@ -62,6 +70,22 @@ const TheDatePicker: React.FC<TheDatePickerProps> = ({
           placeholder="Select date"
           placeholderTextColor="#888"
         />
+
+        {clearBtn ? (
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              right: 10,
+              backgroundColor: primaryColor,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 5,
+            }}
+            onPress={onClear}
+          >
+            <TheText text="Clear date" color={WhiteBackground} />
+          </TouchableOpacity>
+        ) : null}
       </TouchableOpacity>
 
       <DatePicker

@@ -28,6 +28,7 @@ const CornerTool = ({
   canvasSize,
   baseColor,
   onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -72,6 +73,7 @@ const CornerTool = ({
       MeasurementPair
     >,
   ) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -168,7 +170,31 @@ const CornerTool = ({
         position: 'absolute',
         transform: [
           { translateX: midX - length / 2 }, // center horizontally
-          { translateY: midY - 20 / scaleValue / 2 }, // center vertically
+          { translateY: midY - labelSize / scaleValue / 2 }, // center vertically
+          { rotate: `${angle}deg` },
+        ],
+      };
+    });
+  };
+
+  const animatedVInfo = (p1: any, p2: any) => {
+    return useAnimatedStyle(() => {
+      const dx = p2.x.value - p1.x.value;
+      const dy = p2.y.value - p1.y.value;
+
+      const length = Math.sqrt(dx * dx + dy * dy); // distance between points
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+      const midX = (p1.x.value + p2.x.value) / 2;
+      const midY = (p1.y.value + p2.y.value) / 2;
+
+      return {
+        width: length,
+        // height: 20 / scaleValue, // keep same scale effect
+        position: 'absolute',
+        transform: [
+          { translateX: midX - length / 2 }, // center horizontally
+          { translateY: midY - labelSize / scaleValue / 2 }, // center vertically
           { rotate: `${angle}deg` },
         ],
       };
@@ -176,13 +202,15 @@ const CornerTool = ({
   };
 
   // Four sides of rectangle
-  const leftStyle = animatedInfo(points[0], points[1]);
+  const leftStyle = animatedVInfo(points[0], points[1]);
   const bottomLeftStyle = animatedInfo(points[1], points[2]);
   const bottomRightStyle = animatedInfo(points[2], points[3]);
-  const rightStyle = animatedInfo(points[3], points[4]);
+  const rightStyle = animatedVInfo(points[3], points[4]);
+  // const rightStyle = animatedInfo(points[3], points[4]);
   const topRightStyle = animatedInfo(points[4], points[5]);
   const topLeftStyle = animatedInfo(points[5], points[0]);
-  const centerStyle = animatedInfo(points[2], points[5]);
+  // const centerStyle = animatedInfo(points[2], points[5]);
+  const centerStyle = animatedVInfo(points[2], points[5]);
 
   const handleFocus = (side: keyof typeof data) =>
     Gesture.Tap().onStart(() => {
@@ -211,7 +239,7 @@ const CornerTool = ({
       <Animated.View style={[styles.box2, leftStyle]}>
         <View
           style={{
-            flexDirection: 'row-reverse',
+            flexDirection: 'row',
             justifyContent: 'space-around',
             width: '100%',
           }}
@@ -227,7 +255,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`LA: ${formatInches(data.LeftA)}`}
               />
@@ -237,7 +265,7 @@ const CornerTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.LeftA, data.LeftB)}
             />
@@ -253,7 +281,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`LB: ${formatInches(data.LeftB)}`}
               />
@@ -280,7 +308,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`BLA: ${formatInches(data.BotLA)}`}
               />
@@ -290,7 +318,7 @@ const CornerTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.BotLA, data.BotLB)}
             />
@@ -306,7 +334,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`BLB: ${formatInches(data.BotLB)}`}
               />
@@ -333,7 +361,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`BRA: ${formatInches(data.BotRA)}`}
               />
@@ -343,7 +371,7 @@ const CornerTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.BotRA, data.BotRB)}
             />
@@ -359,7 +387,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`BRB: ${formatInches(data.BotRB)}`}
               />
@@ -386,7 +414,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`RA: ${formatInches(data.RightA)}`}
               />
@@ -396,7 +424,7 @@ const CornerTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.RightA, data.RightB)}
             />
@@ -412,7 +440,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`RB: ${formatInches(data.RightB)}`}
               />
@@ -439,7 +467,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`TRA: ${formatInches(data.TopRA)}`}
               />
@@ -449,7 +477,7 @@ const CornerTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.TopRA, data.TopRB)}
             />
@@ -465,7 +493,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`TRB: ${formatInches(data.TopRB)}`}
               />
@@ -492,7 +520,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`TLA: ${formatInches(data.TopLA)}`}
               />
@@ -502,7 +530,7 @@ const CornerTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.TopLA, data.TopLB)}
             />
@@ -518,7 +546,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`TLB: ${formatInches(data.TopLB)}`}
               />
@@ -545,7 +573,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`CA: ${formatInches(data.CenterA)}`}
               />
@@ -555,7 +583,7 @@ const CornerTool = ({
             style={[styles.centerLabelCont, { backgroundColor: baseColor }]}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={formatInchesSum(data.CenterA, data.CenterB)}
             />
@@ -571,7 +599,7 @@ const CornerTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`CB: ${formatInches(data.CenterB)}`}
               />
@@ -593,7 +621,7 @@ const CornerTool = ({
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke={baseColor}
-          strokeWidth="5"
+          strokeWidth="2.5"
         />
       ))}
       <AnimatedLine
@@ -601,7 +629,7 @@ const CornerTool = ({
         y={10 * (2 / scaleValue / 2)}
         animatedProps={animatedLineCenter}
         stroke={baseColor}
-        strokeWidth="5"
+        strokeWidth="2.5"
       />
     </View>
   );

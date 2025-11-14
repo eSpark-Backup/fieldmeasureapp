@@ -13,6 +13,7 @@ import Animated, {
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
 import { CanvasVals, MeasurementPair } from '../../types';
+import { formatInches } from './utils';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -28,6 +29,7 @@ const TapeTool = ({
   baseColor,
   tapeNumber,
   onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -43,6 +45,7 @@ const TapeTool = ({
     fraction: string;
     focused: boolean;
   }) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -166,9 +169,9 @@ const TapeTool = ({
           ]}
         >
           <TheText
-            size={14 * (2 / scaleValue / 2)}
+            size={labelSize * (2 / scaleValue / 2)}
             color={WhiteBackground}
-            text={`M${tapeNumber}: ${inches()}`}
+            text={`M${tapeNumber}: ${formatInches(data)}`}
           />
         </Animated.View>
       </GestureDetector>
@@ -187,7 +190,7 @@ const TapeTool = ({
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke={baseColor}
-          strokeWidth="5"
+          strokeWidth="2.5"
         />
       ))}
     </View>

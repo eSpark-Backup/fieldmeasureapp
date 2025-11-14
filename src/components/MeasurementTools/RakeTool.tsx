@@ -19,6 +19,7 @@ import Animated, {
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
 import { CanvasVals, MeasurementPair } from '../../types';
+import { formatInches } from './utils';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -38,6 +39,7 @@ const RakeTool = ({
   baseColor,
   rakeNumber,
   onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -63,6 +65,7 @@ const RakeTool = ({
     focused: boolean;
     distance: MeasurementPair;
   }) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -277,29 +280,6 @@ const RakeTool = ({
     }));
   });
 
-  const inches = () => {
-    const inches = data.value ? data.value : '0';
-    const fraction = data.fraction ? data.fraction : '0';
-    if (inches != '0' && fraction != '0') {
-      return inches + '-' + fraction + `"`;
-    } else if (inches != '0' && fraction == '0') {
-      return inches + `"`;
-    } else {
-      return `0"`;
-    }
-  };
-  const inchesDist = () => {
-    const inches = data.distance?.value ? data.distance?.value : '0';
-    const fraction = data.distance?.fraction ? data.distance?.fraction : '0';
-    if (inches != '0' && fraction != '0') {
-      return inches + '-' + fraction + `"`;
-    } else if (inches != '0' && fraction == '0') {
-      return inches + `"`;
-    } else {
-      return `0"`;
-    }
-  };
-
   const onLabel = Gesture.Tap().onStart(() => {
     console.log('SVG Rect pressed via gesture ✅');
     const newData = { ...data };
@@ -337,9 +317,9 @@ const RakeTool = ({
               }}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
-                text={`R${rakeNumber}: +${inches()}`}
+                text={`R${rakeNumber}: +${formatInches(data)}`}
               />
             </View>
           </GestureDetector>
@@ -359,7 +339,7 @@ const RakeTool = ({
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke={baseColor}
-          strokeWidth="5"
+          strokeWidth="2.5"
           strokeDasharray={[10, 5]}
         />
       ))}
@@ -377,9 +357,9 @@ const RakeTool = ({
               ]}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
-                text={`R${rakeNumber}D: ${inchesDist()}`}
+                text={`R${rakeNumber}D: ${formatInches(data.distance)}`}
               />
             </Animated.View>
           </GestureDetector>
@@ -405,7 +385,7 @@ const RakeTool = ({
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke={showDist ? baseColor : 'transparent'}
-          strokeWidth="5"
+          strokeWidth="2.5"
         />
       ))}
     </View>

@@ -28,6 +28,7 @@ const LaserTool = ({
   baseColor,
   laserNumber,
   onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -45,6 +46,7 @@ const LaserTool = ({
     SideA: MeasurementPair;
     SideB: MeasurementPair;
   }) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -165,7 +167,7 @@ const LaserTool = ({
               }}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`L${laserNumber}B: ${formatInches(data.SideB)}`}
               />
@@ -181,7 +183,7 @@ const LaserTool = ({
             }}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={`L${laserNumber}: ${formatInchesSum(
                 data.SideA,
@@ -201,7 +203,7 @@ const LaserTool = ({
               }}
             >
               <TheText
-                size={14 * (2 / scaleValue / 2)}
+                size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
                 text={`L${laserNumber}A: ${formatInches(data.SideA)}`}
               />
@@ -230,7 +232,7 @@ const LaserTool = ({
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
           stroke={baseColor}
-          strokeWidth="5"
+          strokeWidth="2.5"
           strokeDasharray={[10, 5]}
         />
       ))}
