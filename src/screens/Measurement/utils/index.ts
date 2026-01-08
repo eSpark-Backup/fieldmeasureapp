@@ -4,7 +4,44 @@ import uuid from 'react-native-uuid';
 
 const { width, height } = Dimensions.get('screen');
 
-export const pdfHTML = (uri: string) => {
+export const pdfHTML = (
+  uri: string,
+  projectInfo: any, // or properly typed Project
+  location: string,
+  tools: Tool[],
+) => {
+  const rows = tools
+    .map((tool, index) => {
+      let value = '';
+      if (tool.type === 'Tape') {
+        value = `${tool.data.value} ${tool.data.fraction}"`;
+      } else if (tool.type === 'Note') {
+        value = tool.data.value;
+      } else if (tool.type === 'Laser') {
+        value = `A: ${tool.data.SideA.value} ${tool.data.SideA.fraction}" | B: ${tool.data.SideB.value} ${tool.data.SideB.fraction}"`;
+      } else if (tool.type === 'Rake') {
+        value = `Main: ${tool.data.value} ${tool.data.fraction}"`;
+        if (tool.showDist) {
+          value += ` | Distance: ${tool.data.distance.value} ${tool.data.distance.fraction}"`;
+        }
+      } else if (tool.type === 'Rectangle') {
+        value = `Top: ${tool.data.TopA.value} ${tool.data.TopA.fraction}"-${tool.data.TopB.value} ${tool.data.TopB.fraction}" | Right: ${tool.data.RightA.value} ${tool.data.RightA.fraction}"-${tool.data.RightB.value} ${tool.data.RightB.fraction}" | Bot: ${tool.data.BotA.value} ${tool.data.BotA.fraction}"-${tool.data.BotB.value} ${tool.data.BotB.fraction}" | Left: ${tool.data.LeftA.value} ${tool.data.LeftA.fraction}"-${tool.data.LeftB.value} ${tool.data.LeftB.fraction}"`;
+      } else if (tool.type === 'Corner') {
+        value = `TopL: ${tool.data.TopLA.value} ${tool.data.TopLA.fraction}"-${tool.data.TopLB.value} ${tool.data.TopLB.fraction}" | TopR: ${tool.data.TopRA.value} ${tool.data.TopRA.fraction}"-${tool.data.TopRB.value} ${tool.data.TopRB.fraction}" | Right: ${tool.data.RightA.value} ${tool.data.RightA.fraction}"-${tool.data.RightB.value} ${tool.data.RightB.fraction}" | Center: ${tool.data.CenterA.value} ${tool.data.CenterA.fraction}"-${tool.data.CenterB.value} ${tool.data.CenterB.fraction}" | Left: ${tool.data.LeftA.value} ${tool.data.LeftA.fraction}"-${tool.data.LeftB.value} ${tool.data.LeftB.fraction}" | BotL: ${tool.data.BotLA.value} ${tool.data.BotLA.fraction}"-${tool.data.BotLB.value} ${tool.data.BotLB.fraction}" | BotR: ${tool.data.BotRA.value} ${tool.data.BotRA.fraction}"-${tool.data.BotRB.value} ${tool.data.BotRB.fraction}"`;
+      }
+
+      // Fallback or more detailed formatting can be added as needed
+      if (!value) value = 'N/A';
+
+      return `<tr>
+      <td>${tool.type} ${index + 1}</td>
+      <td>${tool.type}</td>
+      <td>${value}</td>
+      <td>${location}</td>
+    </tr>`;
+    })
+    .join('');
+
   return `<style>
     table {
       font-family: arial, sans-serif;
@@ -22,14 +59,14 @@ export const pdfHTML = (uri: string) => {
     }
   </style>
   <h2>Measurement Report</h2>
-  <p>Quote: 12323as</p>
-  <p>Client: John</p>
-  <p>Client: John</p>
-  <p>Date: 7/17/2025</p>
+  <p>Quote: ${projectInfo?.qouteNumber || ''}</p>
+  <p>Client: ${projectInfo?.name || ''}</p>
+  <p>Address: ${projectInfo?.address || ''}</p>
+  <p>Date: ${projectInfo?.date || ''}</p>
 
   <img src=${uri} alt="Image" width=${width - 40} height=${height * 0.8} />
 
-  <h2>Measurements (Total 5)</h2>
+  <h2>Measurements (Total ${tools.length})</h2>
   <table>
     <tr>
       <th>Label</th>
@@ -37,36 +74,7 @@ export const pdfHTML = (uri: string) => {
       <th>Value</th>
       <th>Area</th>
     </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
-    <tr>
-      <td>Note1</td>
-      <td>NOTE</td>
-      <td>511px</td>
-      <td>Attach Bath</td>
-    </tr>
+    ${rows}
   </table>`;
 };
 

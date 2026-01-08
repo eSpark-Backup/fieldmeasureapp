@@ -41,9 +41,10 @@ import {
   RectangleTool,
   NoteTool,
 } from '../../components';
-// import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import { generatePDF } from 'react-native-html-to-pdf';
+import FileViewer from 'react-native-file-viewer';
 
-import { Camera, Minus, Plus, RoundPlus, Upload } from '../../assets';
+import { Camera, Export, Minus, Plus, RoundPlus, Upload } from '../../assets';
 
 import { TOOLS } from '../../constants';
 import { RootNavParamList } from '../../types/navigationParams';
@@ -867,14 +868,14 @@ const Measurement = () => {
     ref.current?.capture!().then(async uri => {
       console.log('do something with ', uri);
       let options = {
-        html: pdfHTML(uri),
-        fileName: 'test',
+        html: pdfHTML(uri, projectInfo, location, tools),
+        fileName: `${projectInfo?.qouteNumber}-${location}`,
         directory: 'Documents',
       };
 
-      // let file = await RNHTMLtoPDF.convert(options);
-      // console.log(file.filePath);
-      // FileViewer.open(file.filePath!);
+      let file = await generatePDF(options);
+      console.log(file.filePath);
+      FileViewer.open(file.filePath!);
     });
 
     // alert(file.filePath);
@@ -979,14 +980,23 @@ const Measurement = () => {
               icon={<Plus color={'white'} />}
               titleStyle={{ fontWeight: 'bold', fontSize: 18 }}
               onPress={() => setFontSize('+')}
-              style={{ flex: 1 }}
+              style={{ height: '50%', width: '20%' }}
+            />
+            <TheText
+              size={20}
+              text={fSize.toString()}
+              style={{
+                fontWeight: '500',
+                width: '12%',
+                textAlign: 'center',
+              }}
             />
             <TheButton
               btnTitle=""
               icon={<Minus color={'white'} />}
               titleStyle={{ fontWeight: 'bold', fontSize: 18 }}
               onPress={() => setFontSize('-')}
-              style={{ flex: 1 }}
+              style={{ height: '50%', width: '20%' }}
             />
           </View>
           <View style={styles.tools}>
@@ -1060,12 +1070,12 @@ const Measurement = () => {
             </View>
           </View>
           <View style={{ zIndex: 1000 }}>{renderToolContent()}</View>
-          {/* <TheButton
+          <TheButton
             btnTitle="Export Report"
             titleStyle={{ fontWeight: 'bold' }}
             icon={<Export />}
-            // onPress={handleSaveMeasurements}
-          /> */}
+            onPress={exportReport}
+          />
           <TheButton
             btnTitle="Save"
             titleStyle={{ fontWeight: 'bold' }}
@@ -1118,8 +1128,9 @@ const styles = StyleSheet.create({
   },
   tools: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
     marginVertical: 10,
+    alignItems: 'center',
     gap: 5,
   },
   contentContainer: {
