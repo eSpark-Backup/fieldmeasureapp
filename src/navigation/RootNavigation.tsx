@@ -16,28 +16,61 @@ import TechniciansList from '../screens/TechniciansList';
 import { useUserStore } from '../store/UserStore';
 import { ActivityIndicator, View } from 'react-native';
 import { background, primaryColor } from '../constants/colors';
+import { firebaseAuth, db } from '../utils/firebase';
 
 const Stack = createNativeStackNavigator<RootNavParamList>();
 
 const AppNavigator = () => {
-  // const { user, hasHydrated } = useUserStore();
+  const { user, hasHydrated, saveUser, clearUser } = useUserStore();
+  const [initializing, setInitializing] = useState(true);
 
-  // console.log('hasHydrated', hasHydrated);
+  useEffect(() => {
+    const unsubscribe = firebaseAuth.onAuthStateChanged(async firebaseUser => {
+      if (firebaseUser) {
+        // Fetch role from Firestore
+        try {
+          const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
+          if (userDoc.exists) {
+            const userData = userDoc.data();
+            saveUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              role: userData?.role || 'technician',
+            });
+          } else {
+            // Default to technician if doc doesn't exist
+            saveUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              role: 'technician',
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+        }
+      } else {
+        clearUser();
+      }
+      if (initializing) setInitializing(false);
+    });
 
-  // if (!hasHydrated) {
-  //   return (
-  //     <View
-  //       style={{
-  //         flex: 1,
-  //         alignItems: 'center',
-  //         justifyContent: 'center',
-  //         backgroundColor: background,
-  //       }}
-  //     >
-  //       <ActivityIndicator size={'large'} color={primaryColor} />
-  //     </View>
-  //   );
-  // }
+    return unsubscribe;
+  }, []);
+
+  if (!hasHydrated || initializing) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: background,
+        }}
+      >
+        <ActivityIndicator size={'large'} color={primaryColor} />
+      </View>
+    );
+  }
 
   return (
     <Stack.Navigator
@@ -45,7 +78,7 @@ const AppNavigator = () => {
         headerShown: false,
         animation: 'none',
       }}
-      // initialRouteName={user ? 'Projects' : 'SignIn'}
+      initialRouteName={user ? 'Projects' : 'SignIn'}
     >
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="SignUp" component={SignUp} />

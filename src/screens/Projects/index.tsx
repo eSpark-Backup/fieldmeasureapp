@@ -31,14 +31,15 @@ import {
   ProjectSchema,
   SignInSchema,
 } from '../../constants/validations/schema';
+import { db } from '../../utils/firebase';
 
 type ProjectsProps = NativeStackScreenProps<RootNavParamList, 'Projects'>;
 
 const Projects = () => {
   const navigation = useNavigation<ProjectsProps['navigation']>();
-  const technicians = useProjectStore().technicians;
   const addProject = useProjectStore().addProject;
   const [showInputs, setShowInputs] = useState(false);
+  const [technicians, setTechnicians] = useState<any[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const route = useRoute<ProjectsProps['route']>(); // typed
   const role = route.params?.role; // <-- get the role
@@ -69,9 +70,23 @@ const Projects = () => {
     addProject(data);
   };
 
-  const technicianNames = technicians.map(
-    tech => tech.firstName + ' ' + tech.lastName,
-  );
+  useEffect(() => {
+    if (role === 'admin') {
+      const unsubscribe = db
+        .collection('users')
+        .where('role', '==', 'technician')
+        .onSnapshot(
+          snapshot => {
+            const techList = snapshot.docs.map(doc => doc.data());
+            setTechnicians(techList);
+          },
+          error => {
+            console.error('Error fetching technicians:', error);
+          },
+        );
+      return () => unsubscribe();
+    }
+  }, [role]);
 
   return (
     <ScrollView
@@ -197,7 +212,7 @@ const Projects = () => {
                 <View style={{ ...styles.rowContainer, gap: 15 }}>
                   <View style={{ flex: 1 }}>
                     <TheDropdown
-                      data={technicianNames}
+                      data={technicians.map(t => `${t.firstName} ${t.lastName}`)}
                       placeholder={TECHS.placeholder}
                       title={TECHS.title}
                       disabled={role == 'technician' ? true : false}

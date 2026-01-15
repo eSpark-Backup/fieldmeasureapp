@@ -10,7 +10,8 @@ import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
 import { SignUpSchema } from '../../constants/validations/schema';
 import { useProjectStore } from '../../store/ProjectsStore';
-import uuid from 'react-native-uuid';
+import { firebaseAuth, db } from '../../utils/firebase';
+import { ActivityIndicator } from 'react-native';
 
 type AddTechnicianProps = NativeStackScreenProps<
   RootNavParamList,
@@ -21,24 +22,43 @@ const AddTechnician = () => {
   const navigation = useNavigation<AddTechnicianProps['navigation']>();
   const addTechnician = useProjectStore(state => state.addTechnician);
 
-  const handleAddTechnician = (values: any) => {
-    const newTech = {
-      id: uuid.v4().toString(),
-      firstName: values.firstName,
-      lastName: values.lastName,
-      email: values.email.toLowerCase(),
-      password: values.password, // ⚠ In real apps, hash this
-      permissions: {
-        delete: true,
-        modify: true,
-        create: true,
-      },
-    };
-    addTechnician(newTech);
-    Alert.alert('Success', 'Technician added successfully!', [{ text: 'OK' }], {
-      cancelable: false,
-    });
-    navigation.navigate('Projects', { role: 'admin' });
+  const handleAddTechnician = async (values: any, { setSubmitting }: any) => {
+    try {
+      setSubmitting(true);
+      
+      // 1. Create the technician user using the main instance (will log out Admin)
+      const userCredential = await firebaseAuth.createUserWithEmailAndPassword(
+        values.email.toLowerCase(),
+        values.password
+      );
+      
+      const { uid } = userCredential.user;
+      
+      // 2. Save technician details to Firestore
+      await db.collection('users').doc(uid).set({
+        uid,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email.toLowerCase(),
+        role: 'technician',
+        permissions: {
+          delete: true,
+          modify: true,
+          create: true,
+        },
+        createdAt: new Date().toISOString(),
+      });
+
+      Alert.alert('Success', 'Technician added successfully!', [{ text: 'OK' }], {
+        cancelable: false,
+      });
+      // The RootNavigation will automatically pick up the new auth state
+    } catch (error: any) {
+      console.error('Error adding technician:', error);
+      Alert.alert('Error', error.message || 'Failed to add technician');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -77,6 +97,7 @@ const AddTechnician = () => {
             values,
             errors,
             touched,
+            isSubmitting,
           }) => (
             <View style={styles.formContainer}>
               <TheTextInput
@@ -131,11 +152,19 @@ const AddTechnician = () => {
                     : ''
                 }
               />
-              <TheButton
-                btnTitle="Create Technician"
-                onPress={handleSubmit}
-                style={styles.AddTechnicianButton}
-              />
+              {isSubmitting ? (
+                <ActivityIndicator
+                  size="large"
+                  color={primaryColor}
+                  style={{ marginTop: 20 }}
+                />
+              ) : (
+                <TheButton
+                  btnTitle="Create Technician"
+                  onPress={handleSubmit}
+                  style={styles.AddTechnicianButton}
+                />
+              )}
             </View>
           )}
         </Formik>
