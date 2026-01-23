@@ -43,21 +43,25 @@ const SignIn = () => {
               const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
               let role: 'admin' | 'technician' = 'technician';
               let techName = '';
+              let permissions = undefined;
               
-              if (userDoc.exists) {
+              if (userDoc.exists()) {
                 const userData = userDoc.data();
                 role = userData?.role || 'technician';
                 techName = userData?.firstName + ' ' + userData?.lastName;
+                permissions = userData?.permissions;
               }
 
               saveUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email || '',
                 role: role,
+                permissions: permissions,
               });
 
               navigation.navigate('Projects', {
                 role: role,
+                techId: firebaseUser.uid,
                 techName: techName,
               });
             } catch (error: any) {

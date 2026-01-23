@@ -20,7 +20,6 @@ type AddTechnicianProps = NativeStackScreenProps<
 
 const AddTechnician = () => {
   const navigation = useNavigation<AddTechnicianProps['navigation']>();
-  const addTechnician = useProjectStore(state => state.addTechnician);
 
   const handleAddTechnician = async (values: any, { setSubmitting }: any) => {
     try {
@@ -52,7 +51,7 @@ const AddTechnician = () => {
       Alert.alert('Success', 'Technician added successfully!', [{ text: 'OK' }], {
         cancelable: false,
       });
-      // The RootNavigation will automatically pick up the new auth state
+      navigation?.goBack?.()
     } catch (error: any) {
       console.error('Error adding technician:', error);
       Alert.alert('Error', error.message || 'Failed to add technician');

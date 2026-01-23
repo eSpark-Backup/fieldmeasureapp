@@ -5,9 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TheText } from '../components';
 
 const toastConfig = {
-  custom: ({ text1 }) => (
+  custom: ({ text1 }: { text1?: string }) => (
     <View style={[style.toast]}>
-      <TheText text={text1} style={{ width: '90%' }} />
+      <TheText text={text1 || ''} style={{ width: '90%' }} />
     </View>
   ),
 };

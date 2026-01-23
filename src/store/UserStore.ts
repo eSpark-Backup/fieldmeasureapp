@@ -8,6 +8,11 @@ export interface User {
   uid: string;
   email: string;
   role: Role;
+  permissions?: {
+    create: boolean;
+    modify: boolean;
+    delete: boolean;
+  };
 }
 
 interface UserStoreTypes {

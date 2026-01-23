@@ -23,7 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
 import { Formik } from 'formik';
-import { SignUpSchema } from '../../constants/validations/schema';
+import { SignUpSchema, EditTechnicianSchema } from '../../constants/validations/schema';
 
 type TechniciansProps = NativeStackScreenProps<
   RootNavParamList,
@@ -177,7 +177,7 @@ const TechniciansList = () => {
               create: false,
             },
           }}
-          validationSchema={SignUpSchema}
+          validationSchema={EditTechnicianSchema}
           onSubmit={handleEditTechnician}
         >
           {({
@@ -197,7 +197,9 @@ const TechniciansList = () => {
                 onChange={handleChange('firstName')}
                 onBlur={handleBlur('firstName')}
                 error={
-                  touched.firstName && errors.firstName ? errors.firstName : ''
+                  touched.firstName && errors.firstName
+                    ? (errors.firstName as string)
+                    : ''
                 }
               />
               <TheTextInput
@@ -207,7 +209,9 @@ const TechniciansList = () => {
                 onChange={handleChange('lastName')}
                 onBlur={handleBlur('lastName')}
                 error={
-                  touched.lastName && errors.lastName ? errors.lastName : ''
+                  touched.lastName && errors.lastName
+                    ? (errors.lastName as string)
+                    : ''
                 }
               />
               <TheTextInput
@@ -216,7 +220,9 @@ const TechniciansList = () => {
                 value={values.email}
                 onChange={handleChange('email')}
                 onBlur={handleBlur('email')}
-                error={touched.email && errors.email ? errors.email : ''}
+                error={
+                  touched.email && errors.email ? (errors.email as string) : ''
+                }
                 editable={false} // Email cannot be changed in Firebase Auth easily
               />
               <View style={styles.permissionsContainer}>

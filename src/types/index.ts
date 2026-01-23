@@ -35,7 +35,7 @@ export type Measure = {
 };
 
 export type Project = {
-  id: number;
+  id: string;
   qouteNumber: string;
   name: string;
   address: string;

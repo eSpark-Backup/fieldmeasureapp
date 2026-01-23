@@ -57,8 +57,25 @@ export const seedInitialAdmin = async (email: string, password: string) => {
   }
 };
 
+/**
+ * Uploads an image to Firebase Storage and returns the download URL.
+ */
+export const uploadImageToStorage = async (uri: string, path: string) => {
+  if (!uri) return '';
+  try {
+    const reference = firebaseStorage.ref(path);
+    await reference.putFile(uri);
+    const url = await reference.getDownloadURL();
+    return url;
+  } catch (error) {
+    console.error('Image upload error:', error);
+    throw error;
+  }
+};
+
 export default {
   db,
   firebaseAuth,
   firebaseStorage,
+  uploadImageToStorage,
 };

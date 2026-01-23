@@ -30,12 +30,13 @@ const AppNavigator = () => {
         // Fetch role from Firestore
         try {
           const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
-          if (userDoc.exists) {
+          if (userDoc.exists()) {
             const userData = userDoc.data();
             saveUser({
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
               role: userData?.role || 'technician',
+              permissions: userData?.permissions,
             });
           } else {
             // Default to technician if doc doesn't exist
@@ -43,6 +44,7 @@ const AppNavigator = () => {
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
               role: 'technician',
+              permissions: undefined,
             });
           }
         } catch (error) {

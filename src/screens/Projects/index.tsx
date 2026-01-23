@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView, BackHandler } from 'react-native';
+import { View, StyleSheet, ScrollView, BackHandler, ActivityIndicator, Alert } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -17,6 +17,7 @@ import {
 } from '../../components';
 import { RoundPlus, File, Logout } from '../../assets';
 import { useProjectStore } from '../../store/ProjectsStore';
+import { useUserStore } from '../../store/UserStore';
 import {
   background,
   border,
@@ -31,23 +32,51 @@ import {
   ProjectSchema,
   SignInSchema,
 } from '../../constants/validations/schema';
-import { db } from '../../utils/firebase';
+import { db, firebaseAuth } from '../../utils/firebase';
 
 type ProjectsProps = NativeStackScreenProps<RootNavParamList, 'Projects'>;
 
 const Projects = () => {
   const navigation = useNavigation<ProjectsProps['navigation']>();
-  const addProject = useProjectStore().addProject;
+  const { addProject, projects, setProjects, isLoading, setIsLoading } = useProjectStore();
+  const { user } = useUserStore();
   const [showInputs, setShowInputs] = useState(false);
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const route = useRoute<ProjectsProps['route']>(); // typed
   const role = route.params?.role; // <-- get the role
-  const techName = route.params?.techName; // <-- get the role
-  const projects =
-    role == 'technician'
-      ? useProjectStore().projects.filter(item => item.techName == techName)
-      : useProjectStore().projects;
+  const techName = route.params?.techName; // <-- get user techName
+  const techId = route.params?.techId; // <-- get user techId
+
+  useEffect(() => {
+    setIsLoading(true);
+    let query: any = db.collection('projects');
+    
+    // If technician, only show their projects (supports both ID and name for backward compatibility)
+    if (role === 'technician') {
+      const filters = [techId, techName].filter(Boolean);
+      if (filters.length > 0) {
+        query = query.where('techName', 'in', filters);
+      }
+    }
+
+    const unsubscribe = query.onSnapshot(
+      (snapshot: any) => {
+        const projectList = snapshot.docs.map((doc: any) => ({
+          ...doc.data(),
+          id: doc.id,
+        })) as Project[];
+        setProjects(projectList);
+        setIsLoading(false);
+      },
+      (error: any) => {
+        console.error('Error fetching projects:', error);
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [role, techName]);
 
   useEffect(() => {
     const backHandle = BackHandler.addEventListener(
@@ -57,7 +86,7 @@ const Projects = () => {
     return () => backHandle.remove();
   }, []);
 
-  const addProj = (values: Project) => {
+  const addProj = async (values: Project) => {
     const data: Project = {
       id: values.id,
       qouteNumber: values.qouteNumber,
@@ -67,7 +96,11 @@ const Projects = () => {
       date: values.date,
       measures: [],
     };
-    addProject(data);
+    try {
+      await addProject(data);
+    } catch (error: any) {
+      Alert.alert('Error', 'Failed to create project: ' + error.message);
+    }
   };
 
   useEffect(() => {
@@ -77,7 +110,10 @@ const Projects = () => {
         .where('role', '==', 'technician')
         .onSnapshot(
           snapshot => {
-            const techList = snapshot.docs.map(doc => doc.data());
+            const techList = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
             setTechnicians(techList);
           },
           error => {
@@ -119,7 +155,10 @@ const Projects = () => {
         <Logout
           width={30}
           height={30}
-          onPress={() => navigation.navigate('SignIn')}
+          onPress={async () => {
+            await firebaseAuth.signOut();
+            navigation.navigate('SignIn');
+          }}
         />
       </View>
 
@@ -134,10 +173,10 @@ const Projects = () => {
             date: new Date().toLocaleDateString('en-GB'),
           }}
           validationSchema={ProjectSchema}
-          onSubmit={(values: Project) => {
+          onSubmit={async (values: Project) => {
             console.log('Form Values:', values);
             setShowInputs(false);
-            addProj(values);
+            await addProj(values);
           }}
         >
           {({
@@ -212,7 +251,10 @@ const Projects = () => {
                 <View style={{ ...styles.rowContainer, gap: 15 }}>
                   <View style={{ flex: 1 }}>
                     <TheDropdown
-                      data={technicians.map(t => `${t.firstName} ${t.lastName}`)}
+                      data={technicians.map(t => ({
+                        label: `${t.firstName} ${t.lastName}`,
+                        value: t.id,
+                      }))}
                       placeholder={TECHS.placeholder}
                       title={TECHS.title}
                       disabled={role == 'technician' ? true : false}
@@ -266,7 +308,7 @@ const Projects = () => {
             </View>
           )}
         </Formik>
-      ) : (
+      ) : (role === 'admin' || user?.permissions?.create) ? (
         <View style={styles.newContainer}>
           <TheButton
             onPress={() => setShowInputs(true)}
@@ -275,7 +317,7 @@ const Projects = () => {
             btnTitle="Create New Project"
           />
         </View>
-      )}
+      ) : null}
       {role === 'admin' && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
           <TheButton
@@ -290,9 +332,14 @@ const Projects = () => {
           />
         </View>
       )}
-      {projects.length > 0 ? (
+      {isLoading ? (
+        <View style={{ padding: 20, alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={primaryColor} />
+        </View>
+      ) : projects.length > 0 ? (
         <ProjectsList
           projects={projects}
+          canDelete={role === 'admin' || user?.permissions?.delete}
           onViewPress={data => {
             navigation.navigate('ProjectDetails', { ...data, role: role });
           }}
@@ -314,6 +361,7 @@ const Projects = () => {
             style={{ marginVertical: 5, width: '60%' }}
             icon={<RoundPlus width={14} height={14} color={WhiteBackground} />}
             btnTitle="Create First Project"
+            disabled={role !== 'admin' && !user?.permissions?.create}
           />
         </View>
       )}

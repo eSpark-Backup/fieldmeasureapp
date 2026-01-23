@@ -77,6 +77,7 @@ const Measurement = () => {
   const projectInfo: Project | undefined = route.params as Project | undefined;
   const { tempMeasure, setTempMeasure, clearTempMeasure, addMeasureToProject } =
     useProjectStore();
+  const { uploadImageToStorage } = require('../../utils/firebase');
   const bottomInset = useSafeAreaInsets().bottom;
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [location, setLocation] = useState('');
@@ -324,7 +325,7 @@ const Measurement = () => {
     });
   }
 
-  const handleSaveMeasurements = (onSuccess?: () => void) => {
+  const handleSaveMeasurements = async (onSuccess?: () => void) => {
     const { tools, location, tempMeasure, selectedPhoto, existingMeasure } =
       stateRef.current;
 
@@ -346,12 +347,6 @@ const Measurement = () => {
       return false;
     }
 
-    // if (tempMeasure == null) {
-    //   showToast('Add measure details data to save.');
-    //   skipPromptRef.current = false;
-    //   return false;
-    // }
-
     const sanitized = tools.map(({ locked, hidden, ...rest }) => rest);
 
     if (hasEmptyOrZero(sanitized)) {
@@ -367,8 +362,8 @@ const Measurement = () => {
         {
           text: 'Save Anyway',
           style: 'destructive',
-          onPress: () => {
-            saveMeasure(sanitized);
+          onPress: async () => {
+            await saveMeasure(sanitized);
             onSuccess?.();
           },
         },
@@ -376,26 +371,39 @@ const Measurement = () => {
       return false; // initial return doesn’t matter anymore
     }
 
-    saveMeasure(sanitized);
+    await saveMeasure(sanitized);
     onSuccess?.();
     return true;
   };
 
   // ✅ Extracted save logic (so it can be reused for both normal + override save)
-  function saveMeasure(toolsData: any[]) {
+  async function saveMeasure(toolsData: any[]) {
     const { location, tempMeasure, selectedPhoto, existingMeasure } =
       stateRef.current;
+
+    let photoUrl = selectedPhoto ?? '';
+    
+    // Upload photo if it exists and is a local file (not already a URL)
+    if (photoUrl && !photoUrl.startsWith('http')) {
+       try {
+         const fileName = `measurements/${projectId}/${uuid.v4()}.jpg`;
+         photoUrl = await uploadImageToStorage(photoUrl, fileName);
+       } catch (e) {
+         console.error('Failed to upload photo, saving without it', e);
+         // Optionally alert user, but here we proceed to save the measure
+       }
+    }
 
     const newMeasure: Measure = {
       id: existingMeasure?.id || uuid.v4().toString(),
       location,
       details: tempMeasure,
-      photo: selectedPhoto ?? '',
+      photo: photoUrl,
       toolsData,
       timestamp: Date.now(),
     };
 
-    addMeasureToProject(projectId, newMeasure);
+    await addMeasureToProject(projectId, newMeasure);
     clearTempMeasure();
 
     console.log('✅ Measure saved for project:', projectId);
