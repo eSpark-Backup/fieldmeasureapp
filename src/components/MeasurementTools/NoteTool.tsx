@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, Dimensions, StyleSheet, ColorValue } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
@@ -10,6 +10,7 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
+import { CanvasVals } from '../../types';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -20,13 +21,21 @@ const NoteTool = ({
   yCoords,
   data,
   locked,
+  canvasSize,
+  baseColor,
+  onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
-  data: { value: string };
+  data: { value: string; focused: boolean };
   locked?: boolean;
+  canvasSize: CanvasVals;
+  baseColor: ColorValue;
+  onLabelPress: (data: { value: string; focused: boolean }) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -59,13 +68,13 @@ const NoteTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX / scaleValue,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 100,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY / scaleValue,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
       })
       .onEnd(() => {
@@ -79,9 +88,20 @@ const NoteTool = ({
   const animatedStyles = points.map(point =>
     useAnimatedStyle(() => ({
       width: 100 * (2 / scaleValue / 2),
-      height: 20 * (2 / scaleValue / 2),
+      // height: 20 * (2 / scaleValue / 2),
       transform: [{ translateX: point.x.value }, { translateY: point.y.value }],
     })),
+  );
+
+  const onLabel = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
+    const newData = { ...data };
+    newData.focused = true;
+    runOnJS(onLabelPress)(newData);
+  });
+
+  const combinedGestures = points.map((point, index) =>
+    Gesture.Simultaneous(panGestures[index].enabled(!locked), onLabel),
   );
 
   return (
@@ -95,13 +115,19 @@ const NoteTool = ({
       </Animated.View> */}
 
       {points.map((_, i) => (
-        <GestureDetector
-          key={`pan-${i}`}
-          gesture={panGestures[i].enabled(!locked)}
-        >
-          <Animated.View style={[styles.box, animatedStyles[i]]}>
+        <GestureDetector key={`pan-${i}`} gesture={combinedGestures[i]}>
+          <Animated.View
+            style={[
+              styles.box,
+              animatedStyles[i],
+              {
+                borderColor: data.focused ? '#EAE72E' : baseColor,
+                backgroundColor: baseColor,
+              },
+            ]}
+          >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
               text={`Note`}
             />
@@ -114,8 +140,8 @@ const NoteTool = ({
 
 const styles = StyleSheet.create({
   box: {
-    backgroundColor: '#A16207',
     borderRadius: 5,
+    borderWidth: 2,
     position: 'absolute',
     alignItems: 'center',
   },

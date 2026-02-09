@@ -12,15 +12,14 @@ import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
 import { SignInSchema } from '../../constants/validations/schema';
-import { creds } from '../../constants';
-import { useProjectStore } from '../../store/ProjectsStore';
 import { useUserStore } from '../../store/UserStore';
+import { firebaseAuth, db, seedInitialAdmin } from '../../utils/firebase';
+import { ActivityIndicator } from 'react-native';
 
 type SignInProps = NativeStackScreenProps<RootNavParamList, 'SignIn'>;
 
 const SignIn = () => {
   const navigation = useNavigation<SignInProps['navigation']>();
-  const technicians = useProjectStore(state => state.technicians);
   const { saveUser } = useUserStore();
 
   return (
@@ -30,32 +29,46 @@ const SignIn = () => {
         <Formik
           initialValues={{ email: '', password: '' }}
           validationSchema={SignInSchema}
-          onSubmit={values => {
-            if (
-              values.email.toLowerCase() === creds.email &&
-              values.password === creds.password
-            ) {
-              navigation.navigate('Projects', { role: 'admin' });
-              saveUser({ email: values.email.toLowerCase(), role: 'admin' });
-            } else {
-              const tech = technicians.find(
-                t =>
-                  t.email === values.email.toLowerCase() &&
-                  t.password === values.password,
+          onSubmit={async (values, { setSubmitting }) => {
+            try {
+              setSubmitting(true);
+              const userCredential = await firebaseAuth.signInWithEmailAndPassword(
+                values.email.toLowerCase(),
+                values.password,
               );
-              if (tech) {
-                navigation.navigate('Projects', {
-                  role: 'technician',
-                  techId: tech.id,
-                  techName: tech.firstName + ' ' + tech.lastName,
-                });
-                saveUser({
-                  email: values.email.toLowerCase(),
-                  role: 'technician',
-                });
-              } else {
-                Alert.alert('Invalid credentials');
+              
+              const firebaseUser = userCredential.user;
+              
+              // Fetch role from Firestore
+              const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
+              let role: 'admin' | 'technician' = 'technician';
+              let techName = '';
+              let permissions = undefined;
+              
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                role = userData?.role || 'technician';
+                techName = userData?.firstName + ' ' + userData?.lastName;
+                permissions = userData?.permissions;
               }
+
+              saveUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                role: role,
+                permissions: permissions,
+              });
+
+              navigation.navigate('Projects', {
+                role: role,
+                techId: firebaseUser.uid,
+                techName: techName,
+              });
+            } catch (error: any) {
+              console.error('Login error:', error);
+              Alert.alert('Login Failed', error.message || 'Invalid credentials');
+            } finally {
+              setSubmitting(false);
             }
           }}
         >
@@ -98,24 +111,44 @@ const SignIn = () => {
               />
 
               <TheButton
-                btnTitle="Login"
-                onPress={handleSubmit}
-                // onPress={() => navigation.navigate('Projects')}
+                btnTitle={touched.email || touched.password ? "Login" : "Login"}
+                onPress={() => handleSubmit()}
+                disabled={touched.email && Object.keys(errors).length > 0}
                 style={styles.loginButton}
+                icon={values.email && values.password && !errors.email && !errors.password ? undefined : undefined}
+                // We can use isSubmitting from formik bag if we passed it in the render prop
               />
             </>
           )}
         </Formik>
       </View>
-      {/* <View style={styles.footer}>
-        <TheText text="New to Skyline? " style={styles.footerText} />
+      <View style={styles.footer}>
         <TheText
-          text="Create Account"
+          text="Admin Setup (One-time)"
           color={primaryColor}
-          onPress={() => navigation.navigate('SignUp')}
+          onPress={async () => {
+            Alert.alert(
+              'Seed Initial Admin',
+              'This will create a default admin account: admin@fieldmeasure.com / Admin@123. Proceed?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Seed',
+                  onPress: async () => {
+                    try {
+                      await seedInitialAdmin('admin@fieldmeasure.com', 'Admin@123');
+                      Alert.alert('Success', 'Admin seeded! You can now login with these credentials.');
+                    } catch (e: any) {
+                      Alert.alert('Error', e.message);
+                    }
+                  }
+                }
+              ]
+            );
+          }}
           style={styles.createAccount}
         />
-      </View> */}
+      </View>
       <GapView length={useSafeAreaInsets().bottom} />
     </ScrollView>
   );

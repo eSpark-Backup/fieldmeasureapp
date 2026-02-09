@@ -9,16 +9,18 @@ import {
 } from 'react-native';
 import DatePicker from 'react-native-modal-datetime-picker';
 import TheText from '../TheText';
-import { border } from '../../constants/colors';
+import { border, primaryColor, WhiteBackground } from '../../constants/colors';
 
 interface TheDatePickerProps {
   label?: string;
   required?: boolean;
-  value?: string | Date | null;
+  value?: string;
   onChange?: (date: Date) => void;
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
   error?: string;
+  onClear?: () => void;
+  clearBtn?: boolean;
 }
 
 const TheDatePicker: React.FC<TheDatePickerProps> = ({
@@ -29,13 +31,22 @@ const TheDatePicker: React.FC<TheDatePickerProps> = ({
   containerStyle,
   inputStyle,
   error,
+  onClear,
+  clearBtn,
 }) => {
   const [showPicker, setShowPicker] = useState(false);
 
-  const formatDate = (date: Date | string | null) => {
-    if (!date) return '';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toDateString();
+  // const formatDate = (date: Date | string | null) => {
+  //   if (!date) return '';
+  //   const d = typeof date === 'string' ? new Date(date) : date;
+  //   return d.toDateString();
+  // };
+
+  const formatDate = (date: string | undefined) => {
+    if (!date) return new Date();
+    const [day, month, year] = date.split('/').map(Number);
+    const jsDate = new Date(year, month - 1, day);
+    return jsDate;
   };
 
   return (
@@ -47,19 +58,40 @@ const TheDatePicker: React.FC<TheDatePickerProps> = ({
         </View>
       )}
 
-      <TouchableOpacity activeOpacity={0.8} onPress={() => setShowPicker(true)}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => setShowPicker(true)}
+        style={{ justifyContent: 'center' }}
+      >
         <TextInput
-          value={formatDate(value ?? null)}
+          value={value}
           style={[styles.inputStyle, inputStyle]}
           editable={false}
           placeholder="Select date"
           placeholderTextColor="#888"
         />
+
+        {clearBtn ? (
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              right: 10,
+              backgroundColor: primaryColor,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 5,
+            }}
+            onPress={onClear}
+          >
+            <TheText text="Clear date" color={WhiteBackground} />
+          </TouchableOpacity>
+        ) : null}
       </TouchableOpacity>
 
       <DatePicker
         isVisible={showPicker}
         mode="date"
+        date={formatDate(value)}
         onConfirm={date => {
           setShowPicker(false);
           onChange?.(date);

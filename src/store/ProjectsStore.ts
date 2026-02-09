@@ -1,14 +1,13 @@
 import { create } from 'zustand';
 import { Measure, Project } from '../types';
-import { persist } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { db } from '../utils/firebase';
 
 export interface Technician {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  password: string; // plain text for now, but should be hashed in production
+  password: string; 
   permissions: {
     delete: boolean;
     modify: boolean;
@@ -19,112 +18,101 @@ export interface Technician {
 interface ProjectStoreTypes {
   projects: Project[];
   tempMeasure: any | null;
-  technicians: Technician[];
+  isLoading: boolean;
 
-  addProject: (project: Project) => void;
-  editProject: (project: Project) => void;
-  removeProject: (id: number) => void;
+  // Store actions
+  setProjects: (projects: Project[]) => void;
+  addProject: (project: Project) => Promise<void>;
+  editProject: (project: Project) => Promise<void>;
+  removeProject: (id: string) => Promise<void>;
   setTempMeasure: (data: any) => void;
   clearTempMeasure: () => void;
-  addMeasureToProject: (projectId: number, measure: Measure) => void;
-  removeMeasureFromProject: (projectId: number, measureId: string) => void;
-
-  addTechnician: (tech: Technician) => void;
-  editTechnician: (tech: Technician) => void;
-  removeTechnician: (id: string) => void;
+  addMeasureToProject: (projectId: string, measure: Measure) => Promise<void>;
+  removeMeasureFromProject: (projectId: string, measureId: string) => Promise<void>;
+  setIsLoading: (loading: boolean) => void;
 }
 
-export const useProjectStore = create<ProjectStoreTypes>()(
-  persist(
-    (set, get) => ({
-      projects: [],
-      tempMeasure: null,
-      technicians: [],
+export const useProjectStore = create<ProjectStoreTypes>()((set, get) => ({
+  projects: [],
+  tempMeasure: null,
+  isLoading: false,
 
-      addProject: (project: Project) =>
-        set(state => ({ projects: [...state.projects, project] })),
+  setIsLoading: (loading: boolean) => set({ isLoading: loading }),
 
-      removeProject: (id: number) =>
-        set(state => ({
-          projects: state.projects.filter(p => p.id !== id),
-        })),
+  setProjects: (projects: Project[]) => set({ projects }),
 
-      editProject: (updatedProj: Project) =>
-        set(state => ({
-          projects: state.projects.map(t =>
-            t.id === updatedProj.id ? { ...t, ...updatedProj } : t,
-          ),
-        })),
+  addProject: async (project: Project) => {
+    try {
+      await db.collection('projects').doc(project.id).set({
+        ...project,
+        measures: project.measures || [],
+        createdAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error adding project to Firestore:', error);
+      throw error;
+    }
+  },
 
-      setTempMeasure: data => set(() => ({ tempMeasure: data })),
-      clearTempMeasure: () => set(() => ({ tempMeasure: null })),
+  removeProject: async (id: string) => {
+    try {
+      await db.collection('projects').doc(id).delete();
+    } catch (error) {
+      console.error('Error removing project from Firestore:', error);
+      throw error;
+    }
+  },
 
-      addMeasureToProject: (projectId, newMeasure) => {
-        set(state => {
-          const updatedProjects = state.projects.map(proj => {
-            if (proj.id !== projectId) return proj;
-            const existingMeasures = proj.measures || [];
-            const existingIdx = existingMeasures.findIndex(
-              m => m.id === newMeasure.id,
-            );
+  editProject: async (updatedProj: Project) => {
+    try {
+      await db.collection('projects').doc(updatedProj.id).update(updatedProj);
+    } catch (error) {
+      console.error('Error updating project in Firestore:', error);
+      throw error;
+    }
+  },
 
-            const newMeasures = [...existingMeasures];
-            if (existingIdx >= 0) {
-              newMeasures[existingIdx] = newMeasure;
-            } else {
-              newMeasures.push(newMeasure);
-            }
+  setTempMeasure: data => set(() => ({ tempMeasure: data })),
+  clearTempMeasure: () => set(() => ({ tempMeasure: null })),
 
-            return { ...proj, measures: newMeasures };
-          });
+  addMeasureToProject: async (projectId, newMeasure) => {
+    try {
+      const projectRef = db.collection('projects').doc(projectId);
+      const doc = await projectRef.get();
+      if (doc.exists()) {
+        const projectData = doc.data() as Project;
+        const existingMeasures = projectData.measures || [];
+        const existingIdx = existingMeasures.findIndex(m => m.id === newMeasure.id);
 
-          return { projects: updatedProjects };
-        });
-      },
+        let newMeasures = [...existingMeasures];
+        if (existingIdx >= 0) {
+          newMeasures[existingIdx] = newMeasure;
+        } else {
+          newMeasures.push(newMeasure);
+        }
 
-      removeMeasureFromProject: (projectId: number, measureId: string) => {
-        set(state => {
-          const updatedProjects = state.projects.map(proj => {
-            if (proj.id !== projectId) return proj;
-            const filteredMeasures = (proj.measures || []).filter(
-              measure => measure.id !== measureId,
-            );
-            return { ...proj, measures: filteredMeasures };
-          });
+        await projectRef.update({ measures: newMeasures });
+      }
+    } catch (error) {
+      console.error('Error adding measure to Firestore:', error);
+      throw error;
+    }
+  },
 
-          return { projects: updatedProjects };
-        });
-      },
-
-      addTechnician: tech =>
-        set(state => ({
-          technicians: [...state.technicians, tech],
-        })),
-      removeTechnician: id =>
-        set(state => ({
-          technicians: state.technicians.filter(t => t.id !== id),
-        })),
-      editTechnician: (updatedTech: Technician) =>
-        set(state => ({
-          technicians: state.technicians.map(t =>
-            t.id === updatedTech.id ? { ...t, ...updatedTech } : t,
-          ),
-        })),
-    }),
-    {
-      name: 'project-storage',
-      storage: {
-        getItem: async name => {
-          const value = await AsyncStorage.getItem(name);
-          return value ? JSON.parse(value) : null;
-        },
-        setItem: async (name, value) => {
-          await AsyncStorage.setItem(name, JSON.stringify(value));
-        },
-        removeItem: async name => {
-          await AsyncStorage.removeItem(name);
-        },
-      },
-    },
-  ),
-);
+  removeMeasureFromProject: async (projectId: string, measureId: string) => {
+    try {
+      const projectRef = db.collection('projects').doc(projectId);
+      const doc = await projectRef.get();
+      if (doc.exists()) {
+        const projectData = doc.data() as Project;
+        const filteredMeasures = (projectData.measures || []).filter(
+          m => m.id !== measureId
+        );
+        await projectRef.update({ measures: filteredMeasures });
+      }
+    } catch (error) {
+      console.error('Error removing measure from Firestore:', error);
+      throw error;
+    }
+  },
+}));

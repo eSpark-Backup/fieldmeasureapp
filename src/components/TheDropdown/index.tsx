@@ -15,8 +15,13 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import TheTextInput from '../TheTextInput';
 
+interface DropdownItem {
+  label: string;
+  value: string;
+}
+
 interface DropdownProps {
-  data: string[];
+  data: (string | DropdownItem)[];
   placeholder?: string;
   zIndex?: number;
   onSelect: ({ key, value }: { key: string; value: string }) => void;
@@ -62,32 +67,46 @@ const TheDropdown: React.FC<DropdownProps> = ({
   };
 
   const handleSelection = useCallback(
-    (item: string) => {
-      setSelectedItem(item);
+    (item: string | DropdownItem) => {
+      const value = typeof item === 'string' ? item : item.value;
+      setSelectedItem(value);
       setOpenDropdownId(null); // Close after selection
-      onSelect({ key: id, value: item });
+      onSelect({ key: id, value });
     },
     [id, onSelect, setOpenDropdownId],
   );
 
+  const getLabel = (value: string) => {
+    const item = data.find(i => {
+      if (typeof i === 'string') return i === value;
+      return i.value === value;
+    });
+    if (!item) return value;
+    return typeof item === 'string' ? item : item.label;
+  };
+
   const renderOptions = useMemo(
     () =>
-      data.map((item, index) => (
-        <TouchableOpacity
-          key={item}
-          style={[
-            styles.optionItem,
-            { borderColor: border },
-            index > 0 && styles.optionItemBorder,
-          ]}
-          onPress={() => handleSelection(item)}
-        >
-          <TheText text={item} />
-          {selectedItem === item && (
-            <FeatherIcon name="check" size={16} color="#34e145" />
-          )}
-        </TouchableOpacity>
-      )),
+      data.map((item, index) => {
+        const label = typeof item === 'string' ? item : item.label;
+        const value = typeof item === 'string' ? item : item.value;
+        return (
+          <TouchableOpacity
+            key={value}
+            style={[
+              styles.optionItem,
+              { borderColor: border },
+              index > 0 && styles.optionItemBorder,
+            ]}
+            onPress={() => handleSelection(item)}
+          >
+            <TheText text={label} />
+            {selectedItem === value && (
+              <FeatherIcon name="check" size={16} color="#34e145" />
+            )}
+          </TouchableOpacity>
+        );
+      }),
     [data, handleSelection, selectedItem],
   );
 
@@ -105,7 +124,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
           style={{ justifyContent: 'center' }}
         >
           <TheTextInput
-            value={selectedItem || placeholder}
+            value={getLabel(selectedItem) || placeholder}
             style={[styles.inputStyle, style]}
             editable={false}
           />

@@ -6,8 +6,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Technician, useProjectStore } from '../../store/ProjectsStore';
+import { db } from '../../utils/firebase';
 import { background, border, lightBackground } from '../../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -22,7 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootNavParamList } from '../../types/navigationParams';
 import { Formik } from 'formik';
-import { SignUpSchema } from '../../constants/validations/schema';
+import { SignUpSchema, EditTechnicianSchema } from '../../constants/validations/schema';
 
 type TechniciansProps = NativeStackScreenProps<
   RootNavParamList,
@@ -31,33 +32,73 @@ type TechniciansProps = NativeStackScreenProps<
 
 const TechniciansList = () => {
   // const technicians = useProjectStore().technicians;
-  const { technicians, editTechnician, removeTechnician } = useProjectStore();
+  // const { technicians, editTechnician, removeTechnician } = useProjectStore();
   const navigation = useNavigation<TechniciansProps['navigation']>();
-  const [selectedTech, setSelectedTech] = useState<Technician>();
+  const [technicians, setTechnicians] = useState<any[]>([]);
+  const [selectedTech, setSelectedTech] = useState<any>();
   const [showEdit, setShowEdit] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleEditTechnician = (values: any) => {
-    if (!selectedTech?.id) return;
+  useEffect(() => {
+    const unsubscribe = db
+      .collection('users')
+      .where('role', '==', 'technician')
+      .onSnapshot(
+        snapshot => {
+          const techList = snapshot.docs.map(doc => doc.data());
+          setTechnicians(techList);
+          setIsLoading(false);
+        },
+        error => {
+          console.error('Error fetching technicians:', error);
+          setIsLoading(false);
+        },
+      );
+    return () => unsubscribe();
+  }, []);
 
-    const newTech = {
-      id: selectedTech?.id,
-      firstName: values.firstName,
-      lastName: values.lastName,
-      email: values.email.toLowerCase(),
-      password: values.password, // ⚠ In real apps, hash this
-      permissions: values.permissions,
-    };
+  const handleEditTechnician = async (values: any, { setSubmitting }: any) => {
+    if (!selectedTech?.uid) return;
 
-    editTechnician(newTech);
+    try {
+      setSubmitting(true);
+      await db.collection('users').doc(selectedTech.uid).update({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        permissions: values.permissions,
+      });
+
+      Alert.alert('Success', 'Technician updated successfully!');
+      setShowEdit(false);
+    } catch (error: any) {
+      console.error('Error updating technician:', error);
+      Alert.alert('Error', error.message || 'Failed to update technician');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteTechnician = (uid: string) => {
     Alert.alert(
-      'Success',
-      'Technician edited successfully!',
-      [{ text: 'OK' }],
-      {
-        cancelable: false,
-      },
+      'Delete Technician',
+      'Are you sure you want to delete this technician? This will only remove their data from Firestore.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await db.collection('users').doc(uid).delete();
+              Alert.alert('Success', 'Technician deleted from database.');
+            } catch (error: any) {
+              console.error('Error deleting technician:', error);
+              Alert.alert('Error', 'Failed to delete technician.');
+            }
+          },
+        },
+      ],
     );
-    setShowEdit(false);
   };
 
   return (
@@ -104,8 +145,8 @@ const TechniciansList = () => {
               setShowEdit(true);
               setSelectedTech(item);
             }}
-            onDelete={() => removeTechnician(item.id)}
-            key={item.id}
+            onDelete={() => handleDeleteTechnician(item.uid)}
+            key={item.uid}
           />
         ))
       ) : !showEdit ? (
@@ -130,15 +171,13 @@ const TechniciansList = () => {
             firstName: selectedTech?.firstName,
             lastName: selectedTech?.lastName,
             email: selectedTech?.email,
-            password: selectedTech?.password,
-            confirmPassword: selectedTech?.password,
             permissions: selectedTech?.permissions || {
               delete: false,
               modify: false,
               create: false,
             },
           }}
-          validationSchema={SignUpSchema}
+          validationSchema={EditTechnicianSchema}
           onSubmit={handleEditTechnician}
         >
           {({
@@ -158,7 +197,9 @@ const TechniciansList = () => {
                 onChange={handleChange('firstName')}
                 onBlur={handleBlur('firstName')}
                 error={
-                  touched.firstName && errors.firstName ? errors.firstName : ''
+                  touched.firstName && errors.firstName
+                    ? (errors.firstName as string)
+                    : ''
                 }
               />
               <TheTextInput
@@ -168,7 +209,9 @@ const TechniciansList = () => {
                 onChange={handleChange('lastName')}
                 onBlur={handleBlur('lastName')}
                 error={
-                  touched.lastName && errors.lastName ? errors.lastName : ''
+                  touched.lastName && errors.lastName
+                    ? (errors.lastName as string)
+                    : ''
                 }
               />
               <TheTextInput
@@ -177,31 +220,10 @@ const TechniciansList = () => {
                 value={values.email}
                 onChange={handleChange('email')}
                 onBlur={handleBlur('email')}
-                error={touched.email && errors.email ? errors.email : ''}
-              />
-              <TheTextInput
-                label="Password"
-                placeholder="********"
-                secureTextEntry
-                value={values.password}
-                onChange={handleChange('password')}
-                onBlur={handleBlur('password')}
                 error={
-                  touched.password && errors.password ? errors.password : ''
+                  touched.email && errors.email ? (errors.email as string) : ''
                 }
-              />
-              <TheTextInput
-                label="Confirm Password"
-                placeholder="********"
-                secureTextEntry
-                value={values.confirmPassword}
-                onChange={handleChange('confirmPassword')}
-                onBlur={handleBlur('confirmPassword')}
-                error={
-                  touched.confirmPassword && errors.confirmPassword
-                    ? errors.confirmPassword
-                    : ''
-                }
+                editable={false} // Email cannot be changed in Firebase Auth easily
               />
               <View style={styles.permissionsContainer}>
                 <TheText

@@ -25,3 +25,4 @@ export { default as Plus } from './vectors/plus.svg';
 export { default as Minus } from './vectors/minus.svg';
 export { default as Logout } from './vectors/logout.svg';
 export { default as Mail } from './vectors/mail.svg';
+export { default as Warn } from './vectors/warning.svg';

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, Dimensions, StyleSheet, ColorValue } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -12,6 +12,8 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
+import { CanvasVals, MeasurementPair } from '../../types';
+import { formatInches } from './utils';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -23,19 +25,30 @@ const TapeTool = ({
   yCoords,
   data,
   locked,
+  canvasSize,
+  baseColor,
+  tapeNumber,
+  onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
-  data: { value: string; fraction: string };
+  data: MeasurementPair;
+  canvasSize: CanvasVals;
   locked?: boolean;
+  baseColor: ColorValue;
+  tapeNumber: number;
+  onLabelPress: (data: {
+    value: string;
+    fraction: string;
+    focused: boolean;
+  }) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
-
-  console.log('initialX', xCoords);
-  console.log('initialY', yCoords);
 
   const points = initialX.map((x, i) => ({
     x: useSharedValue(x),
@@ -65,13 +78,13 @@ const TapeTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX / scaleValue,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY / scaleValue,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
       })
       .onEnd(() => {
@@ -105,7 +118,7 @@ const TapeTool = ({
 
     return {
       width: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-      height: 20 * (2 / scaleValue / 2),
+      // height: 20 * (2 / scaleValue / 2),
       transform: [
         { translateX: midX - 30 * (2 / scaleValue / 2) },
         { translateY: midY - 10 * (2 / scaleValue / 2) },
@@ -135,15 +148,33 @@ const TapeTool = ({
     }
   };
 
+  const onLabel = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
+    const newData = { ...data };
+    newData.focused = true;
+    runOnJS(onLabelPress)(newData);
+  });
+
   return (
     <View style={{ position: 'absolute' }}>
-      <Animated.View style={[styles.box2, animatedInfo]}>
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text={`M1: ${inches()}`}
-        />
-      </Animated.View>
+      <GestureDetector gesture={onLabel}>
+        <Animated.View
+          style={[
+            styles.box2,
+            animatedInfo,
+            {
+              borderColor: data.focused ? '#EAE72E' : baseColor,
+              backgroundColor: baseColor,
+            },
+          ]}
+        >
+          <TheText
+            size={labelSize * (2 / scaleValue / 2)}
+            color={WhiteBackground}
+            text={`M${tapeNumber}: ${formatInches(data)}`}
+          />
+        </Animated.View>
+      </GestureDetector>
 
       {!locked
         ? points.map((_, i) => (
@@ -158,8 +189,8 @@ const TapeTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#1d4ed8"
-          strokeWidth="5"
+          stroke={baseColor}
+          strokeWidth="2.5"
         />
       ))}
     </View>
@@ -177,8 +208,9 @@ const styles = StyleSheet.create({
   box2: {
     // height: 20,
     // width: 20,
+    borderWidth: 2,
+    borderRadius: 5,
     position: 'absolute',
-    backgroundColor: '#1d4ed8',
     alignItems: 'center',
   },
 });

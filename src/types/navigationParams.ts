@@ -13,7 +13,7 @@ export type RootNavParamList = {
 
   ProjectDetails: {
     role: Role;
-    id: number;
+    id: string;
     qouteNumber: string;
     name: string;
     address: string;

@@ -27,6 +27,12 @@ const SignUpSchema = Yup.object().shape({
     .required('Please confirm your password'),
 });
 
+const EditTechnicianSchema = Yup.object().shape({
+  firstName: Yup.string().required('First name is required'),
+  lastName: Yup.string().required('Last name is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
+});
+
 const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
 });
@@ -40,4 +46,5 @@ export {
   ForgotPasswordSchema,
   validateDecimal,
   ProjectSchema,
+  EditTechnicianSchema,
 };

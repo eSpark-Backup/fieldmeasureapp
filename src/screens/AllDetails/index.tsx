@@ -19,9 +19,9 @@ const generateInitialValues = () =>
   Object.fromEntries(DROPDOWNS.map(drop => [drop.id, drop.selected || '']));
 
 const initialInputs = {
-  curbHeight: '10',
-  doorWidth: '10',
-  doorHeight: '10',
+  curbHeight: '',
+  doorWidth: '',
+  doorHeight: '',
 };
 
 const AllDetails = () => {
@@ -36,7 +36,7 @@ const AllDetails = () => {
     initialInputs,
   );
   const [datePromised, setDatePromised] = useState<Date | null>(
-    tempMeasure.datePromised ? new Date(tempMeasure.datePromised) : null,
+    tempMeasure?.datePromised ? new Date(tempMeasure.datePromised) : null,
   );
 
   const navigation = useNavigation();
@@ -264,8 +264,10 @@ const AllDetails = () => {
         ))}
         <TheDatePicker
           label="Date promised"
-          value={datePromised}
+          value={datePromised ? datePromised.toLocaleDateString('en-GB') : ''}
           onChange={date => setDatePromised(date)}
+          onClear={() => setDatePromised(null)}
+          clearBtn={datePromised ? true : false}
         />
 
         <GapView length={25} mode="vertical" />

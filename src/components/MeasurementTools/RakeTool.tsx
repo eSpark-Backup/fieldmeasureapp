@@ -1,6 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
-import { Line as SVGLine } from 'react-native-svg';
+import {
+  View,
+  Dimensions,
+  StyleSheet,
+  ColorValue,
+  TouchableOpacity,
+} from 'react-native';
+import Svg, { Rect, Line as SVGLine, Text } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   clamp,
@@ -12,7 +18,8 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
-import { MeasurementPair } from '../../types';
+import { CanvasVals, MeasurementPair } from '../../types';
+import { formatInches } from './utils';
 
 const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
@@ -28,6 +35,11 @@ const RakeTool = ({
   data,
   showDist,
   locked,
+  canvasSize,
+  baseColor,
+  rakeNumber,
+  onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -39,10 +51,21 @@ const RakeTool = ({
   data: {
     value: string;
     fraction: string;
+    focused: boolean;
     distance: MeasurementPair;
   };
   showDist: boolean;
   locked?: boolean;
+  canvasSize: CanvasVals;
+  baseColor: ColorValue;
+  rakeNumber: number;
+  onLabelPress: (data: {
+    value: string;
+    fraction: string;
+    focused: boolean;
+    distance: MeasurementPair;
+  }) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -96,21 +119,37 @@ const RakeTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
         if (index == 0) {
           pointsDist[index].x.value = point.x.value;
           pointsDist[index].y.value = point.y.value;
+          pointsDist[1].x.value =
+            points[1].x.value / 0.9 > canvasSize.width
+              ? points[1].x.value
+              : points[1].x.value / 0.9;
+          pointsDist[1].y.value =
+            points[1].y.value / 0.6 > canvasSize.height
+              ? points[1].y.value
+              : points[1].y.value / 0.6;
         }
         if (index == 1 && !showDist) {
-          pointsDist[index].x.value = point.x.value / 0.9;
-          pointsDist[index].y.value = point.y.value / 0.9;
+          pointsDist[0].x.value = points[0].x.value;
+          pointsDist[0].y.value = points[0].y.value;
+          pointsDist[index].x.value =
+            point.x.value / 0.9 > canvasSize.width
+              ? point.x.value
+              : point.x.value / 0.9;
+          pointsDist[index].y.value =
+            point.y.value / 0.6 > canvasSize.height
+              ? point.y.value
+              : point.y.value / 0.6;
         }
       })
       .onEnd(() => {
@@ -135,13 +174,13 @@ const RakeTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
         // 🔥 Sync with points[index]
         if (index == 0) {
@@ -178,25 +217,23 @@ const RakeTool = ({
   );
 
   const animatedInfo = useAnimatedStyle(() => {
-    // Get mid-point between points
+    const dx = points[1].x.value - points[0].x.value;
+    const dy = points[1].y.value - points[0].y.value;
+
+    const length = Math.sqrt(dx * dx + dy * dy); // line length
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI); // rotation in degrees
+
     const midX = (points[0].x.value + points[1].x.value) / 2;
     const midY = (points[0].y.value + points[1].y.value) / 2;
 
-    // Calculate rotation in radians → degrees
-    const angleDeg =
-      Math.atan2(
-        points[1].y.value - points[0].y.value,
-        points[1].x.value - points[0].x.value,
-      ) *
-      (180 / Math.PI);
-
     return {
-      width: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-      height: 20 * (2 / scaleValue / 2),
+      width: length, // same as line length
+      // height: 20 / scaleValue, // fixed height but scales with zoom
+      position: 'absolute',
       transform: [
-        { translateX: midX - 30 * (2 / scaleValue / 2) },
-        { translateY: midY - 10 * (2 / scaleValue / 2) },
-        { rotate: `${angleDeg}deg` }, // correct way for rotation in reanimated
+        { translateX: midX + 10 - length / 2 }, // center align horizontally
+        { translateY: midY - 10 / scaleValue }, // center align vertically
+        { rotate: `${angle}deg` }, // rotation
       ],
     };
   });
@@ -215,8 +252,8 @@ const RakeTool = ({
       (180 / Math.PI);
 
     return {
-      minWidth: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
-      height: 20 * (2 / scaleValue / 2),
+      // minWidth: 100 * (2 / scaleValue / 2), // ensure scaleValue is a shared value
+      // height: 20 * (2 / scaleValue / 2),
       transform: [
         { translateX: midX - 30 * (2 / scaleValue / 2) },
         { translateY: midY - 10 * (2 / scaleValue / 2) },
@@ -243,37 +280,50 @@ const RakeTool = ({
     }));
   });
 
-  const inches = () => {
-    const inches = data.value ? data.value : '0';
-    const fraction = data.fraction ? data.fraction : '0';
-    if (inches != '0' && fraction != '0') {
-      return inches + '-' + fraction + `"`;
-    } else if (inches != '0' && fraction == '0') {
-      return inches + `"`;
-    } else {
-      return `0"`;
-    }
-  };
-  const inchesDist = () => {
-    const inches = data.distance.value ? data.distance.value : '0';
-    const fraction = data.distance.fraction ? data.distance.fraction : '0';
-    if (inches != '0' && fraction != '0') {
-      return inches + '-' + fraction + `"`;
-    } else if (inches != '0' && fraction == '0') {
-      return inches + `"`;
-    } else {
-      return `0"`;
-    }
-  };
+  const onLabel = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
+    const newData = { ...data };
+    newData.focused = true;
+    newData.distance.focused = false;
+    runOnJS(onLabelPress)(newData);
+  });
+
+  const onDistLabel = Gesture.Tap().onStart(() => {
+    console.log('SVG Rect pressed via gesture ✅');
+    const newData = { ...data };
+    newData.focused = false;
+    newData.distance.focused = true;
+    runOnJS(onLabelPress)(newData);
+  });
 
   return (
     <View style={{ position: 'absolute' }}>
-      <Animated.View style={[styles.box2, animatedInfo]}>
-        <TheText
-          size={14 * (2 / scaleValue / 2)}
-          color={WhiteBackground}
-          text={`R1: ${inches()}`}
-        />
+      <Animated.View style={[styles.box2, animatedInfo]} pointerEvents="auto">
+        <View
+          style={{
+            width: '100%',
+            alignItems: 'flex-end',
+          }}
+        >
+          <GestureDetector gesture={onLabel}>
+            <View
+              style={{
+                backgroundColor: baseColor,
+                paddingHorizontal: 10,
+                alignItems: 'center',
+                borderRadius: 5,
+                borderWidth: 2,
+                borderColor: data.focused ? '#EAE72E' : baseColor,
+              }}
+            >
+              <TheText
+                size={labelSize * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`R${rakeNumber}: +${formatInches(data)}`}
+              />
+            </View>
+          </GestureDetector>
+        </View>
       </Animated.View>
       {!locked
         ? points.map((_, i) => (
@@ -288,20 +338,31 @@ const RakeTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#7e22ce"
-          strokeWidth="5"
+          stroke={baseColor}
+          strokeWidth="2.5"
           strokeDasharray={[10, 5]}
         />
       ))}
       {showDist && (
         <>
-          <Animated.View style={[styles.box2, animatedInfoDist]}>
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`RD1: ${inchesDist()}`}
-            />
-          </Animated.View>
+          <GestureDetector gesture={onDistLabel}>
+            <Animated.View
+              style={[
+                styles.box3,
+                animatedInfoDist,
+                {
+                  borderColor: data.distance?.focused ? '#EAE72E' : baseColor,
+                  backgroundColor: baseColor,
+                },
+              ]}
+            >
+              <TheText
+                size={labelSize * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`R${rakeNumber}D: ${formatInches(data.distance)}`}
+              />
+            </Animated.View>
+          </GestureDetector>
           {!locked
             ? pointsDist.map((_, i) => (
                 <GestureDetector key={`pan-${i}`} gesture={panGesturesDist[i]}>
@@ -323,9 +384,8 @@ const RakeTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke={showDist ? '#7e22ce' : 'transparent'}
-          strokeWidth="5"
-          strokeDasharray={[10, 5]}
+          stroke={showDist ? baseColor : 'transparent'}
+          strokeWidth="2.5"
         />
       ))}
     </View>
@@ -341,10 +401,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   box2: {
-    // height: 20,
-    // width: 20,
     position: 'absolute',
-    backgroundColor: '#7e22ce',
+    alignItems: 'center',
+  },
+  box3: {
+    borderRadius: 5,
+    borderWidth: 2,
+    paddingHorizontal: 10,
+    position: 'absolute',
     alignItems: 'center',
   },
 });

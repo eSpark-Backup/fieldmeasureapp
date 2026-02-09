@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bin, Camera, Location, File } from '../../assets';
 import TheText from '../TheText';
 import TheButton from '../TheButton';
@@ -16,6 +16,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Role, RootNavParamList } from '../../types/navigationParams';
 import { Measure, Project } from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
+import { useUserStore } from '../../store/UserStore';
 import { Formik } from 'formik';
 import { ProjectSchema } from '../../constants/validations/schema';
 import {
@@ -29,7 +30,7 @@ import { TheDatePicker } from '..';
 import { TECHS } from '../../constants';
 
 interface MeasuresListProps {
-  id: number;
+  id: string;
   qouteNumber: string;
   name: string;
   address: string;
@@ -49,15 +50,38 @@ const MeasuresList = ({
 }) => {
   const navigation =
     useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
-  const { technicians, editProject, removeTechnician } = useProjectStore();
+  const { editProject } = useProjectStore();
+  const { user } = useUserStore();
+  const [technicians, setTechnicians] = useState<any[]>([]);
+  const { db } = require('../../utils/firebase');
 
   const [showEdit, setShowEdit] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [selectedProj, setSelectedProj] = useState<Project>();
 
-  const technicianNames = technicians.map(
-    tech => tech.firstName + ' ' + tech.lastName,
-  );
+  useEffect(() => {
+    const unsubscribe = db
+      .collection('users')
+      .where('role', '==', 'technician')
+      .onSnapshot(
+        (snapshot: any) => {
+          const techList = snapshot.docs.map((doc: any) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setTechnicians(techList);
+        },
+        (error: any) => {
+          console.error('Error fetching technicians:', error);
+        },
+      );
+    return () => unsubscribe();
+  }, []);
+
+  const technicianData = technicians.map(tech => ({
+    label: tech.firstName + ' ' + tech.lastName,
+    value: tech.id,
+  }));
 
   const handleEditProject = (values: Project) => {
     if (!project?.id) return;
@@ -101,7 +125,7 @@ const MeasuresList = ({
         <ScrollView>
           <Formik
             initialValues={{
-              id: project?.id ?? 0,
+              id: project?.id ?? '',
               qouteNumber: project?.qouteNumber ?? '',
               name: project?.name ?? '',
               address: project?.address ?? '',
@@ -182,7 +206,7 @@ const MeasuresList = ({
                   <View style={{ ...styles.rowContainer, gap: 15 }}>
                     <View style={{ flex: 1 }}>
                       <TheDropdown
-                        data={technicianNames}
+                        data={technicianData}
                         placeholder={TECHS.placeholder}
                         title={TECHS.title}
                         disabled={role == 'technician' ? true : false}
@@ -264,15 +288,17 @@ const MeasuresList = ({
                 style={{ fontWeight: 'bold' }}
                 text="Saved Measures"
               />
-              <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
-              >
-                <TheButton
-                  btnTitle="Edit Project"
-                  onPress={() => setShowEdit(true)}
-                />
-                <TheButton btnTitle="Add Measure" onPress={handleAddMeasure} />
-              </View>
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
+                >
+                  {(role === 'admin' || user?.permissions?.modify) && (
+                    <TheButton
+                      btnTitle="Edit Project"
+                      onPress={() => setShowEdit(true)}
+                    />
+                  )}
+                  <TheButton btnTitle="Add Measure" onPress={handleAddMeasure} />
+                </View>
             </View>
           }
           ListEmptyComponent={
@@ -300,7 +326,7 @@ const MeasuresList = ({
 type MeasureCardProps = {
   measure: Measure;
   onView: () => void;
-  projectId: number;
+  projectId: string;
 };
 
 const MeasureCard = ({ measure, onView, projectId }: MeasureCardProps) => {

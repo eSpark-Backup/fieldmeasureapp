@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  FlatList,
   Alert,
   ScrollView,
 } from 'react-native';
@@ -36,27 +35,33 @@ import {
   RakeTool,
   TapeTool,
   TheText,
-  TheTool,
   TheButton,
-  TheTextInput,
   TheToggle,
   GapView,
   RectangleTool,
   NoteTool,
 } from '../../components';
-// import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import { generatePDF } from 'react-native-html-to-pdf';
+import FileViewer from 'react-native-file-viewer';
 
-import { Camera, RoundPlus, Upload } from '../../assets';
+import { Camera, Export, Minus, Plus, RoundPlus, Upload } from '../../assets';
 
 import { TOOLS } from '../../constants';
-import { border } from '../../constants/colors';
 import { RootNavParamList } from '../../types/navigationParams';
 import { createNewTool, pdfHTML } from './utils';
-import { Measure, Project, Tool, ToolsList } from '../../types';
+import {
+  CanvasVals,
+  Measure,
+  Project,
+  Tool,
+  ToolsList,
+  RakeItem,
+} from '../../types';
 import { useProjectStore } from '../../store/ProjectsStore';
 import { showToast } from '../../utils/showToast';
 import ToolsForm from '../../components/ToolsForm';
 import ToolMenu from '../../components/ToolMenu';
+import LocationInput from '../../components/LocationInput';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -72,15 +77,18 @@ const Measurement = () => {
   const projectInfo: Project | undefined = route.params as Project | undefined;
   const { tempMeasure, setTempMeasure, clearTempMeasure, addMeasureToProject } =
     useProjectStore();
+  const { uploadImageToStorage } = require('../../utils/firebase');
   const bottomInset = useSafeAreaInsets().bottom;
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [location, setLocation] = useState('');
   const [mainLock, setMainLock] = useState(false);
+  const [fSize, setFSize] = useState(14);
   const [tools, setTools] = useState<ToolsList>([]);
 
   const [scaleVal, setScaleVal] = useState(1);
 
   const ref = useRef<ViewShot>(null);
+  const id = 'locationInput';
 
   const scale = useSharedValue(1);
   const startScale = useSharedValue(0);
@@ -91,6 +99,10 @@ const Measurement = () => {
 
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+
+  const onLocChange = (loc: string) => {
+    setLocation(loc);
+  };
 
   useEffect(() => {
     if (selectedPhoto) {
@@ -237,18 +249,83 @@ const Measurement = () => {
     return unsubscribe;
   }, [navigation]);
 
-  function hasEmptyOrZero(tools: Tool[]): boolean {
-    const check = (obj: any): boolean => {
-      if (obj && typeof obj === 'object') {
-        return Object.values(obj).some(v => check(v));
-      }
-      return obj === '' || obj === '0';
-    };
+  // function hasEmptyOrZero(tools: Tool[]): boolean {
+  //   console.log('Tools', JSON.stringify(tools));
 
-    return tools.some(tool => check(tool.data));
+  //   const check = (obj: any): boolean => {
+  //     if (obj && typeof obj === 'object') {
+  //       return Object.values(obj).some(v => check(v));
+  //     }
+  //     return obj === '' || obj === '0';
+  //   };
+
+  //   return tools.some(tool => check(tool.data));
+  // }
+
+  function hasEmptyOrZero(tools: Tool[]): boolean {
+    const isEmptyOrZero = (val?: string) =>
+      !val || val.trim() === '' || val === '0';
+
+    return tools.some(tool => {
+      switch (tool.type) {
+        // 🧷 Tape: simple value/fraction check
+        case 'Tape': {
+          const { value, fraction } = tool.data;
+          return isEmptyOrZero(value) && isEmptyOrZero(fraction);
+        }
+
+        // 🧮 Rake: main check + optional distance check
+        case 'Rake': {
+          const { value, fraction, distance } = tool.data;
+          const mainEmpty = isEmptyOrZero(value) && isEmptyOrZero(fraction);
+
+          let distEmpty = false;
+          if (tool.showDist) {
+            distEmpty =
+              isEmptyOrZero(distance.value) && isEmptyOrZero(distance.fraction);
+          }
+
+          return mainEmpty || distEmpty;
+        }
+
+        // 🔦 Laser: check SideA and SideB pairs
+        case 'Laser': {
+          const { SideA, SideB } = tool.data;
+          const sideAEmpty =
+            isEmptyOrZero(SideA.value) && isEmptyOrZero(SideA.fraction);
+          const sideBEmpty =
+            isEmptyOrZero(SideB.value) && isEmptyOrZero(SideB.fraction);
+
+          return sideAEmpty || sideBEmpty;
+        }
+
+        // 🔺 Rectangle: check each MeasurementPair (TopA, RightB, etc.)
+        case 'Rectangle': {
+          return Object.values(tool.data).some(
+            pair => isEmptyOrZero(pair.value) && isEmptyOrZero(pair.fraction),
+          );
+        }
+
+        // 🔹 Corner: check each MeasurementPair (TopLA, BotRB, etc.)
+        case 'Corner': {
+          return Object.values(tool.data).some(
+            pair => isEmptyOrZero(pair.value) && isEmptyOrZero(pair.fraction),
+          );
+        }
+
+        // 🗒️ Note: check text value
+        case 'Note': {
+          const { value } = tool.data;
+          return isEmptyOrZero(value);
+        }
+
+        default:
+          return false;
+      }
+    });
   }
 
-  const handleSaveMeasurements = (onSuccess?: () => void) => {
+  const handleSaveMeasurements = async (onSuccess?: () => void) => {
     const { tools, location, tempMeasure, selectedPhoto, existingMeasure } =
       stateRef.current;
 
@@ -270,12 +347,6 @@ const Measurement = () => {
       return false;
     }
 
-    // if (tempMeasure == null) {
-    //   showToast('Add measure details data to save.');
-    //   skipPromptRef.current = false;
-    //   return false;
-    // }
-
     const sanitized = tools.map(({ locked, hidden, ...rest }) => rest);
 
     if (hasEmptyOrZero(sanitized)) {
@@ -291,8 +362,8 @@ const Measurement = () => {
         {
           text: 'Save Anyway',
           style: 'destructive',
-          onPress: () => {
-            saveMeasure(sanitized);
+          onPress: async () => {
+            await saveMeasure(sanitized);
             onSuccess?.();
           },
         },
@@ -300,26 +371,39 @@ const Measurement = () => {
       return false; // initial return doesn’t matter anymore
     }
 
-    saveMeasure(sanitized);
+    await saveMeasure(sanitized);
     onSuccess?.();
     return true;
   };
 
   // ✅ Extracted save logic (so it can be reused for both normal + override save)
-  function saveMeasure(toolsData: any[]) {
+  async function saveMeasure(toolsData: any[]) {
     const { location, tempMeasure, selectedPhoto, existingMeasure } =
       stateRef.current;
+
+    let photoUrl = selectedPhoto ?? '';
+    
+    // Upload photo if it exists and is a local file (not already a URL)
+    if (photoUrl && !photoUrl.startsWith('http')) {
+       try {
+         const fileName = `measurements/${projectId}/${uuid.v4()}.jpg`;
+         photoUrl = await uploadImageToStorage(photoUrl, fileName);
+       } catch (e) {
+         console.error('Failed to upload photo, saving without it', e);
+         // Optionally alert user, but here we proceed to save the measure
+       }
+    }
 
     const newMeasure: Measure = {
       id: existingMeasure?.id || uuid.v4().toString(),
       location,
       details: tempMeasure,
-      photo: selectedPhoto ?? '',
+      photo: photoUrl,
       toolsData,
       timestamp: Date.now(),
     };
 
-    addMeasureToProject(projectId, newMeasure);
+    await addMeasureToProject(projectId, newMeasure);
     clearTempMeasure();
 
     console.log('✅ Measure saved for project:', projectId);
@@ -363,8 +447,6 @@ const Measurement = () => {
     .onUpdate(event => {
       scale.value = clamp(startScale.value * event.scale, 1, 2);
     });
-
-  console.log('scale val', scale.value);
 
   const panGesture = Gesture.Pan()
     .onStart(e => {
@@ -414,6 +496,14 @@ const Measurement = () => {
     }
   };
 
+  const setFontSize = async (scale: '+' | '-') => {
+    if (scale == '+' && fSize < 14) {
+      setFSize(fSize + 2);
+    } else if (scale == '-' && fSize > 8) {
+      setFSize(fSize - 2);
+    }
+  };
+
   const captureImage = async () => {
     try {
       const result = await launchCamera({
@@ -437,11 +527,7 @@ const Measurement = () => {
       showToast('Please select photo first.');
       return;
     }
-    const newTool = createNewTool(
-      type,
-      displayedSize.width,
-      displayedSize.height,
-    );
+    const newTool = createNewTool(type);
     setTools(prev => [...prev, newTool]);
   };
 
@@ -475,6 +561,106 @@ const Measurement = () => {
     );
   };
 
+  const updateFocus = (id: string, data: any) => {
+    console.log('shared data', data);
+
+    setTools(prev => {
+      // First, find any tool that is currently focused
+      const focusedTool = prev.find(tool => {
+        const toolData = tool.data as any;
+        // Check if the tool has focused state in any measurement
+        if (tool.type === 'Rake') {
+          // Check both main measurement and distance for Rake tools
+          const rakeData = toolData as RakeItem['data'];
+          return rakeData.focused || rakeData.distance?.focused;
+        }
+        return (
+          toolData.focused || // Direct focus (like Note)
+          (typeof toolData === 'object' &&
+            Object.values(toolData).some(
+              (val: any) => val?.focused, // Nested focus (like Rectangle/Corner measurements)
+            ))
+        );
+      });
+
+      return prev.map(it => {
+        // If this is a currently focused tool that's not the target tool, unfocus it
+        if (focusedTool && it.id === focusedTool.id && it.id !== id) {
+          if (it.type === 'Rake') {
+            // Handle Rake tool's main and distance measurements safely
+            const rakeData = { ...(it.data as RakeItem['data']) };
+            // Clear main measurement focus if it exists
+            if ('focused' in rakeData) {
+              rakeData.focused = false;
+            }
+            // Clear distance measurement focus if it exists
+            if (rakeData.distance) {
+              rakeData.distance = {
+                ...rakeData.distance,
+                focused: false,
+              };
+            }
+            return { ...it, data: rakeData };
+          }
+          if (it.type === 'Laser') {
+            // Properly unfocus both sides of Laser tool
+            const laserData = { ...it.data };
+            if (laserData.SideA?.focused) {
+              laserData.SideA = { ...laserData.SideA, focused: false };
+            }
+            if (laserData.SideB?.focused) {
+              laserData.SideB = { ...laserData.SideB, focused: false };
+            }
+            return { ...it, data: laserData };
+          }
+          if (it.type === 'Rectangle') {
+            // Unfocus all sides of Rectangle
+            const rectangleData = { ...it.data };
+            (
+              Object.keys(rectangleData) as Array<keyof typeof rectangleData>
+            ).forEach(key => {
+              rectangleData[key] = {
+                ...rectangleData[key],
+                focused: false,
+              };
+            });
+            return { ...it, data: rectangleData };
+          }
+          if (it.type === 'Corner') {
+            // Unfocus all sides of Rectangle
+            const cornerData = { ...it.data };
+            (Object.keys(cornerData) as Array<keyof typeof cornerData>).forEach(
+              key => {
+                cornerData[key] = {
+                  ...cornerData[key],
+                  focused: false,
+                };
+              },
+            );
+            return { ...it, data: cornerData };
+          }
+          const unfocusedData = { ...it.data };
+          if ('focused' in unfocusedData) {
+            unfocusedData.focused = false;
+          } else {
+            // For tools with multiple measurements (Rectangle/Corner/etc)
+            Object.keys(unfocusedData).forEach(key => {
+              if ((unfocusedData as any)[key]?.focused) {
+                (unfocusedData as any)[key].focused = false;
+              }
+            });
+          }
+          return { ...it, data: unfocusedData };
+        }
+        // Update the target tool with new focus state
+        if (it.id === id) {
+          return { ...it, data };
+        }
+        return it;
+      });
+    });
+  };
+
   const lockAllTools = (locked: boolean) => {
     setTools(prev =>
       prev.map(it => ({
@@ -504,7 +690,7 @@ const Measurement = () => {
   const toPercentCoords = (
     xArr: number[],
     yArr: number[],
-    displayedSize: any,
+    displayedSize: CanvasVals,
   ) => {
     const percentX = xArr.map(
       x => ((x - displayedSize.offsetX) / displayedSize.width) * 100,
@@ -518,7 +704,7 @@ const Measurement = () => {
   const toPixelCoords = (
     xPercent: number[],
     yPercent: number[],
-    displayedSize: any,
+    displayedSize: CanvasVals,
   ) => {
     const xCoords = xPercent?.map(
       x => displayedSize.offsetX + (x / 100) * displayedSize.width,
@@ -528,6 +714,10 @@ const Measurement = () => {
     );
     return { x: xCoords, y: yCoords };
   };
+
+  let tapeCount = 0;
+  let laserCount = 0;
+  let rakeCount = 0;
 
   const renderTools = (tool: Tool) => {
     if (tool.hidden) return null;
@@ -547,61 +737,75 @@ const Measurement = () => {
 
     switch (tool.type) {
       case 'Tape': {
+        tapeCount++;
         return (
           <TapeTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
+            tapeNumber={tapeCount}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
       case 'Laser': {
+        laserCount++;
         return (
           <LaserTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
+            laserNumber={laserCount}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
       case 'Rake': {
+        rakeCount++;
         return (
           <RakeTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             getCoordsDist={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
-              updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
+              updateDistCoords(tool.id, x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
             xCoordsDist={xCoordsDist}
             yCoordsDist={yCoordsDist}
+            rakeNumber={rakeCount}
             showDist={tool.showDist}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
@@ -609,16 +813,19 @@ const Measurement = () => {
         return (
           <RectangleTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
@@ -626,16 +833,19 @@ const Measurement = () => {
         return (
           <CornerTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
@@ -643,16 +853,19 @@ const Measurement = () => {
         return (
           <NoteTool
             key={tool.id}
+            labelSize={fSize}
             scaleValue={scaleVal}
+            baseColor={tool.color}
             getCoords={(xArr, yArr) => {
               const { x, y } = toPercentCoords(xArr, yArr, displayedSize);
               updateCoords(tool.id, x, y);
-              console.log('Now at %:', x, y);
             }}
             xCoords={xCoords}
             yCoords={yCoords}
             data={tool.data}
             locked={tool.locked}
+            canvasSize={displayedSize}
+            onLabelPress={data => updateFocus(tool.id, data)}
           />
         );
       }
@@ -663,14 +876,14 @@ const Measurement = () => {
     ref.current?.capture!().then(async uri => {
       console.log('do something with ', uri);
       let options = {
-        html: pdfHTML(uri),
-        fileName: 'test',
+        html: pdfHTML(uri, projectInfo, location, tools),
+        fileName: `${projectInfo?.qouteNumber}-${location}`,
         directory: 'Documents',
       };
 
-      // let file = await RNHTMLtoPDF.convert(options);
-      // console.log(file.filePath);
-      // FileViewer.open(file.filePath!);
+      let file = await generatePDF(options);
+      console.log(file.filePath);
+      FileViewer.open(file.filePath!);
     });
 
     // alert(file.filePath);
@@ -744,11 +957,13 @@ const Measurement = () => {
                   onLayout={event => {
                     const { width, height } = event.nativeEvent.layout;
                     setContainerSize({ width, height });
-                    console.log('width', width);
-                    console.log('height', height);
                   }}
                 />
-                <Svg height="100" width="100%" style={{ position: 'absolute' }}>
+                <Svg
+                  height="100%"
+                  width="100%"
+                  style={{ position: 'absolute' }}
+                >
                   {tools.map(tool => renderTools(tool))}
                 </Svg>
               </Animated.View>
@@ -763,6 +978,36 @@ const Measurement = () => {
           nestedScrollEnabled={true}
         >
           <View style={styles.tools}>
+            <TheText
+              text={`Label Font:`}
+              size={20}
+              style={{ fontWeight: 'bold', marginVertical: 20 }}
+            />
+            <TheButton
+              btnTitle=""
+              icon={<Plus color={'white'} />}
+              titleStyle={{ fontWeight: 'bold', fontSize: 18 }}
+              onPress={() => setFontSize('+')}
+              style={{ height: '50%', width: '20%' }}
+            />
+            <TheText
+              size={20}
+              text={fSize.toString()}
+              style={{
+                fontWeight: '500',
+                width: '12%',
+                textAlign: 'center',
+              }}
+            />
+            <TheButton
+              btnTitle=""
+              icon={<Minus color={'white'} />}
+              titleStyle={{ fontWeight: 'bold', fontSize: 18 }}
+              onPress={() => setFontSize('-')}
+              style={{ height: '50%', width: '20%' }}
+            />
+          </View>
+          <View style={styles.tools}>
             <ToolMenu TOOLS={TOOLS} addTool={addTool} />
             <TheButton
               btnTitle=""
@@ -773,13 +1018,24 @@ const Measurement = () => {
             />
           </View>
           <View style={styles.initialContainer}>
-            <TheTextInput
-              label="Location"
-              placeholder="Kitchen, Bathroom, Living Room"
-              value={location}
-              onChange={setLocation}
-              required
+            <LocationInput
+              id={id}
+              location={location}
+              onLocChange={onLocChange}
             />
+            {/* <TheTextInput
+              // ref={inputRef}
+              label="Location"
+              placeholder="Living Room"
+              value={location}
+              onChange={onLocChange}
+              required
+              showSoftInputOnFocus={false}
+              // onFocus={() => {
+              //   setActiveInputId(id);
+              //   showKeyboard(location, onLocChange, true);
+              // }}
+            /> */}
           </View>
 
           <View style={styles.initialContainer}>
@@ -822,12 +1078,12 @@ const Measurement = () => {
             </View>
           </View>
           <View style={{ zIndex: 1000 }}>{renderToolContent()}</View>
-          {/* <TheButton
+          <TheButton
             btnTitle="Export Report"
             titleStyle={{ fontWeight: 'bold' }}
             icon={<Export />}
-            // onPress={handleSaveMeasurements}
-          /> */}
+            onPress={exportReport}
+          />
           <TheButton
             btnTitle="Save"
             titleStyle={{ fontWeight: 'bold' }}
@@ -841,21 +1097,6 @@ const Measurement = () => {
     </GestureHandlerRootView>
   );
 };
-
-function Badge({ color }: { color: string }) {
-  return (
-    <View
-      style={{
-        backgroundColor: color,
-        width: 15,
-        aspectRatio: 1,
-        borderRadius: 50,
-        borderWidth: 1,
-        borderColor: border,
-      }}
-    />
-  );
-}
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -895,8 +1136,9 @@ const styles = StyleSheet.create({
   },
   tools: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
     marginVertical: 10,
+    alignItems: 'center',
     gap: 5,
   },
   contentContainer: {

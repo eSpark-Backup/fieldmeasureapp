@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
+import { View, StyleSheet, ColorValue } from 'react-native';
 import { Line as SVGLine } from 'react-native-svg';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -12,10 +12,9 @@ import Animated, {
 
 import TheText from '../TheText';
 import { WhiteBackground } from '../../constants/colors';
-import { MeasurementPair } from '../../types';
+import { CanvasVals, MeasurementPair } from '../../types';
 import { formatInches, formatInchesSum } from './utils';
 
-const { width, height } = Dimensions.get('screen');
 const AnimatedLine = Animated.createAnimatedComponent(SVGLine);
 
 const LaserTool = ({
@@ -25,16 +24,29 @@ const LaserTool = ({
   yCoords,
   data,
   locked,
+  canvasSize,
+  baseColor,
+  laserNumber,
+  onLabelPress,
+  labelSize,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
   xCoords: number[];
   yCoords: number[];
   data: {
-    SlideA: MeasurementPair;
-    SlideB: MeasurementPair;
+    SideA: MeasurementPair;
+    SideB: MeasurementPair;
   };
   locked?: boolean;
+  canvasSize: CanvasVals;
+  baseColor: ColorValue;
+  laserNumber: number;
+  onLabelPress: (data: {
+    SideA: MeasurementPair;
+    SideB: MeasurementPair;
+  }) => void;
+  labelSize: number;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -67,13 +79,13 @@ const LaserTool = ({
       .onUpdate(event => {
         point.x.value = clamp(
           point.prevX.value + event.translationX,
-          1,
-          width - 20,
+          canvasSize.offsetX,
+          canvasSize.width + canvasSize.offsetX - 20,
         );
         point.y.value = clamp(
           point.prevY.value + event.translationY,
-          1,
-          height - 90,
+          0,
+          canvasSize.height - 20,
         );
       })
       .onEnd(() => {
@@ -104,7 +116,7 @@ const LaserTool = ({
 
     return {
       width: length, // same as line length
-      height: 20 / scaleValue, // fixed height but scales with zoom
+      // height: 20 / scaleValue, // fixed height but scales with zoom
       position: 'absolute',
       transform: [
         { translateX: midX + 10 - length / 2 }, // center align horizontally
@@ -123,6 +135,16 @@ const LaserTool = ({
     }));
   });
 
+  const handleFocus = (side: 'SideA' | 'SideB') =>
+    Gesture.Tap().onStart(() => {
+      console.log('SVG Rect pressed via gesture ✅');
+      runOnJS(onLabelPress)({
+        ...data,
+        SideA: { ...data.SideA, focused: side === 'SideA' },
+        SideB: { ...data.SideB, focused: side === 'SideB' },
+      });
+    });
+
   return (
     <View style={{ position: 'absolute' }}>
       <Animated.View style={[styles.box2, animatedInfoCenter]}>
@@ -133,22 +155,27 @@ const LaserTool = ({
             width: '100%',
           }}
         >
+          <GestureDetector gesture={handleFocus('SideB')}>
+            <View
+              style={{
+                backgroundColor: baseColor,
+                paddingHorizontal: 10,
+                alignItems: 'center',
+                borderWidth: 2,
+                borderRadius: 5,
+                borderColor: data.SideB.focused ? '#EAE72E' : baseColor,
+              }}
+            >
+              <TheText
+                size={labelSize * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`L${laserNumber}B: ${formatInches(data.SideB)}`}
+              />
+            </View>
+          </GestureDetector>
           <View
             style={{
-              backgroundColor: '#b91c1c',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`LB: ${formatInches(data.SlideB)}`}
-            />
-          </View>
-          <View
-            style={{
-              backgroundColor: '#b91c1c',
+              backgroundColor: baseColor,
               paddingHorizontal: 10,
               alignItems: 'center',
               position: 'absolute',
@@ -156,24 +183,32 @@ const LaserTool = ({
             }}
           >
             <TheText
-              size={14 * (2 / scaleValue / 2)}
+              size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`L1: ${formatInchesSum(data.SlideA, data.SlideB)}`}
+              text={`L${laserNumber}: ${formatInchesSum(
+                data.SideA,
+                data.SideB,
+              )}`}
             />
           </View>
-          <View
-            style={{
-              backgroundColor: '#b91c1c',
-              paddingHorizontal: 10,
-              alignItems: 'center',
-            }}
-          >
-            <TheText
-              size={14 * (2 / scaleValue / 2)}
-              color={WhiteBackground}
-              text={`LA: ${formatInches(data.SlideA)}`}
-            />
-          </View>
+          <GestureDetector gesture={handleFocus('SideA')}>
+            <View
+              style={{
+                backgroundColor: baseColor,
+                paddingHorizontal: 10,
+                alignItems: 'center',
+                borderWidth: 2,
+                borderRadius: 5,
+                borderColor: data.SideA.focused ? '#EAE72E' : baseColor,
+              }}
+            >
+              <TheText
+                size={labelSize * (2 / scaleValue / 2)}
+                color={WhiteBackground}
+                text={`L${laserNumber}A: ${formatInches(data.SideA)}`}
+              />
+            </View>
+          </GestureDetector>
         </View>
       </Animated.View>
       {/* <Animated.View style={[styles.box2, animatedInfoRight]}>
@@ -196,8 +231,8 @@ const LaserTool = ({
           x={10 * (2 / scaleValue / 2)}
           y={10 * (2 / scaleValue / 2)}
           animatedProps={props}
-          stroke="#b91c1c"
-          strokeWidth="5"
+          stroke={baseColor}
+          strokeWidth="2.5"
           strokeDasharray={[10, 5]}
         />
       ))}
@@ -214,10 +249,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   box2: {
-    height: 20,
     width: 20,
     position: 'absolute',
-    // backgroundColor: '#b91c1c',
     alignItems: 'center',
   },
 });

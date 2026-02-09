@@ -15,9 +15,11 @@ import { Project } from '../../types';
 const ProjectsList = ({
   projects,
   onViewPress,
+  canDelete,
 }: {
   projects: Project[];
   onViewPress: (item: Project) => void;
+  canDelete?: boolean;
 }) => {
   return (
     <View style={{ flex: 1, gap: 10 }}>
@@ -33,6 +35,7 @@ const ProjectsList = ({
             key={index}
             projectInfo={item}
             onViewPress={() => onViewPress(item)}
+            canDelete={canDelete}
           />
         )}
         ListFooterComponent={<GapView length={useSafeAreaInsets().bottom} />}
@@ -45,9 +48,11 @@ const ProjectsList = ({
 const ProjectCard = ({
   projectInfo,
   onViewPress,
+  canDelete,
 }: {
   projectInfo: Project;
   onViewPress: () => void;
+  canDelete?: boolean;
 }) => {
   const removeProj = useProjectStore().removeProject;
   const { id, qouteNumber, name, address, techName, date } = projectInfo;
@@ -86,12 +91,14 @@ const ProjectCard = ({
           btnTitle="View"
           onPress={onViewPress}
         />
-        <TheButton
-          onPress={() => removeProj(id)}
-          btnColor="#EF4443"
-          style={{ padding: 5 }}
-          btnTitle="Delete"
-        />
+        {canDelete && (
+          <TheButton
+            onPress={() => removeProj(id)}
+            btnColor="#EF4443"
+            style={{ padding: 5 }}
+            btnTitle="Delete"
+          />
+        )}
       </View>
     </View>
   );

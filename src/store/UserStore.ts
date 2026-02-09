@@ -5,13 +5,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Role } from '../types/navigationParams';
 
 export interface User {
+  uid: string;
   email: string;
   role: Role;
+  permissions?: {
+    create: boolean;
+    modify: boolean;
+    delete: boolean;
+  };
 }
 
 interface UserStoreTypes {
   user: User | null;
   saveUser: (userInfo: User) => void;
+  clearUser: () => void;
   setHasHydrated: (v: boolean) => void;
   hasHydrated: boolean;
 }
@@ -22,6 +29,7 @@ export const useUserStore = create<UserStoreTypes>()(
       user: null,
       hasHydrated: false,
       saveUser: (userInfo: User) => set(() => ({ user: userInfo })),
+      clearUser: () => set(() => ({ user: null })),
       setHasHydrated: (v: boolean) => set({ hasHydrated: v }),
     }),
     {

@@ -76,7 +76,7 @@ export const DROPDOWNS = [
     selected: '',
   },
   {
-    data: ['Yes', 'No'],
+    data: ['Yes', 'No', 'TBD'],
     placeholder: 'Select DFI Option',
     title: 'DFI',
     id: 'dfi',

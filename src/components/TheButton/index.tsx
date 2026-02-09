@@ -20,6 +20,7 @@ const TheButton = ({
   titleColor,
   titleStyle,
   onPress,
+  disabled,
 }: {
   btnTitle: string;
   icon?: JSX.Element;
@@ -28,6 +29,7 @@ const TheButton = ({
   titleColor?: ColorValue;
   titleStyle?: TextStyle;
   onPress?: () => void;
+  disabled?: boolean;
 }) => {
   return (
     <TouchableOpacity
@@ -37,6 +39,7 @@ const TheButton = ({
         { backgroundColor: btnColor ? btnColor : primaryColor },
       ]}
       onPress={onPress}
+      disabled={disabled}
     >
       {icon}
       {btnTitle ? (
