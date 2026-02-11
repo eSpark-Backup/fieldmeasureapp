@@ -9,6 +9,9 @@ import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
 import { ForgotPasswordSchema } from '../../constants/validations/schema';
+import { useProjectStore } from '../../store/ProjectsStore';
+import { firebaseAuth } from '../../utils/firebase';
+import { Alert } from 'react-native';
 
 type ForgotPasswordProps = NativeStackScreenProps<
   RootNavParamList,
@@ -18,9 +21,22 @@ type ForgotPasswordProps = NativeStackScreenProps<
 const ForgotPassword = () => {
   const navigation = useNavigation<ForgotPasswordProps['navigation']>();
 
-  const handleForgotPassword = (values: { email: string }) => {
-    console.log('Submitting email:', values.email);
-    navigation.navigate('SignIn');
+  const handleForgotPassword = async (values: { email: string }) => {
+    const { setIsLoading } = useProjectStore.getState();
+    try {
+      setIsLoading(true);
+      await firebaseAuth.sendPasswordResetEmail(values.email.toLowerCase());
+      Alert.alert(
+        'Email Sent',
+        'If an account exists for this email, you will receive a password reset link shortly.',
+        [{ text: 'OK', onPress: () => navigation.navigate('SignIn') }]
+      );
+    } catch (error: any) {
+      console.error('Forgot password error:', error);
+      Alert.alert('Error', error.message || 'Failed to send reset email');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,7 +84,7 @@ const ForgotPassword = () => {
           )}
         </Formik>
 
-        <View style={styles.footer}>
+        {/* <View style={styles.footer}>
           <TheText text="New to Skyline? " style={styles.footerText} />
           <TheText
             text="Create Account"
@@ -76,7 +92,7 @@ const ForgotPassword = () => {
             style={styles.createAccount}
             color={primaryColor}
           />
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );

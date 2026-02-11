@@ -43,6 +43,7 @@ export const useProjectStore = create<ProjectStoreTypes>()((set, get) => ({
 
   addProject: async (project: Project) => {
     try {
+      set({ isLoading: true });
       await db.collection('projects').doc(project.id).set({
         ...project,
         measures: project.measures || [],
@@ -51,24 +52,32 @@ export const useProjectStore = create<ProjectStoreTypes>()((set, get) => ({
     } catch (error) {
       console.error('Error adding project to Firestore:', error);
       throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 
   removeProject: async (id: string) => {
     try {
+      set({ isLoading: true });
       await db.collection('projects').doc(id).delete();
     } catch (error) {
       console.error('Error removing project from Firestore:', error);
       throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 
   editProject: async (updatedProj: Project) => {
     try {
+      set({ isLoading: true });
       await db.collection('projects').doc(updatedProj.id).update(updatedProj);
     } catch (error) {
       console.error('Error updating project in Firestore:', error);
       throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 
@@ -77,6 +86,7 @@ export const useProjectStore = create<ProjectStoreTypes>()((set, get) => ({
 
   addMeasureToProject: async (projectId, newMeasure) => {
     try {
+      set({ isLoading: true });
       const projectRef = db.collection('projects').doc(projectId);
       const doc = await projectRef.get();
       if (doc.exists()) {
@@ -96,11 +106,14 @@ export const useProjectStore = create<ProjectStoreTypes>()((set, get) => ({
     } catch (error) {
       console.error('Error adding measure to Firestore:', error);
       throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 
   removeMeasureFromProject: async (projectId: string, measureId: string) => {
     try {
+      set({ isLoading: true });
       const projectRef = db.collection('projects').doc(projectId);
       const doc = await projectRef.get();
       if (doc.exists()) {
@@ -113,6 +126,8 @@ export const useProjectStore = create<ProjectStoreTypes>()((set, get) => ({
     } catch (error) {
       console.error('Error removing measure from Firestore:', error);
       throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 }));

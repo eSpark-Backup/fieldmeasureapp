@@ -21,9 +21,10 @@ type AddTechnicianProps = NativeStackScreenProps<
 const AddTechnician = () => {
   const navigation = useNavigation<AddTechnicianProps['navigation']>();
 
-  const handleAddTechnician = async (values: any, { setSubmitting }: any) => {
+  const handleAddTechnician = async (values: any) => {
+    const { setIsLoading } = useProjectStore.getState();
     try {
-      setSubmitting(true);
+      setIsLoading(true);
       
       // 1. Create the technician user using the main instance (will log out Admin)
       const userCredential = await firebaseAuth.createUserWithEmailAndPassword(
@@ -56,7 +57,7 @@ const AddTechnician = () => {
       console.error('Error adding technician:', error);
       Alert.alert('Error', error.message || 'Failed to add technician');
     } finally {
-      setSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -151,19 +152,11 @@ const AddTechnician = () => {
                     : ''
                 }
               />
-              {isSubmitting ? (
-                <ActivityIndicator
-                  size="large"
-                  color={primaryColor}
-                  style={{ marginTop: 20 }}
-                />
-              ) : (
-                <TheButton
-                  btnTitle="Create Technician"
-                  onPress={handleSubmit}
-                  style={styles.AddTechnicianButton}
-                />
-              )}
+              <TheButton
+                btnTitle="Create Technician"
+                onPress={handleSubmit}
+                style={styles.AddTechnicianButton}
+              />
             </View>
           )}
         </Formik>

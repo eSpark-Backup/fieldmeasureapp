@@ -26,6 +26,7 @@ import {
   ToolsList,
 } from '../../types';
 import { border } from '../../constants/colors';
+import { WINDOW_WIDTH } from '@gorhom/bottom-sheet';
 
 interface FormProps {
   tools: ToolsList;
@@ -861,7 +862,7 @@ export default function ToolsForm({
   return (
     <View style={styles.container}>
       {tools.map((tool, index) => (
-        <View style={{ zIndex: 10 + tools.length - index }}>
+        <View key={tool.id} style={{ zIndex: 10 + tools.length - index }}>
           {renderItem({ item: tool })}
         </View>
       ))}
@@ -936,19 +937,25 @@ const Card = ({
             text={
               item.type == 'Note' ? item.type : `${item.type} ${count ?? ''}`
             }
-            size={18}
+            size={WINDOW_WIDTH * 0.015}
             numberOfLines={1}
             style={{ fontWeight: '600', width: '80%' }}
           />
         </View>
         <View style={[styles.rowContainer, { gap: 5 }]}>
           {item.hidden ? (
-            <EyeClosed color="#6B7280" onPress={onEye} />
+            <EyeClosed  height={WINDOW_WIDTH * 0.02} 
+            width={WINDOW_WIDTH * 0.02}  color="#6B7280" onPress={onEye} />
           ) : (
-            <Eye color="#6B7280" onPress={onEye} />
+            <Eye  height={WINDOW_WIDTH * 0.02} 
+            width={WINDOW_WIDTH * 0.02}  color="#6B7280" onPress={onEye} />
           )}
           <TheToggle value={item.locked!} onValueChange={onToggle} />
-          <Trash onPress={!item.locked ? onDelete : null} />
+          <Trash 
+            height={WINDOW_WIDTH * 0.02} 
+            width={WINDOW_WIDTH * 0.02} 
+            onPress={!item.locked ? onDelete : null} 
+            />
         </View>
       </View>
 

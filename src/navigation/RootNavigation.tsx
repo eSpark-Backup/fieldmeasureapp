@@ -14,6 +14,8 @@ import { RootNavParamList } from '../types/navigationParams';
 import AddTechnician from '../screens/AddTechnician';
 import TechniciansList from '../screens/TechniciansList';
 import { useUserStore } from '../store/UserStore';
+import { useProjectStore } from '../store/ProjectsStore';
+import { TheLoader } from '../components';
 import { ActivityIndicator, View } from 'react-native';
 import { background, primaryColor } from '../constants/colors';
 import { firebaseAuth, db } from '../utils/firebase';
@@ -22,6 +24,7 @@ const Stack = createNativeStackNavigator<RootNavParamList>();
 
 const AppNavigator = () => {
   const { user, hasHydrated, saveUser, clearUser } = useUserStore();
+  const { isLoading } = useProjectStore();
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
@@ -75,7 +78,8 @@ const AppNavigator = () => {
   }
 
   return (
-    <Stack.Navigator
+    <View style={{ flex: 1 }}>
+      <Stack.Navigator
       screenOptions={{
         headerShown: false,
         animation: 'none',
@@ -152,6 +156,8 @@ const AppNavigator = () => {
         })}
       />
     </Stack.Navigator>
+      <TheLoader isLoading={isLoading} />
+    </View>
   );
 };
 

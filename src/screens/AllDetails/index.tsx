@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import {
   GapView,
   TheButton,
@@ -142,6 +142,21 @@ const AllDetails = () => {
       navigation.goBack();
     } else {
       skipPromptRef.current = false;
+      Alert.alert(
+        'Validation Failed',
+        'Please correct the errors before saving and going back.',
+        [
+          { text: 'OK' },
+          {
+            text: 'Discard Changes',
+            style: 'destructive',
+            onPress: () => {
+              skipPromptRef.current = true;
+              navigation.goBack();
+            },
+          },
+        ],
+      );
     }
   };
 

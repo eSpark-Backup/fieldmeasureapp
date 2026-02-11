@@ -57,11 +57,12 @@ const TechniciansList = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleEditTechnician = async (values: any, { setSubmitting }: any) => {
+  const handleEditTechnician = async (values: any) => {
     if (!selectedTech?.uid) return;
+    const { setIsLoading } = useProjectStore.getState();
 
     try {
-      setSubmitting(true);
+      setIsLoading(true);
       await db.collection('users').doc(selectedTech.uid).update({
         firstName: values.firstName,
         lastName: values.lastName,
@@ -74,7 +75,7 @@ const TechniciansList = () => {
       console.error('Error updating technician:', error);
       Alert.alert('Error', error.message || 'Failed to update technician');
     } finally {
-      setSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -88,12 +89,16 @@ const TechniciansList = () => {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
+            const { setIsLoading } = useProjectStore.getState();
             try {
+              setIsLoading(true);
               await db.collection('users').doc(uid).delete();
               Alert.alert('Success', 'Technician deleted from database.');
             } catch (error: any) {
               console.error('Error deleting technician:', error);
               Alert.alert('Error', 'Failed to delete technician.');
+            } finally {
+              setIsLoading(false);
             }
           },
         },

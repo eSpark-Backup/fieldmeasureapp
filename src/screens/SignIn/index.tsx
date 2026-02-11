@@ -13,6 +13,7 @@ import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
 import { SignInSchema } from '../../constants/validations/schema';
 import { useUserStore } from '../../store/UserStore';
+import { useProjectStore } from '../../store/ProjectsStore';
 import { firebaseAuth, db, seedInitialAdmin } from '../../utils/firebase';
 import { ActivityIndicator } from 'react-native';
 
@@ -27,11 +28,17 @@ const SignIn = () => {
       <BuildingLogo />
       <View style={styles.formContainer}>
         <Formik
-          initialValues={{ email: '', password: '' }}
+          initialValues={{ 
+            // email: '', 
+            // password: ''
+            email: 'admin@fieldmeasure.com', 
+            password: 'Admin@123'
+           }}
           validationSchema={SignInSchema}
           onSubmit={async (values, { setSubmitting }) => {
             try {
-              setSubmitting(true);
+              const { setIsLoading } = useProjectStore.getState();
+              setIsLoading(true);
               const userCredential = await firebaseAuth.signInWithEmailAndPassword(
                 values.email.toLowerCase(),
                 values.password,
@@ -68,7 +75,8 @@ const SignIn = () => {
               console.error('Login error:', error);
               Alert.alert('Login Failed', error.message || 'Invalid credentials');
             } finally {
-              setSubmitting(false);
+              const { setIsLoading } = useProjectStore.getState();
+              setIsLoading(false);
             }
           }}
         >
@@ -111,18 +119,15 @@ const SignIn = () => {
               />
 
               <TheButton
-                btnTitle={touched.email || touched.password ? "Login" : "Login"}
+                btnTitle="Login"
                 onPress={() => handleSubmit()}
-                disabled={touched.email && Object.keys(errors).length > 0}
                 style={styles.loginButton}
-                icon={values.email && values.password && !errors.email && !errors.password ? undefined : undefined}
-                // We can use isSubmitting from formik bag if we passed it in the render prop
               />
             </>
           )}
         </Formik>
       </View>
-      <View style={styles.footer}>
+      {/* <View style={styles.footer}>
         <TheText
           text="Admin Setup (One-time)"
           color={primaryColor}
@@ -135,11 +140,15 @@ const SignIn = () => {
                 {
                   text: 'Seed',
                   onPress: async () => {
+                    const { setIsLoading } = useProjectStore.getState();
                     try {
+                      setIsLoading(true);
                       await seedInitialAdmin('admin@fieldmeasure.com', 'Admin@123');
                       Alert.alert('Success', 'Admin seeded! You can now login with these credentials.');
                     } catch (e: any) {
                       Alert.alert('Error', e.message);
+                    } finally {
+                      setIsLoading(false);
                     }
                   }
                 }
@@ -148,7 +157,7 @@ const SignIn = () => {
           }}
           style={styles.createAccount}
         />
-      </View>
+      </View> */}
       <GapView length={useSafeAreaInsets().bottom} />
     </ScrollView>
   );

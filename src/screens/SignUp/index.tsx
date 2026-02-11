@@ -9,15 +9,48 @@ import { RootNavParamList } from '../../types/navigationParams';
 import { background, primaryColor } from '../../constants/colors';
 import { Formik } from 'formik';
 import { SignUpSchema } from '../../constants/validations/schema';
+import { useProjectStore } from '../../store/ProjectsStore';
+import { firebaseAuth, db } from '../../utils/firebase';
+import { Alert } from 'react-native';
 
 type SignUpProps = NativeStackScreenProps<RootNavParamList, 'SignUp'>;
 
 const SignUp = () => {
   const navigation = useNavigation<SignUpProps['navigation']>();
 
-  const handleSignUp = (values: any) => {
-    console.log('Sign Up Form Values:', values);
-    navigation.navigate('SignIn');
+  const handleSignUp = async (values: any) => {
+    const { setIsLoading } = useProjectStore.getState();
+    try {
+      setIsLoading(true);
+      const userCredential = await firebaseAuth.createUserWithEmailAndPassword(
+        values.email.toLowerCase(),
+        values.password
+      );
+
+      const { uid } = userCredential.user;
+
+      await db.collection('users').doc(uid).set({
+        uid,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email.toLowerCase(),
+        role: 'technician', // Default role for self-signup
+        permissions: {
+          delete: false,
+          modify: false,
+          create: false,
+        },
+        createdAt: new Date().toISOString(),
+      });
+
+      Alert.alert('Success', 'Account created successfully!');
+      navigation.navigate('SignIn');
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      Alert.alert('Sign Up Failed', error.message || 'Failed to create account');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -6,6 +6,7 @@ import {
   Dimensions,
   Alert,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import {
@@ -75,7 +76,7 @@ const Measurement = () => {
   const { id: projectId, existingMeasure } =
     route.params as MeasurementRouteParams;
   const projectInfo: Project | undefined = route.params as Project | undefined;
-  const { tempMeasure, setTempMeasure, clearTempMeasure, addMeasureToProject } =
+  const { tempMeasure, setTempMeasure, clearTempMeasure, addMeasureToProject, setIsLoading } =
     useProjectStore();
   const { uploadImageToStorage } = require('../../utils/firebase');
   const bottomInset = useSafeAreaInsets().bottom;
@@ -111,6 +112,9 @@ const Measurement = () => {
       });
     }
   }, [selectedPhoto]);
+
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 800;
 
   const getDisplayedSize = () => {
     if (containerSize.width === 0 || containerSize.height === 0)
@@ -381,39 +385,40 @@ const Measurement = () => {
     const { location, tempMeasure, selectedPhoto, existingMeasure } =
       stateRef.current;
 
-    let photoUrl = selectedPhoto ?? '';
-    
-    // Upload photo if it exists and is a local file (not already a URL)
-    if (photoUrl && !photoUrl.startsWith('http')) {
-       try {
-         const fileName = `measurements/${projectId}/${uuid.v4()}.jpg`;
-         photoUrl = await uploadImageToStorage(photoUrl, fileName);
-       } catch (e) {
-         console.error('Failed to upload photo, saving without it', e);
-         // Optionally alert user, but here we proceed to save the measure
-       }
+    try {
+      setIsLoading(true);
+      let photoUrl = selectedPhoto ?? '';
+      
+      // Upload photo if it exists and is a local file (not already a URL)
+      if (photoUrl && !photoUrl.startsWith('http')) {
+         try {
+           const fileName = `measurements/${projectId}/${uuid.v4()}.jpg`;
+           photoUrl = await uploadImageToStorage(photoUrl, fileName);
+         } catch (e) {
+           console.error('Failed to upload photo, saving without it', e);
+         }
+      }
+
+      const newMeasure: Measure = {
+        id: existingMeasure?.id || uuid.v4().toString(),
+        location,
+        details: tempMeasure,
+        photo: photoUrl,
+        toolsData,
+        timestamp: Date.now(),
+      };
+
+      await addMeasureToProject(projectId, newMeasure);
+      clearTempMeasure();
+
+      console.log('✅ Measure saved for project:', projectId);
+      return true;
+    } catch (error) {
+       console.error('Error saving measure:', error);
+       throw error;
+    } finally {
+      setIsLoading(false);
     }
-
-    const newMeasure: Measure = {
-      id: existingMeasure?.id || uuid.v4().toString(),
-      location,
-      details: tempMeasure,
-      photo: photoUrl,
-      toolsData,
-      timestamp: Date.now(),
-    };
-
-    await addMeasureToProject(projectId, newMeasure);
-    clearTempMeasure();
-
-    console.log('✅ Measure saved for project:', projectId);
-
-    const updated = useProjectStore
-      .getState()
-      .projects.find(p => p.id === projectId);
-    console.log('📦 Updated Project:', updated);
-
-    return true;
   }
 
   const handleSaveAndGoBack = () => {
@@ -896,9 +901,9 @@ const Measurement = () => {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          flex: 1,
-          flexDirection: 'row',
-          marginRight: 10,
+          flex: isTablet ? 1 : undefined,
+          flexDirection: isTablet ? 'row' : 'column',
+          marginRight: isTablet ? 10 : 0,
           marginTop: bottomInset,
           marginBottom: bottomInset,
           backgroundColor: '#F9FAFB',
@@ -907,7 +912,7 @@ const Measurement = () => {
         nestedScrollEnabled={true}
       >
         {!selectedPhoto ? (
-          <View style={styles.noPhoto}>
+          <View style={[styles.noPhoto, { width: isTablet ? '76%' : '100%' }]}>
             <Camera color={'#9CA3AF'} />
             <TheText
               text="No Photo Selected"
@@ -934,9 +939,10 @@ const Measurement = () => {
             ref={ref}
             style={{
               // flex: 1,
-              width: '76%',
+              width: isTablet ? '76%' : '100%',
               marginVertical: 10,
               justifyContent: 'center',
+              height: isTablet ? '100%' : 400,
             }}
             options={{
               fileName: 'Your-File-Name',
@@ -972,40 +978,39 @@ const Measurement = () => {
         )}
 
         <ScrollView
-          // style={{ backgroundColor: 'pink' }}
-          // contentContainerStyle={{ width: '50%' }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: isTablet ? 0 : 20 }}
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
         >
           <View style={styles.tools}>
             <TheText
               text={`Label Font:`}
-              size={20}
-              style={{ fontWeight: 'bold', marginVertical: 20 }}
+              size={width * 0.015}
+              style={{ fontWeight: 'bold' }}
             />
-            <TheButton
-              btnTitle=""
-              icon={<Plus color={'white'} />}
-              titleStyle={{ fontWeight: 'bold', fontSize: 18 }}
-              onPress={() => setFontSize('+')}
-              style={{ height: '50%', width: '20%' }}
-            />
-            <TheText
-              size={20}
-              text={fSize.toString()}
-              style={{
-                fontWeight: '500',
-                width: '12%',
-                textAlign: 'center',
-              }}
-            />
-            <TheButton
-              btnTitle=""
-              icon={<Minus color={'white'} />}
-              titleStyle={{ fontWeight: 'bold', fontSize: 18 }}
-              onPress={() => setFontSize('-')}
-              style={{ height: '50%', width: '20%' }}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <TheButton
+                btnTitle=""
+                icon={<Plus color={'white'} />}
+                onPress={() => setFontSize('+')}
+                style={{ height: width * 0.03, width: width * 0.03 }}
+              />
+              <TheText
+                size={18}
+                text={fSize.toString()}
+                style={{
+                  fontWeight: '500',
+                  textAlign: 'center',
+                }}
+              />
+              <TheButton
+                btnTitle=""
+                icon={<Minus color={'white'} />}
+                onPress={() => setFontSize('-')}
+                style={{ height: width * 0.03, width: width * 0.03 }}
+              />
+            </View>
           </View>
           <View style={styles.tools}>
             <ToolMenu TOOLS={TOOLS} addTool={addTool} />
@@ -1061,7 +1066,7 @@ const Measurement = () => {
           >
             <TheText
               text={`Measurements(${tools.length})`}
-              size={20}
+              size={width * 0.015}
               style={{ fontWeight: 'bold', marginVertical: 20 }}
             />
             <View style={{ paddingHorizontal: 10 }}>
@@ -1123,11 +1128,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noPhoto: {
-    width: '76%',
     gap: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F9FAFB',
+    height: 400,
   },
   noToolSelected: {
     padding: 40,
@@ -1139,7 +1144,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: 10,
     alignItems: 'center',
-    gap: 5,
+    gap: 10,
+    flexWrap: 'wrap',
   },
   contentContainer: {
     flex: 1,

@@ -2,7 +2,7 @@ import { View, StyleSheet, ScrollView, BackHandler, ActivityIndicator, Alert } f
 import React, { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import uuid from 'react-native-uuid';
 import { Formik } from 'formik';
 
@@ -78,13 +78,21 @@ const Projects = () => {
     return () => unsubscribe();
   }, [role, techName]);
 
-  useEffect(() => {
-    const backHandle = BackHandler.addEventListener(
-      'hardwareBackPress',
-      () => true,
-    );
-    return () => backHandle.remove();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Return true to stop default back behavior
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      );
+
+      return () => backHandler.remove();
+    }, [])
+  );
 
   const addProj = async (values: Project) => {
     const data: Project = {
@@ -156,8 +164,15 @@ const Projects = () => {
           width={30}
           height={30}
           onPress={async () => {
-            await firebaseAuth.signOut();
-            navigation.navigate('SignIn');
+            try {
+              setIsLoading(true);
+              await firebaseAuth.signOut();
+              navigation.navigate('SignIn');
+            } catch (error: any) {
+              console.error('Logout error:', error);
+            } finally {
+              setIsLoading(false);
+            }
           }}
         />
       </View>

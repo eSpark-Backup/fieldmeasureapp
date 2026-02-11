@@ -6,6 +6,9 @@ import {
   ScrollView,
   ViewStyle,
   StyleProp,
+  Modal,
+  TouchableWithoutFeedback,
+  Dimensions,
 } from 'react-native';
 
 import TheText from '../TheText';
@@ -57,13 +60,30 @@ const TheDropdown: React.FC<DropdownProps> = ({
   disabled,
 }) => {
   const [selectedItem, setSelectedItem] = useState(selected ?? '');
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
+  const triggerRef = React.useRef<View>(null);
 
   useEffect(() => {
     setSelectedItem(selected ?? '');
   }, [selected]);
 
   const handleToggle = () => {
-    setOpenDropdownId(isOpen ? null : id);
+    if (!isOpen && triggerRef.current) {
+      triggerRef.current.measureInWindow((x, y, width, height) => {
+        setDropdownPosition({
+          top: y + height,
+          left: x,
+          width: width,
+        });
+        setOpenDropdownId(id);
+      });
+    } else {
+      setOpenDropdownId(null);
+    }
   };
 
   const handleSelection = useCallback(
@@ -116,7 +136,7 @@ const TheDropdown: React.FC<DropdownProps> = ({
         {title && <TheText style={styles.label} text={title} />}
         {required && <TheText style={styles.required} text=" *" />}
       </View>
-      <View style={style}>
+      <View style={style} ref={triggerRef} collapsable={false}>
         <TouchableOpacity
           activeOpacity={0.8}
           disabled={disabled}
@@ -146,33 +166,48 @@ const TheDropdown: React.FC<DropdownProps> = ({
             size={10}
           />
         ) : null}
-        {isOpen && (
-          <View
-            style={[
-              styles.dropdownListWrapper,
-              { top: error ? '70%' : '90%', zIndex },
-            ]}
-          >
-            <ScrollView
-              style={{
-                backgroundColor: background,
-                maxHeight: 120,
-              }}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              nestedScrollEnabled={true}
-            >
-              {data.length > 0 ? (
-                renderOptions
-              ) : (
-                <TheText
-                  text={'No ' + title + ' available'}
-                  style={{ textAlign: 'center', paddingVertical: 10 }}
-                />
-              )}
-            </ScrollView>
-          </View>
-        )}
+
+        <Modal
+          visible={isOpen}
+          transparent={true}
+          animationType="none"
+          onRequestClose={() => setOpenDropdownId(null)}
+        >
+          <TouchableWithoutFeedback onPress={() => setOpenDropdownId(null)}>
+            <View style={styles.modalBackdrop}>
+              <View
+                style={[
+                  styles.dropdownListWrapper,
+                  {
+                    top: dropdownPosition.top,
+                    left: dropdownPosition.left,
+                    width: dropdownPosition.width,
+                    zIndex,
+                  },
+                ]}
+              >
+                <ScrollView
+                  style={{
+                    backgroundColor: background,
+                    maxHeight: 200,
+                  }}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {data.length > 0 ? (
+                    renderOptions
+                  ) : (
+                    <TheText
+                      text={'No ' + title + ' available'}
+                      style={{ textAlign: 'center', paddingVertical: 10 }}
+                    />
+                  )}
+                </ScrollView>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </View>
     </View>
   );
@@ -201,16 +236,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.02)', // Nearly invisible back drop
+  },
   dropdownListWrapper: {
     position: 'absolute',
-    top: '90%',
-    width: '100%',
     borderWidth: 1,
     borderBottomRightRadius: 5,
     borderBottomLeftRadius: 5,
     overflow: 'hidden',
     borderColor: border,
-    elevation: 2,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   optionItem: {
     flexDirection: 'row',
