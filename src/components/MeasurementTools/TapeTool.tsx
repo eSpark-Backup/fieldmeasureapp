@@ -27,9 +27,10 @@ const TapeTool = ({
   locked,
   canvasSize,
   baseColor,
-  tapeNumber,
   onLabelPress,
   labelSize,
+  label,
+  hideEndpoints,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -39,13 +40,14 @@ const TapeTool = ({
   canvasSize: CanvasVals;
   locked?: boolean;
   baseColor: ColorValue;
-  tapeNumber: number;
   onLabelPress: (data: {
     value: string;
     fraction: string;
     focused: boolean;
   }) => void;
   labelSize: number;
+  label: string;
+  hideEndpoints: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -171,12 +173,12 @@ const TapeTool = ({
           <TheText
             size={labelSize * (2 / scaleValue / 2)}
             color={WhiteBackground}
-            text={`M${tapeNumber}: ${formatInches(data)}`}
+            text={`${label}: ${formatInches(data)}`}
           />
         </Animated.View>
       </GestureDetector>
 
-      {!locked
+      {!locked && !hideEndpoints
         ? points.map((_, i) => (
             <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
               <Animated.View style={[styles.box, animatedStyles[i]]} />

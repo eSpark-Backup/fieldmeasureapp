@@ -29,6 +29,8 @@ const RectangleTool = ({
   baseColor,
   onLabelPress,
   labelSize,
+  label,
+  hideEndpoints,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -55,6 +57,8 @@ const RectangleTool = ({
     >,
   ) => void;
   labelSize: number;
+  label: string;
+  hideEndpoints: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -416,7 +420,7 @@ const RectangleTool = ({
           </GestureDetector>
         </View>
       </Animated.View>
-      {!locked
+      {!locked && !hideEndpoints
         ? points.map((_, i) => (
             <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
               <Animated.View style={[styles.box, animatedStyles[i]]} />

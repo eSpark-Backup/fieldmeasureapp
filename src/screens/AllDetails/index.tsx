@@ -77,76 +77,83 @@ const AllDetails = () => {
 
       const { selectedValues, inputs, description } = stateRef.current;
 
-      if (
-        !tempMeasure &&
-        JSON.stringify(selectedValues) ==
-          JSON.stringify(generateInitialValues()) &&
-        inputs == initialInputs &&
-        description == ''
-      ) {
-        navigation.dispatch(e.data.action);
-        return;
-      } else if (
+      const isUnchanged =
         tempMeasure &&
-        JSON.stringify(selectedValues) ==
+        JSON.stringify(selectedValues) ===
           JSON.stringify(tempMeasure.selectedValues) &&
-        inputs == tempMeasure.inputs &&
-        description == tempMeasure.description &&
-        datePromised == tempMeasure.datePromised
-      ) {
+        JSON.stringify(inputs) === JSON.stringify(tempMeasure.inputs) &&
+        description === tempMeasure.description &&
+        datePromised?.toISOString() === tempMeasure.datePromised;
+
+      // If everything is exactly as it was (including for a brand-new measure with initial values), just let them go.
+      if (isUnchanged) {
         navigation.dispatch(e.data.action);
         return;
       }
 
       e.preventDefault();
-      const saved = handleSubmit();
-      if (saved) {
+
+      const { hasErrors } = validateFields();
+
+      if (!hasErrors) {
+        saveData();
         navigation.dispatch(e.data.action);
       } else {
-        skipPromptRef.current = false;
+        Alert.alert(
+          'Missing Information',
+          'Some required fields are missing. Do you want to save anyway and exit?',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+              onPress: () => {
+                // Stay on the screen
+              },
+            },
+            {
+              text: 'Save Anyway',
+              style: 'destructive',
+              onPress: () => {
+                saveData(); // Save despite errors as requested
+                navigation.dispatch(e.data.action);
+              },
+            },
+            {
+              text: 'Discard',
+              style: 'destructive',
+              onPress: () => {
+                navigation.dispatch(e.data.action);
+              },
+            },
+          ],
+        );
       }
-      // fix: Clicking Back button should auto-save without confirmation.
-      // Alert.alert(
-      //   'Save Changes?',
-      //   'Would you like to save your measurements before leaving?',
-      //   [
-      //     {
-      //       text: "Don't Save",
-      //       style: 'destructive',
-      //       onPress: () => navigation.dispatch(e.data.action),
-      //     },
-      //     {
-      //       text: 'Save',
-      //       style: 'default',
-      //       onPress: () => {
-      //         const saved = handleSubmit();
-      //         if (saved) {
-      //           navigation.dispatch(e.data.action);
-      //         } else {
-      //           skipPromptRef.current = false;
-      //         }
-      //       },
-      //     },
-      //     { text: 'Cancel', style: 'cancel' },
-      //   ],
-      // );
     });
 
     return unsubscribe;
   }, [navigation, selectedValues]);
 
   const handleSaveAndGoBack = () => {
-    skipPromptRef.current = true;
-    const saved = handleSubmit();
-    if (saved) {
+    const { hasErrors } = validateFields();
+    if (!hasErrors) {
+      skipPromptRef.current = true;
+      saveData();
       navigation.goBack();
     } else {
-      skipPromptRef.current = false;
       Alert.alert(
-        'Validation Failed',
-        'Please correct the errors before saving and going back.',
+        'Missing Information',
+        'Some required fields are missing. Do you want to save anyway and exit?',
         [
-          { text: 'OK' },
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Save Anyway',
+            style: 'destructive',
+            onPress: () => {
+              skipPromptRef.current = true;
+              saveData();
+              navigation.goBack();
+            },
+          },
           {
             text: 'Discard Changes',
             style: 'destructive',
@@ -168,12 +175,8 @@ const AllDetails = () => {
     }
   }, [datePromised]);
 
-  const handleSubmit = useCallback(() => {
+  const validateFields = useCallback(() => {
     const newErrors: { [key: string]: string } = {};
-    // fix: non-mandatory screen
-    // DROPDOWNS.forEach(({ id, title }) => {
-    //   if (!selectedValues[id]) newErrors[id] = `${title} is required`;
-    // });
 
     INPUT_FIELDS.forEach(({ field, label }) => {
       const value = inputs[field];
@@ -183,30 +186,31 @@ const AllDetails = () => {
     });
 
     setErrors(newErrors);
-    if (!Object.keys(newErrors).length) {
-      const tempData = {
-        selectedValues,
-        inputs,
-        description,
-        datePromised: datePromised ? datePromised.toISOString() : null,
-        timestamp: Date.now(),
-      };
+    return { hasErrors: Object.keys(newErrors).length > 0, errors: newErrors };
+  }, [inputs]);
 
-      setTempMeasure(tempData);
+  const saveData = useCallback(() => {
+    const tempData = {
+      selectedValues,
+      inputs,
+      description,
+      datePromised: datePromised ? datePromised.toISOString() : null,
+      timestamp: Date.now(),
+    };
+
+    setTempMeasure(tempData);
+  }, [selectedValues, inputs, description, datePromised, setTempMeasure]);
+
+  const handleSubmit = useCallback(() => {
+    const { hasErrors } = validateFields();
+    if (!hasErrors) {
+      saveData();
       return true;
-      // navigation.goBack(); // 👈 Go back to MeasurementScreen
     } else {
-      console.log('Validation Errors:', newErrors);
+      console.log('Validation Errors:', errors);
       return false;
     }
-  }, [
-    selectedValues,
-    inputs,
-    description,
-    navigation,
-    datePromised,
-    setTempMeasure,
-  ]);
+  }, [validateFields, saveData, errors]);
 
   useEffect(() => {
     if (tempMeasure) {

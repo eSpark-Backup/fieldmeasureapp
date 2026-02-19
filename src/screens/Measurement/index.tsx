@@ -85,6 +85,7 @@ const Measurement = () => {
   const [mainLock, setMainLock] = useState(false);
   const [fSize, setFSize] = useState(14);
   const [tools, setTools] = useState<ToolsList>([]);
+  const [hideEndpoints, setHideEndpoints] = useState(false);
 
   const [scaleVal, setScaleVal] = useState(1);
 
@@ -190,35 +191,22 @@ const Measurement = () => {
         stateRef.current;
       const sanitized = tools.map(({ locked, hidden, ...rest }) => rest);
 
-      const exist: Measure = {
-        id: existingMeasure?.id ?? '',
-        location,
-        details: tempMeasure,
-        photo: selectedPhoto ?? '',
-        toolsData: sanitized,
-        timestamp: existingMeasure?.timestamp ?? Date.now(),
-      };
+      const cleanTools = (arr: any[]) =>
+        (arr || []).map(({ locked, hidden, ...rest }: any) => rest);
 
-      const clean = (obj: Measure) => {
-        const { timestamp, ...rest } = obj;
-        return rest;
-      };
+      const isUnchanged = existingMeasure
+        ? location === (existingMeasure.location || '') &&
+          selectedPhoto === (existingMeasure.photo || '') &&
+          JSON.stringify(cleanTools(tools)) ===
+            JSON.stringify(cleanTools(existingMeasure.toolsData)) &&
+          JSON.stringify(tempMeasure) ===
+            JSON.stringify(existingMeasure.details || null)
+        : location === '' &&
+          !tempMeasure &&
+          !selectedPhoto &&
+          sanitized.length === 0;
 
-      // console.log('existingMeasure', existingMeasure);
-      // console.log('exist', exist);
-
-      if (
-        existingMeasure != undefined &&
-        JSON.stringify(clean(existingMeasure)) == JSON.stringify(clean(exist))
-      ) {
-        navigation.dispatch(e.data.action);
-        return;
-      } else if (
-        location == '' &&
-        !tempMeasure &&
-        !selectedPhoto &&
-        sanitized.length == 0
-      ) {
+      if (isUnchanged) {
         navigation.dispatch(e.data.action);
         return;
       }
@@ -353,6 +341,24 @@ const Measurement = () => {
 
     const sanitized = tools.map(({ locked, hidden, ...rest }) => rest);
 
+    const performSave = async () => {
+      setHideEndpoints(true);
+      // Wait for UI to update
+      setTimeout(async () => {
+        try {
+          const annotatedUri = await ref.current?.capture!();
+          await saveMeasure(sanitized, annotatedUri);
+          onSuccess?.();
+        } catch (e) {
+          console.error('Capture failed, saving raw only', e);
+          await saveMeasure(sanitized);
+          onSuccess?.();
+        } finally {
+          setHideEndpoints(false);
+        }
+      }, 1000);
+    };
+
     if (hasEmptyOrZero(sanitized)) {
       Alert.alert('Missing information', 'Are you sure you want to save?', [
         {
@@ -360,34 +366,33 @@ const Measurement = () => {
           style: 'cancel',
           onPress: () => {
             console.log('❌ Save canceled');
-            skipPromptRef.current = false; // reset here
+            skipPromptRef.current = false;
           },
         },
         {
           text: 'Save Anyway',
           style: 'destructive',
           onPress: async () => {
-            await saveMeasure(sanitized);
-            onSuccess?.();
+            await performSave();
           },
         },
       ]);
-      return false; // initial return doesn’t matter anymore
+      return false;
     }
 
-    await saveMeasure(sanitized);
-    onSuccess?.();
+    await performSave();
     return true;
   };
 
   // ✅ Extracted save logic (so it can be reused for both normal + override save)
-  async function saveMeasure(toolsData: any[]) {
+  async function saveMeasure(toolsData: any[], annotatedUri?: string) {
     const { location, tempMeasure, selectedPhoto, existingMeasure } =
       stateRef.current;
 
     try {
       setIsLoading(true);
       let photoUrl = selectedPhoto ?? '';
+      let annotatedPhotoUrl = '';
       
       // Upload photo if it exists and is a local file (not already a URL)
       if (photoUrl && !photoUrl.startsWith('http')) {
@@ -395,8 +400,21 @@ const Measurement = () => {
            const fileName = `measurements/${projectId}/${uuid.v4()}.jpg`;
            photoUrl = await uploadImageToStorage(photoUrl, fileName);
          } catch (e) {
-           console.error('Failed to upload photo, saving without it', e);
+           console.error('Failed to upload photo', e);
          }
+      }
+
+      // Upload annotated photo if provided
+      if (annotatedUri) {
+        try {
+          const annFileName = `measurements/${projectId}/${uuid.v4()}_ann.jpg`;
+          annotatedPhotoUrl = await uploadImageToStorage(annotatedUri, annFileName);
+        } catch (e) {
+          console.error('Failed to upload annotated photo', e);
+        }
+      } else if (existingMeasure?.annotatedPhoto) {
+        // Keep existing annotated photo if we're not updating it
+        annotatedPhotoUrl = existingMeasure.annotatedPhoto;
       }
 
       const newMeasure: Measure = {
@@ -404,6 +422,7 @@ const Measurement = () => {
         location,
         details: tempMeasure,
         photo: photoUrl,
+        annotatedPhoto: annotatedPhotoUrl,
         toolsData,
         timestamp: Date.now(),
       };
@@ -723,9 +742,12 @@ const Measurement = () => {
   let tapeCount = 0;
   let laserCount = 0;
   let rakeCount = 0;
+  let rectangleCount = 0;
+  let cornerCount = 0;
+  let noteCount = 0;
 
   const renderTools = (tool: Tool) => {
-    if (tool.hidden) return null;
+    if (tool.hidden && !hideEndpoints) return null;
 
     // Convert percentage → pixels for rendering
     const { x: xCoords, y: yCoords } = toPixelCoords(
@@ -733,6 +755,9 @@ const Measurement = () => {
       tool.yCoords,
       displayedSize,
     );
+
+    // const toolIndex = tools.findIndex(t => t.id === tool.id) + 1;
+    // const toolLabel = `${tool.type} ${toolIndex}`;
 
     const { x: xCoordsDist, y: yCoordsDist } = toPixelCoords(
       tool.type == 'Rake' && tool.showDist ? tool?.xCoordsDist : [0, 0],
@@ -743,6 +768,7 @@ const Measurement = () => {
     switch (tool.type) {
       case 'Tape': {
         tapeCount++;
+        const toolLabel = `${tool.type} ${tapeCount}`;
         return (
           <TapeTool
             key={tool.id}
@@ -755,16 +781,18 @@ const Measurement = () => {
             }}
             xCoords={xCoords}
             yCoords={yCoords}
-            tapeNumber={tapeCount}
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
             onLabelPress={data => updateFocus(tool.id, data)}
+            label={toolLabel}
+            hideEndpoints={hideEndpoints}
           />
         );
       }
       case 'Laser': {
         laserCount++;
+        const toolLabel = `${tool.type} ${laserCount}`;
         return (
           <LaserTool
             key={tool.id}
@@ -777,16 +805,18 @@ const Measurement = () => {
             }}
             xCoords={xCoords}
             yCoords={yCoords}
-            laserNumber={laserCount}
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
             onLabelPress={data => updateFocus(tool.id, data)}
+            label={toolLabel}
+            hideEndpoints={hideEndpoints}
           />
         );
       }
       case 'Rake': {
         rakeCount++;
+        const toolLabel = `${tool.type} ${rakeCount}`;
         return (
           <RakeTool
             key={tool.id}
@@ -805,16 +835,19 @@ const Measurement = () => {
             yCoords={yCoords}
             xCoordsDist={xCoordsDist}
             yCoordsDist={yCoordsDist}
-            rakeNumber={rakeCount}
             showDist={tool.showDist}
             data={tool.data}
             locked={tool.locked}
             canvasSize={displayedSize}
             onLabelPress={data => updateFocus(tool.id, data)}
+            label={toolLabel}
+            hideEndpoints={hideEndpoints}
           />
         );
       }
       case 'Rectangle': {
+        rectangleCount++;
+        const toolLabel = `${tool.type} ${rectangleCount}`;
         return (
           <RectangleTool
             key={tool.id}
@@ -831,10 +864,14 @@ const Measurement = () => {
             locked={tool.locked}
             canvasSize={displayedSize}
             onLabelPress={data => updateFocus(tool.id, data)}
+            label={toolLabel}
+            hideEndpoints={hideEndpoints}
           />
         );
       }
       case 'Corner': {
+        cornerCount++;
+        const toolLabel = `${tool.type} ${cornerCount}`;
         return (
           <CornerTool
             key={tool.id}
@@ -851,10 +888,14 @@ const Measurement = () => {
             locked={tool.locked}
             canvasSize={displayedSize}
             onLabelPress={data => updateFocus(tool.id, data)}
+            label={toolLabel}
+            hideEndpoints={hideEndpoints}
           />
         );
       }
       case 'Note': {
+        noteCount++;
+        const toolLabel = `${tool.type} ${noteCount}`;
         return (
           <NoteTool
             key={tool.id}
@@ -871,6 +912,8 @@ const Measurement = () => {
             locked={tool.locked}
             canvasSize={displayedSize}
             onLabelPress={data => updateFocus(tool.id, data)}
+            label={toolLabel}
+            hideEndpoints={hideEndpoints}
           />
         );
       }
@@ -878,20 +921,28 @@ const Measurement = () => {
   };
 
   const exportReport = async () => {
-    ref.current?.capture!().then(async uri => {
-      console.log('do something with ', uri);
-      let options = {
-        html: pdfHTML(uri, projectInfo, location, tools),
-        fileName: `${projectInfo?.qouteNumber}-${location}`,
-        directory: 'Documents',
-      };
+    setHideEndpoints(true); // 🤫 Hide endpoints for capture
+    
+    // Wait a bit for state update and layout
+    setTimeout(async () => {
+      try {
+        const uri = await ref.current?.capture!();
+        console.log('do something with ', uri);
+        let options = {
+          html: pdfHTML(uri!, projectInfo, location, tools, tempMeasure),
+          fileName: `${projectInfo?.qouteNumber}-${location}`,
+          directory: 'Documents',
+        };
 
-      let file = await generatePDF(options);
-      console.log(file.filePath);
-      FileViewer.open(file.filePath!);
-    });
-
-    // alert(file.filePath);
+        let file = await generatePDF(options);
+        console.log(file.filePath);
+        FileViewer.open(file.filePath!);
+      } catch (error) {
+        console.error('Export failed:', error);
+      } finally {
+        setHideEndpoints(false); // 🔍 Show them again
+      }
+    }, 1000);
   };
 
   const displayedSize = getDisplayedSize();

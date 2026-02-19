@@ -29,6 +29,8 @@ const CornerTool = ({
   baseColor,
   onLabelPress,
   labelSize,
+  label,
+  hideEndpoints,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -74,6 +76,8 @@ const CornerTool = ({
     >,
   ) => void;
   labelSize: number;
+  label: string;
+  hideEndpoints: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -607,7 +611,7 @@ const CornerTool = ({
           </GestureDetector>
         </View>
       </Animated.View>
-      {!locked
+      {!locked && !hideEndpoints
         ? points.map((_, i) => (
             <GestureDetector key={`point-${i}`} gesture={panGestures[i]}>
               <Animated.View style={[styles.box, animatedStyles[i]]} />

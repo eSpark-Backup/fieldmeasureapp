@@ -32,6 +32,7 @@ export type Measure = {
   timestamp: number;
   toolsData: Tool[];
   photo: string;
+  annotatedPhoto?: string;
 };
 
 export type Project = {

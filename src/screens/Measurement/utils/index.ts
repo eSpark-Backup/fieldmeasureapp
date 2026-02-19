@@ -4,14 +4,40 @@ import uuid from 'react-native-uuid';
 
 const { width, height } = Dimensions.get('screen');
 
-export const pdfHTML = (
+export const pdfStyles = `
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td,
+    th {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background-color: #f9f9f9;
+      padding-block: 10px;
+    }
+    .header-info p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+`;
+
+export const pdfContentHTML = (
   uri: string,
-  projectInfo: any, // or properly typed Project
+  projectInfo: any,
   location: string,
   tools: Tool[],
+  details?: any,
 ) => {
+  const counts: Record<string, number> = {};
   const rows = tools
-    .map((tool, index) => {
+    .map((tool) => {
+      counts[tool.type] = (counts[tool.type] || 0) + 1;
       let value = '';
       if (tool.type === 'Tape') {
         value = `${tool.data.value} ${tool.data.fraction}"`;
@@ -30,11 +56,19 @@ export const pdfHTML = (
         value = `TopL: ${tool.data.TopLA.value} ${tool.data.TopLA.fraction}"-${tool.data.TopLB.value} ${tool.data.TopLB.fraction}" | TopR: ${tool.data.TopRA.value} ${tool.data.TopRA.fraction}"-${tool.data.TopRB.value} ${tool.data.TopRB.fraction}" | Right: ${tool.data.RightA.value} ${tool.data.RightA.fraction}"-${tool.data.RightB.value} ${tool.data.RightB.fraction}" | Center: ${tool.data.CenterA.value} ${tool.data.CenterA.fraction}"-${tool.data.CenterB.value} ${tool.data.CenterB.fraction}" | Left: ${tool.data.LeftA.value} ${tool.data.LeftA.fraction}"-${tool.data.LeftB.value} ${tool.data.LeftB.fraction}" | BotL: ${tool.data.BotLA.value} ${tool.data.BotLA.fraction}"-${tool.data.BotLB.value} ${tool.data.BotLB.fraction}" | BotR: ${tool.data.BotRA.value} ${tool.data.BotRA.fraction}"-${tool.data.BotRB.value} ${tool.data.BotRB.fraction}"`;
       }
 
-      // Fallback or more detailed formatting can be added as needed
       if (!value) value = 'N/A';
 
+      const toolLabel = `${tool.type} ${counts[tool.type]}`;
+
       return `<tr>
-      <td>${tool.type} ${index + 1}</td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background-color: ${String(
+            tool.color,
+          )}; border: 1px solid #ccc;"></div>
+          ${toolLabel}
+        </div>
+      </td>
       <td>${tool.type}</td>
       <td>${value}</td>
       <td>${location}</td>
@@ -42,40 +76,72 @@ export const pdfHTML = (
     })
     .join('');
 
-  return `<style>
-    table {
-      font-family: arial, sans-serif;
-      border-collapse: collapse;
-      width: 80%;
-    }
+  let detailsHTML = '';
+  if (details) {
+    const detailRows = Object.entries(details.selectedValues || {})
+      .map(([key, val]) => `<tr><td><strong>${key}:</strong></td><td>${val}</td></tr>`)
+      .join('');
+    
+    const inputRows = Object.entries(details.inputs || {})
+      .map(([key, val]) => `<tr><td><strong>${key}:</strong></td><td>${val}</td></tr>`)
+      .join('');
 
-    td,
-    th {
-      text-align: left;
-      padding: 2px;
-    }
-    th {
-      padding-block: 8px;
-    }
-  </style>
-  <h2>Measurement Report</h2>
-  <p>Quote: ${projectInfo?.qouteNumber || ''}</p>
-  <p>Client: ${projectInfo?.name || ''}</p>
-  <p>Address: ${projectInfo?.address || ''}</p>
-  <p>Date: ${projectInfo?.date || ''}</p>
+    detailsHTML = `
+      <div style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+        <h3>Project Details</h3>
+        <table style="width: 50%;">
+          ${detailRows}
+          ${inputRows}
+          <tr><td><strong>Promised Date:</strong></td><td>${details.datePromised ? new Date(details.datePromised).toLocaleDateString('en-GB') : 'N/A'}</td></tr>
+          <tr><td><strong>Notes:</strong></td><td>${details.description || 'N/A'}</td></tr>
+        </table>
+      </div>`;
+  }
 
-  <img src=${uri} alt="Image" width=${width - 40} height=${height * 0.8} />
+  return `
+  <div style="padding: 20px; page-break-after: always;">
+    <h2>Measurement Report</h2>
+    <div class="header-info">
+      <p><strong>Quote:</strong> ${projectInfo?.qouteNumber || ''}</p>
+      <p><strong>Client:</strong> ${projectInfo?.name || ''}</p>
+      <p><strong>Address:</strong> ${projectInfo?.address || ''}</p>
+      <p><strong>Location Name:</strong> ${location}</p>
+      <p><strong>Date:</strong> ${projectInfo?.date || ''}</p>
+    </div>
 
-  <h2>Measurements (Total ${tools.length})</h2>
-  <table>
-    <tr>
-      <th>Label</th>
-      <th>Type</th>
-      <th>Value</th>
-      <th>Area</th>
-    </tr>
-    ${rows}
-  </table>`;
+    <img src="${uri}" alt="Report Image" style="width: 100%; margin-top: 20px; border: 1px solid #ddd;" />
+
+    <h2 style="margin-top: 30px;">Measurements (Total ${tools.length})</h2>
+    <table>
+      <tr>
+        <th>Label</th>
+        <th>Type</th>
+        <th>Value</th>
+        <th>Area</th>
+      </tr>
+      ${rows}
+    </table>
+    ${detailsHTML}
+  </div>`;
+};
+
+export const pdfHTML = (
+  uri: string,
+  projectInfo: any,
+  location: string,
+  tools: Tool[],
+  details?: any,
+) => {
+  return `
+    <html>
+      <head>
+        <style>${pdfStyles}</style>
+      </head>
+      <body>
+        ${pdfContentHTML(uri, projectInfo, location, tools, details)}
+      </body>
+    </html>
+  `;
 };
 
 const getRandomDarkHexColor = () => {

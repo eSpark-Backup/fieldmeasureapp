@@ -24,6 +24,10 @@ import {
   lightBackground,
   WhiteBackground,
 } from '../../constants/colors';
+import { Export } from '../../assets';
+import { pdfHTML, pdfContentHTML, pdfStyles } from '../../screens/Measurement/utils';
+import { generatePDF } from 'react-native-html-to-pdf';
+import FileViewer from 'react-native-file-viewer';
 import TheTextInput from '../TheTextInput';
 import TheDropdown from '../TheDropdown';
 import { TheDatePicker } from '..';
@@ -50,7 +54,7 @@ const MeasuresList = ({
 }) => {
   const navigation =
     useNavigation<NativeStackScreenProps<RootNavParamList>['navigation']>();
-  const { editProject } = useProjectStore();
+  const { editProject, setIsLoading } = useProjectStore();
   const { user } = useUserStore();
   const [technicians, setTechnicians] = useState<any[]>([]);
   const { db } = require('../../utils/firebase');
@@ -110,6 +114,83 @@ const MeasuresList = ({
     navigation.navigate('Measurement', {
       ...project,
     });
+  };
+
+  const handleExportAll = async () => {
+    if (!project.measures || project.measures.length === 0) {
+      Alert.alert('No measurements', 'There are no measurements to export.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      let combinedContent = '';
+      
+      // Add a Project Header Page
+      combinedContent += `
+        <div style="padding: 40px; font-family: sans-serif; page-break-after: always;">
+          <h1 style="color: #333; border-bottom: 2px solid #fcac17ff; padding-bottom: 10px;">Consolidated Project Report</h1>
+          <p><strong>Quote Number:</strong> ${project.qouteNumber}</p>
+          <p><strong>Client Name:</strong> ${project.name}</p>
+          <p><strong>Address:</strong> ${project.address}</p>
+          <p><strong>Technician:</strong> ${project.techName}</p>
+          <p><strong>Date:</strong> ${project.date}</p>
+          <p><strong>Total Measures:</strong> ${project.measures.length}</p>
+        </div>
+      `;
+
+      for (const measure of project.measures) {
+        const reportPhoto = measure.annotatedPhoto || measure.photo;
+        combinedContent += pdfContentHTML(reportPhoto, project, measure.location, measure.toolsData, measure.details);
+      }
+
+      const finalHTML = `
+        <html>
+          <head>
+            <style>${pdfStyles}</style>
+          </head>
+          <body>
+            ${combinedContent}
+          </body>
+        </html>
+      `;
+
+      let options = {
+        html: finalHTML,
+        fileName: `Consolidated-${project.qouteNumber}`,
+        directory: 'Documents',
+      };
+
+      let file = await generatePDF(options);
+      FileViewer.open(file.filePath!);
+    } catch (error) {
+      console.error('Export all failed:', error);
+      Alert.alert('Error', 'Failed to generate consolidated report.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleExportIndividual = async (measure: Measure) => {
+    try {
+      setIsLoading(true);
+      const reportPhoto = measure.annotatedPhoto || measure.photo;
+      const html = pdfHTML(reportPhoto, project, measure.location, measure.toolsData, measure.details);
+      
+      let options = {
+        html,
+        fileName: `${project.qouteNumber}-${measure.location}`,
+        directory: 'Documents',
+      };
+
+      let file = await generatePDF(options);
+      FileViewer.open(file.filePath!);
+    } catch (error) {
+      console.error('Individual export failed:', error);
+      Alert.alert('Error', 'Failed to generate report.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleViewMeasure = (measure: Measure) => {
@@ -272,6 +353,7 @@ const MeasuresList = ({
               <MeasureCard
                 measure={item}
                 onView={() => handleViewMeasure(item)}
+                onExport={() => handleExportIndividual(item)}
                 projectId={project.id}
               />
               {project.measures &&
@@ -297,6 +379,7 @@ const MeasuresList = ({
                       onPress={() => setShowEdit(true)}
                     />
                   )}
+                  <TheButton btnTitle="Export All" icon={<Export />} onPress={handleExportAll} />
                   <TheButton btnTitle="Add Measure" onPress={handleAddMeasure} />
                 </View>
             </View>
@@ -326,10 +409,11 @@ const MeasuresList = ({
 type MeasureCardProps = {
   measure: Measure;
   onView: () => void;
+  onExport: () => void;
   projectId: string;
 };
 
-const MeasureCard = ({ measure, onView, projectId }: MeasureCardProps) => {
+const MeasureCard = ({ measure, onView, onExport, projectId }: MeasureCardProps) => {
   const { removeMeasureFromProject } = useProjectStore();
 
   const handleDelete = () => {
@@ -360,7 +444,7 @@ const MeasureCard = ({ measure, onView, projectId }: MeasureCardProps) => {
           <Image
             resizeMode="contain"
             style={{ flex: 1, width: '100%' }}
-            source={{ uri: measure?.photo }}
+            source={{ uri: measure?.annotatedPhoto || measure?.photo }}
           />
         </View>
       ) : (
@@ -377,6 +461,15 @@ const MeasureCard = ({ measure, onView, projectId }: MeasureCardProps) => {
         titleColor="black"
         titleStyle={{ fontWeight: '500' }}
         btnTitle="View Details"
+      />
+      <TheButton
+        onPress={onExport}
+        btnColor="#fcac17ff"
+        style={{ marginVertical: 5 }}
+        titleColor="white"
+        titleStyle={{ fontWeight: 'bold' }}
+        btnTitle="Export Report"
+        icon={<Export width={18} height={18} color="white" />}
       />
     </View>
   );

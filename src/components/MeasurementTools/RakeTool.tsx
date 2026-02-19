@@ -37,9 +37,10 @@ const RakeTool = ({
   locked,
   canvasSize,
   baseColor,
-  rakeNumber,
   onLabelPress,
   labelSize,
+  label,
+  hideEndpoints,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -58,7 +59,6 @@ const RakeTool = ({
   locked?: boolean;
   canvasSize: CanvasVals;
   baseColor: ColorValue;
-  rakeNumber: number;
   onLabelPress: (data: {
     value: string;
     fraction: string;
@@ -66,6 +66,8 @@ const RakeTool = ({
     distance: MeasurementPair;
   }) => void;
   labelSize: number;
+  label: string;
+  hideEndpoints: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -319,13 +321,13 @@ const RakeTool = ({
               <TheText
                 size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
-                text={`R${rakeNumber}: +${formatInches(data)}`}
+                text={`${label}: +${formatInches(data)}`}
               />
             </View>
           </GestureDetector>
         </View>
       </Animated.View>
-      {!locked
+      {!locked && !hideEndpoints
         ? points.map((_, i) => (
             <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
               <Animated.View style={[styles.box, animatedStyles[i]]} />
@@ -359,11 +361,11 @@ const RakeTool = ({
               <TheText
                 size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
-                text={`R${rakeNumber}D: ${formatInches(data.distance)}`}
+                text={`${label}D: ${formatInches(data.distance)}`}
               />
             </Animated.View>
           </GestureDetector>
-          {!locked
+          {!locked && !hideEndpoints
             ? pointsDist.map((_, i) => (
                 <GestureDetector key={`pan-${i}`} gesture={panGesturesDist[i]}>
                   <Animated.View

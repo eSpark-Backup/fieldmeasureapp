@@ -25,6 +25,8 @@ const NoteTool = ({
   baseColor,
   onLabelPress,
   labelSize,
+  label,
+  hideEndpoints,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -36,6 +38,8 @@ const NoteTool = ({
   baseColor: ColorValue;
   onLabelPress: (data: { value: string; focused: boolean }) => void;
   labelSize: number;
+  label: string;
+  hideEndpoints: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -129,7 +133,7 @@ const NoteTool = ({
             <TheText
               size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`Note`}
+              text={label}
             />
           </Animated.View>
         </GestureDetector>

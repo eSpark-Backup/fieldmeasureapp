@@ -26,9 +26,10 @@ const LaserTool = ({
   locked,
   canvasSize,
   baseColor,
-  laserNumber,
   onLabelPress,
   labelSize,
+  label,
+  hideEndpoints,
 }: {
   scaleValue: number;
   getCoords: (xCoords: number[], yCoords: number[]) => void;
@@ -41,12 +42,13 @@ const LaserTool = ({
   locked?: boolean;
   canvasSize: CanvasVals;
   baseColor: ColorValue;
-  laserNumber: number;
   onLabelPress: (data: {
     SideA: MeasurementPair;
     SideB: MeasurementPair;
   }) => void;
   labelSize: number;
+  label: string;
+  hideEndpoints: boolean;
 }) => {
   const initialX = xCoords;
   const initialY = yCoords;
@@ -169,7 +171,7 @@ const LaserTool = ({
               <TheText
                 size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
-                text={`L${laserNumber}B: ${formatInches(data.SideB)}`}
+                text={`${label}B: ${formatInches(data.SideB)}`}
               />
             </View>
           </GestureDetector>
@@ -185,7 +187,7 @@ const LaserTool = ({
             <TheText
               size={labelSize * (2 / scaleValue / 2)}
               color={WhiteBackground}
-              text={`L${laserNumber}: ${formatInchesSum(
+              text={`${label}: ${formatInchesSum(
                 data.SideA,
                 data.SideB,
               )}`}
@@ -205,7 +207,7 @@ const LaserTool = ({
               <TheText
                 size={labelSize * (2 / scaleValue / 2)}
                 color={WhiteBackground}
-                text={`L${laserNumber}A: ${formatInches(data.SideA)}`}
+                text={`${label}A: ${formatInches(data.SideA)}`}
               />
             </View>
           </GestureDetector>
@@ -218,7 +220,7 @@ const LaserTool = ({
           text="M1:0"
         />
       </Animated.View> */}
-      {!locked
+      {!locked && !hideEndpoints
         ? points.map((_, i) => (
             <GestureDetector key={`pan-${i}`} gesture={panGestures[i]}>
               <Animated.View style={[styles.box, animatedStyles[i]]} />

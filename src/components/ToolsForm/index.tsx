@@ -252,6 +252,9 @@ export default function ToolsForm({
   let tapeCount = 0;
   let laserCount = 0;
   let rakeCount = 0;
+  let rectangleCount = 0;
+  let cornerCount = 0;
+  let noteCount = 0;
 
   // Helper function to calculate variance between rectangle measurements
   const calculateVariance = (value1: number, value2: number): boolean => {
@@ -696,6 +699,7 @@ export default function ToolsForm({
           manageFocus(rid, p[k].focused);
         });
 
+        rectangleCount++;
         return (
           <Card
             item={item}
@@ -703,6 +707,7 @@ export default function ToolsForm({
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
+            count={rectangleCount}
           >
             {keys.map((k, index) => {
               const rid = `${item.id}-rectangle-${index}`;
@@ -784,6 +789,7 @@ export default function ToolsForm({
           manageFocus(cid, p[k].focused);
         });
 
+        cornerCount++;
         return (
           <Card
             item={item}
@@ -791,6 +797,7 @@ export default function ToolsForm({
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
+            count={cornerCount}
           >
             {keys.map((k, index) => {
               const cid = `${item.id}-corner-${index}`;
@@ -831,6 +838,8 @@ export default function ToolsForm({
           else if (!shouldFocus && isFocused) ref?.blur?.();
         };
         manageFocus(tooId, item.data.focused);
+
+        noteCount++;
         return (
           <Card
             item={item}
@@ -838,6 +847,7 @@ export default function ToolsForm({
             onDelete={() => deleteItem(item.id)}
             onEye={() => updateEye(item.id, !item.hidden)}
             onToggle={() => updateToggle(item.id, !item.locked)}
+            count={noteCount}
           >
             <TheDescriptionBox
               id={tooId}
@@ -934,9 +944,7 @@ const Card = ({
         <View style={[styles.rowContainer, { gap: 5, width: '60%' }]}>
           <Badge color={color || '#FBBF24'} />
           <TheText
-            text={
-              item.type == 'Note' ? item.type : `${item.type} ${count ?? ''}`
-            }
+            text={`${item.type} ${count ?? ''}`}
             size={WINDOW_WIDTH * 0.015}
             numberOfLines={1}
             style={{ fontWeight: '600', width: '80%' }}
